@@ -1,59 +1,44 @@
+import { View, Text} from 'react-native';
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
+import {Tabs} from "expo-router";
+import Colors from "@/constants/Colors";
+import Entypo from '@expo/vector-icons/Entypo';
+import Feather from '@expo/vector-icons/Feather';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Fontisto from '@expo/vector-icons/Fontisto';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+
+const Layout = () => {
+    return<Tabs screenOptions={{
+        tabBarActiveTintColor: Colors.primary,
+        tabBarLabelStyle: {
+            fontFamily: 'mon-sb',
+        },
+    }}>
+        <Tabs.Screen name="index" options={{
+            tabBarLabel: 'Home',
+            tabBarIcon: ({color}) => <Entypo name="home" size={24} color={color} />
+        }}/>
+        <Tabs.Screen name="explore" options={{
+        tabBarLabel: 'Explore',
+        tabBarIcon: ({color}) => <Entypo name="globe" size={24} color={color} />
+    }}/>
+        <Tabs.Screen name="wishlist" options={{
+            tabBarLabel: 'Favorites',
+            tabBarIcon: ({color}) => <AntDesign name="hearto" size={24} color={color} />
+        }}/>
+        <Tabs.Screen name="inbox" options={{
+            tabBarLabel: 'Chat',
+            tabBarIcon: ({color}) => <Fontisto name="hipchat" size={24} color={color} />
+        }}/>
+        <Tabs.Screen name="profile" options={{
+            tabBarLabel: 'Profile',
+            tabBarIcon: ({color}) => <Ionicons name="person-circle-outline" size={24} color={color} />
+        }}/>
+    </Tabs>;
 }
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="two"
-        options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
-}
+export default Layout;
