@@ -1,34 +1,53 @@
-// app/settings/personal-information.tsx
-
-import React, { useState } from 'react';
+import React from 'react';
 import {
     View,
     Text,
     StyleSheet,
     SafeAreaView,
-    TextInput,
     TouchableOpacity,
-    Alert,
-    ScrollView, Switch,
+    FlatList,
+    Image,
+    ScrollView,
 } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from 'expo-router';
-import { useFonts } from 'expo-font';
 
 export interface PersonalInfoProps {
     testID?: string,
 }
 
+// Пример данных
+const paymentData = [
+    { id: '1', name: 'Alice Johnson', avatar: 'https://via.placeholder.com/100', date: '2023.11.01', amount: '50 €' },
+    { id: '2', name: 'Bob Smith', avatar: 'https://via.placeholder.com/100', date: '2023.10.20', amount: '30 €' },
+    { id: '3', name: 'Charlie Brown', avatar: 'https://via.placeholder.com/100', date: '2023.10.15', amount: '20 €' },
+    { id: '4', name: 'David White', avatar: 'https://via.placeholder.com/100', date: '2023.10.10', amount: '10 €' },
+    { id: '5', name: 'Eve Black', avatar: 'https://via.placeholder.com/100', date: '2023.10.05', amount: '5 €' },
+];
+
+const payoutData = [
+    { id: '1', name: 'John Doe', avatar: 'https://via.placeholder.com/100', date: '2023.11.05', amount: '100 €' },
+    { id: '2', name: 'Emily Rose', avatar: 'https://via.placeholder.com/100', date: '2023.10.25', amount: '75 €' },
+    { id: '3', name: 'Michael Johnson', avatar: 'https://via.placeholder.com/100', date: '2023.10.10', amount: '60 €' },
+    { id: '4', name: 'Sarah Smith', avatar: 'https://via.placeholder.com/100', date: '2023.10.05', amount: '40 €' },
+    { id: '5', name: 'Tom Brown', avatar: 'https://via.placeholder.com/100', date: '2023.10.01', amount: '30 €' },
+];
+
 const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
     const router = useRouter();
-    const [isEnabled, setIsEnabled] = useState(false);
 
-    // Обработчик переключения, который только меняет состояние
-    const toggleSwitch = () => setIsEnabled(previousState => !previousState);
-
-
-
-
+    const renderItem = ({ item, isPayout }: { item: typeof paymentData[0], isPayout: boolean }) => (
+        <View style={styles.paymentItem}>
+            <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            <View style={styles.paymentInfo}>
+                <Text style={styles.userName}>{item.name}</Text>
+                <Text style={styles.date}>{item.date}</Text>
+            </View>
+            <Text style={[styles.amount, isPayout ? styles.payoutAmount : styles.paymentAmount]}>
+                {item.amount}
+            </Text>
+        </View>
+    );
 
     return (
         <SafeAreaView style={styles.container} testID={props.testID ?? "personal-info"}>
@@ -36,27 +55,50 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>
-                <Text style={styles.title}>Accessibility</Text>
+                <Text style={styles.title}>Payment & payouts</Text>
             </View>
-            <View style={styles.content}>
-                <View style={styles.infoRow}>
-                    <Text style={styles.label}>Dark Mode</Text>
-                    <Switch
-                        value={isEnabled}
-                        onValueChange={toggleSwitch}
-                        trackColor={{ false: '#d3d3d3', true: '#34C759' }}
-                        thumbColor={isEnabled ? '#ffffff' : '#f4f3f4'}
-                        ios_backgroundColor="#d3d3d3"
-                        style={styles.iosSwitch}
+
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <View style={styles.content}>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.label}>Payment methods</Text>
+                    </View>
+                    <Text style={styles.description}>
+                        Add a payment method for your future tasks.
+                    </Text>
+                </View>
+
+                <TouchableOpacity style={styles.addButton} testID="add-payment-button">
+                    <Text style={styles.addButtonText}>Add Payment Method</Text>
+                </TouchableOpacity>
+
+                <View style={styles.content}>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.label}>Your payments</Text>
+                    </View>
+                    <FlatList
+                        data={paymentData}
+                        renderItem={({ item }) => renderItem({ item, isPayout: false })}
+                        keyExtractor={(item) => item.id}
+                        contentContainerStyle={styles.paymentList}
+                        scrollEnabled={false}
                     />
                 </View>
-                <Text style={styles.description}>
-                    Turn on Dark Mode toggle to activate dark theme.
-                </Text>
-            </View>
 
-
-            <Text style={styles.footerText}>taskLink</Text>
+                <View style={styles.content}>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.label}>Your payouts</Text>
+                    </View>
+                    <FlatList
+                        data={payoutData}
+                        renderItem={({ item }) => renderItem({ item, isPayout: true })}
+                        keyExtractor={(item) => item.id}
+                        contentContainerStyle={[styles.paymentList, styles.lastList]}
+                        scrollEnabled={false}
+                    />
+                </View>
+                <Text style={styles.footerText}>taskLink</Text>
+            </ScrollView>
         </SafeAreaView>
     );
 };
@@ -80,11 +122,10 @@ const styles = StyleSheet.create({
         fontSize: 30,
         fontWeight: '700',
         color: '#000',
-        textAlign: 'left', // Выравнивание заголовка влево
-        fontFamily: 'mon-b',
+        marginLeft: 8,
     },
-    placeholder: {
-        width: 32, // Для симметрии заголовка
+    scrollContent: {
+        paddingBottom: 40,
     },
     content: {
         padding: 16,
@@ -93,10 +134,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 30,
-    },
-    labelContainer: {
-        flex: 2,
+        marginBottom: 10,
     },
     label: {
         fontSize: 22,
@@ -104,56 +142,78 @@ const styles = StyleSheet.create({
         color: '#333333',
         fontFamily: 'mon-b',
     },
+    paymentList: {
+        marginTop: 10,
+    },
+    lastList: {
+        paddingBottom: 80,
+    },
+    paymentItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 10,
+    },
+    avatar: {
+        width: 50,
+        height: 50,
+        borderRadius: 8,
+        marginRight: 12,
+    },
     description: {
         fontSize: 16,
         color: '#666',
-        marginTop: 1,
+        marginTop: 4,
     },
-    valueContainer: {
-        flex: 3,
-    },
-    value: {
-        fontSize: 16,
-        color: '#666666',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#CCCCCC',
-        borderRadius: 8,
-        padding: 8,
-        fontSize: 16,
-        color: '#000000',
-    },
-    disabledInput: {
-        backgroundColor: '#F5F5F5',
-        color: '#A0A0A0',
-    },
-    iconContainer: {
+    paymentInfo: {
         flex: 1,
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
     },
-    iconButton: {
-        marginLeft: 8,
+    userName: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
     },
-    footer: {
-        paddingVertical: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
+    date: {
+        fontSize: 14,
+        color: '#666',
+    },
+    amount: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    paymentAmount: {
+        color: '#FF3B30', // Красный для платежей
+    },
+    payoutAmount: {
+        color: '#34C759', // Зеленый для выплат
     },
     footerText: {
         fontSize: 18,
-        fontFamily: 'modernaRegular', // Используем шрифт MuseoModerno
-        color: '#888888', // Серый цвет текста
+        fontFamily: 'modernaRegular',
+        color: '#888888',
         fontWeight: 'bold',
-        position: 'absolute',
-        bottom: 20, // Отступ от низа экрана
-        alignSelf: 'center',
+        textAlign: 'center',
+        marginTop: 20,
+        paddingBottom: 40,
     },
-    iosSwitch: {
-        transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }], // Makes the switch a bit larger to mimic iOS style
+    addButton: {
+        width: 203,
+        height: 42,
+        borderRadius: 10,
+        backgroundColor: '#000',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 20,
+        marginLeft: 16,
     },
-
+    addButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '300',
+        fontFamily: 'mon-sb',
+    },
 });
 
 export default PersonalInformation;
