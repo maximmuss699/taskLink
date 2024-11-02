@@ -13,37 +13,47 @@ import {
     FlatList,
     Alert,
 } from 'react-native';
-import { Ionicons, IoniconsName } from '@expo/vector-icons'; //  IoniconsName
+import { Ionicons } from '@expo/vector-icons'; //  IoniconsName
 import Colors from '@/constants/Colors';
-import { Link } from 'expo-router';
+import {Href, Link} from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { defaultStyles } from '@/constants/Styles';
+import { useRouter } from 'expo-router';
+
+
+
 
 // interface for setting item
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name']; // icons in settings
 interface SettingItem {
     id: string;
     title: string;
     icon: IoniconsName;
+    route: string; // Используем тип SettingsRoute
 }
+
 
 // SETTINGS
 const settingsData: SettingItem[] = [
-    { id: '1', title: 'Personal information', icon: 'person-outline' },
-    { id: '2', title: 'Payments and payouts', icon: 'wallet-outline' },
-    { id: '3', title: 'Accessibility', icon: 'cog-outline' },
-    { id: '4', title: 'Tasks history', icon: 'clipboard-outline' },
-    { id: '5', title: 'Favourite taskers', icon: 'heart-outline' },
-    { id: '6', title: 'Need help?', icon: 'help-circle-outline' },
-    { id: '7', title: 'Give us feedback', icon: 'pencil-outline' },
+    { id: '1', title: 'Personal information', icon: 'person-outline', route: '/settings/personal-information' },
+    { id: '2', title: 'Payments and payouts', icon: 'wallet-outline', route: '/settings/payments-and-payouts' },
+    { id: '3', title: 'Accessibility', icon: 'cog-outline', route: '/settings/accessibility' },
+    { id: '4', title: 'Tasks history', icon: 'clipboard-outline', route: '/settings/tasks-history' },
+    { id: '5', title: 'Favourite taskers', icon: 'heart-outline', route: '/settings/favourite-taskers' },
+    { id: '6', title: 'Need help?', icon: 'help-circle-outline', route: '/settings/need-help' },
+    { id: '7', title: 'Give us feedback', icon: 'pencil-outline', route: '/settings/give-us-feedback' },
 ];
 
 const ProfilePage = () => {
-    const [isSignedIn, setIsSignedIn] = useState(true); // user is signed in
+   /// const [isSignedIn, setIsSignedIn] = useState(true); // Maybe we need to check if user is signed in
+
+    const router = useRouter();
+
     const [user, setUser] = useState({
         firstName: 'Donald',
         lastName: 'Trump',
         email: 'Donald@example.com',
-        imageUrl: 'https://via.placeholder.com/100',
+        imageUrl: 'https://d39-a.sdn.cz/d_39/c_img_gR_0/nKri/donald-trump-usa.jpeg?fl=cro,398,557,2352,1323%7Cres,722,,1%7Cwebp,75',
         createdAt: new Date('2023-01-01'),
     });
     const [firstName, setFirstName] = useState(user.firstName);
@@ -92,13 +102,10 @@ const ProfilePage = () => {
 
     // Simple function to handle setting press
     const handleSettingPress = (item: SettingItem) => {
-        // For now, just show an alert with the selected setting
-        Alert.alert('Settings', `You tap on: ${item.title}`);
-        //
-        // router.push(`/settings/${item.id}`);
+        router.push(item.route as Href);
     };
 
-    // Функция для рендеринга каждого пункта настроек
+    // Render setting item
     const renderSettingItem = ({ item }: { item: SettingItem }) => (
         <TouchableOpacity style={styles.settingItem} onPress={() => handleSettingPress(item)}>
             <Ionicons name={item.icon} size={24} color={Colors.dark} style={styles.settingIcon} />
@@ -183,7 +190,7 @@ const styles = StyleSheet.create({
     },
     header: {
         fontFamily: 'mon-b',
-        fontSize: 24,
+        fontSize: 30,
     },
     card: {
         backgroundColor: '#fff',
