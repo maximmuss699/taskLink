@@ -27,8 +27,8 @@ const Layout = () => {
         tabBarIcon: ({color}) => <Entypo name="globe" size={24} color={color} />
     }}/>
         <Tabs.Screen name="wishlist" options={{
-            tabBarLabel: 'Favorites',
-            tabBarIcon: ({color}) => <AntDesign name="hearto" size={24} color={color} />
+            tabBarLabel: 'New',
+            tabBarIcon: ({color}) => <Ionicons name="add-circle-outline" size={30} color={color} />
         }}/>
         <Tabs.Screen name="inbox" options={{
             tabBarLabel: 'Chat',
