@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase } from 'react-native';
 import React from 'react';
 import { Link } from "expo-router";
 import Colors from "@/constants/Colors";
@@ -9,12 +9,16 @@ import { FlatList } from 'react-native-reanimated/lib/typescript/Animated';
 const Page = () => {
     return (
         <View>
-            <Text style={styles.MainText}>Explore tasks near you</Text>
+            <Text style={styles.MainText}>Explore tasks near You</Text>
             <Text style={styles.LocationText}>Location</Text>
-            <TouchableOpacity style={styles.SearchBtn}>
+            <View style={styles.SearchBarCollection}>
                 <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
-                <Text style={styles.SearchBtnText}>What job are you searching for?</Text>
-            </TouchableOpacity>
+                <TextInput
+                    style={styles.SearchBar}
+                    placeholder='What job are you searching for?'
+                    placeholderTextColor="black"
+                    />
+            </View>
 
             <Text>Page</Text>
             <Link href={'/(modals)/login'}>
@@ -51,8 +55,11 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         color: Colors.primary
     },
-    SearchBtn: {
-        marginTop: 8,
+    SearchBar: {
+        width: 280,
+        margin: 10,
+        marginLeft: 2,
+        padding: 10,
         alignSelf: 'center',
         borderWidth: 2,
         borderColor: '#DEDEDE',
@@ -61,20 +68,18 @@ const styles = StyleSheet.create({
         shadowColor: '#DEDEDE',
         shadowOpacity: 1,
         shadowOffset: { width: 0, height: 1},
-        flexDirection: 'row'
-    },
-    SearchBtnText: {
+        flexDirection: 'row',
         fontFamily: 'mon-b',
-        fontWeight: 'bold',
-        color: 'black',
-        marginLeft: 10,
-        marginRight: 30,
-        marginTop: 10,
-        marginBottom: 10
+        fontWeight: 'bold'
     },
     SearchIcon: {
         marginLeft: 15,
         marginTop: 5
+    },
+    SearchBarCollection: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center'
     }
 })
 
