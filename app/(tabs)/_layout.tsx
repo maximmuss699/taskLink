@@ -28,6 +28,7 @@ const Layout = () => {
     }}/>
         <Tabs.Screen name="wishlist" options={{
             tabBarLabel: 'New',
+            headerShown: false,
             tabBarIcon: ({color}) => <Ionicons name="add-circle-outline" size={30} color={color} />
         }}/>
         <Tabs.Screen name="inbox" options={{
