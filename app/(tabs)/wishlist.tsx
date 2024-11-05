@@ -2,19 +2,46 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import React from 'react';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Screen2 from '../createNew/screenTwo';
+import Screen3 from '../createNew/screenThree';
+import { FormProvider } from '../context/FormContext';
+import { useForm } from '../context/FormContext';
 
-const New = () => {
+const Stack = createNativeStackNavigator();
+
+const NewStack = () => {
+    return (
+        <FormProvider>
+            <NavigationContainer independent={true}>
+                <Stack.Navigator initialRouteName="New">
+                    <Stack.Screen name="New" component={New} options={{ headerShown: false }} />
+                    <Stack.Screen name="Screen2" component={Screen2} options={{ title: "Create new task"}} />
+                    <Stack.Screen name="Screen3" component={Screen3} />
+                </Stack.Navigator>
+            </NavigationContainer>
+        </FormProvider>
+    );
+};
+
+const New = ({ navigation }: { navigation: NativeStackNavigationProp<any> }) => {
+    const { formData, setFormData } = useForm();
+
     return (
         <SafeAreaView style={styles.container}>
             <View>
                 <Text style={styles.header}>I want to: </Text>
-                <TouchableOpacity style={styles.categoryButton}>
+
+                <TouchableOpacity style={styles.categoryButton} onPress={() => { setFormData({ offeringTask: true }); navigation.navigate('Screen2'); }}>
                     <View style={styles.dropShadow} />
                     <Text style={styles.text}>{'Offer a \nnew task'}</Text>
                     <FontAwesome6 style={styles.icon} resizeMode="cover" name="file-invoice-dollar" size={55} color="black" />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.categoryButton}>
+
+                <TouchableOpacity style={styles.categoryButton} onPress={() => { setFormData({ offeringTask: false }); navigation.navigate('Screen2'); }}>
                     <View style={styles.dropShadow} />
                     <Text style={styles.text}>Seek out a new task</Text>
                     <MaterialIcons style={styles.icon} resizeMode="cover" name="person-search" size={70} color="black" />
@@ -23,6 +50,7 @@ const New = () => {
         </SafeAreaView>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -77,4 +105,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default New;
+export default NewStack;
