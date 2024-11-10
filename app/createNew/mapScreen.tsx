@@ -18,7 +18,7 @@ const INITIAL_REGION = {
 /**
  * Custom bottom button for navigating to the next screen
  */
-const BottomButton: React.FC<{ title: string; onPress?: () => void; disabled: boolean }> = ({ title, onPress, disabled }) => {
+export const BottomButton: React.FC<{ title: string; onPress?: () => void; disabled: boolean }> = ({ title, onPress, disabled }) => {
     return (
         <TouchableOpacity
             style={[styles.button, disabled && styles.buttonDisabled]}
