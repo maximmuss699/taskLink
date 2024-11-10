@@ -1,39 +1,30 @@
-// app/(tabs)/profile.tsx
-
 import React, { useState } from 'react';
 import {
     View,
     Text,
-    Button,
+    ScrollView,
     StyleSheet,
     SafeAreaView,
     Image,
     TouchableOpacity,
     TextInput,
-    FlatList,
     Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; //  IoniconsName
+import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
-import {Href, Link} from 'expo-router';
+import { Href, Link } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { defaultStyles } from '@/constants/Styles';
 import { useRouter } from 'expo-router';
 
-
-
-
-// interface for setting item
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name']; // icons in settings
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 interface SettingItem {
     id: string;
     title: string;
     icon: IoniconsName;
-    route: string; // Используем тип SettingsRoute
+    route: string;
 }
 
-
-// SETTINGS
 const settingsData: SettingItem[] = [
     { id: '1', title: 'Personal information', icon: 'person-outline', route: '/settings/personal-information' },
     { id: '2', title: 'Payments and payouts', icon: 'wallet-outline', route: '/settings/payments-and-payouts' },
@@ -45,10 +36,7 @@ const settingsData: SettingItem[] = [
 ];
 
 const ProfilePage = () => {
-   /// const [isSignedIn, setIsSignedIn] = useState(true); // Maybe we need to check if user is signed in
-
     const router = useRouter();
-
     const [user, setUser] = useState({
         firstName: 'Donald',
         lastName: 'Trump',
@@ -62,127 +50,108 @@ const ProfilePage = () => {
 
     const onSaveUser = () => {
         if (!firstName.trim() || !lastName.trim()) {
-            Alert.alert('Error', 'Empty name or surename.');
+            Alert.alert('Error', 'Empty name or surname.');
             return;
         }
-        // HERE WE SHOULD SAVE USER DATA TO THE SERVER
-        setUser({
-            ...user,
-            firstName: firstName,
-            lastName: lastName,
-        });
+        setUser({ ...user, firstName, lastName });
         setEdit(false);
     };
 
     const onCaptureImage = async () => {
-        // Request permission to access the media library (for IOS)
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
         if (status !== 'granted') {
             Alert.alert('Error', 'You need permission.');
             return;
         }
 
-        let result = await ImagePicker.launchImageLibraryAsync({
+        const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             quality: 0.75,
-            base64: false,
         });
 
         if (!result.canceled) {
-            const selectedImage = result.assets[0].uri;
-            // HERE WE SHOULD SAVE IMAGE TO THE SERVER
-            setUser({
-                ...user,
-                imageUrl: selectedImage,
-            });
+            setUser({ ...user, imageUrl: result.assets[0].uri });
         }
     };
 
-    // Simple function to handle setting press
     const handleSettingPress = (item: SettingItem) => {
         router.push(item.route as Href);
     };
 
-    // Render setting item
-    const renderSettingItem = ({ item }: { item: SettingItem }) => (
-        <TouchableOpacity style={styles.settingItem} onPress={() => handleSettingPress(item)}>
-            <Ionicons name={item.icon} size={24} color={Colors.dark} style={styles.settingIcon} />
-            <Text style={styles.settingText}>{item.title}</Text>
-            <Ionicons name="chevron-forward" size={24} color={Colors.dark} />
-        </TouchableOpacity>
-    );
-
     return (
         <SafeAreaView style={defaultStyles.container}>
-            {/* Header Profile */}
-            <View style={styles.headerContainer}>
-                <Text style={styles.header}>Profile</Text>
-                <Ionicons name="notifications-outline" size={26} />
-            </View>
-
-            {/* PROFILE CARD */}
-            {user && (
-                <View style={styles.card}>
-                    <TouchableOpacity onPress={onCaptureImage}>
-                        <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
-                    </TouchableOpacity>
-                    <View style={styles.profileInfo}>
-                        {!edit ? (
-                            <View style={styles.editRow}>
-                                <Text style={styles.userName}>
-                                    {user.firstName} {user.lastName}
-                                </Text>
-                                <TouchableOpacity onPress={() => setEdit(true)}>
-                                    <Ionicons name="create-outline" size={24} color={Colors.dark} />
-                                </TouchableOpacity>
-                            </View>
-                        ) : (
-                            <View style={styles.editRow}>
-                                <TextInput
-                                    placeholder="First Name"
-                                    value={firstName}
-                                    onChangeText={setFirstName}
-                                    style={[defaultStyles.inputField, { width: 100 }]}
-                                />
-                                <TextInput
-                                    placeholder="Last Name"
-                                    value={lastName}
-                                    onChangeText={setLastName}
-                                    style={[defaultStyles.inputField, { width: 100 }]}
-                                />
-                                <TouchableOpacity onPress={onSaveUser}>
-                                    <Ionicons name="checkmark-outline" size={24} color={Colors.dark} />
-                                </TouchableOpacity>
-                            </View>
-                        )}
-                        <Text style={styles.email}>{user.email}</Text>
-                        <Text style={styles.since}>Since {user.createdAt.toLocaleDateString()}</Text>
-                    </View>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.headerContainer}>
+                    <Text style={styles.header}>Profile</Text>
+                    <Ionicons name="notifications-outline" size={26} />
                 </View>
-            )}
 
-            {/* HEADER Settings */}
-            <View style={styles.settingsHeaderContainer}>
-                <Text style={styles.settingsHeader}>Settings</Text>
-            </View>
+                {user && (
+                    <View style={styles.card}>
+                        <TouchableOpacity onPress={onCaptureImage}>
+                            <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
+                        </TouchableOpacity>
+                        <View style={styles.profileInfo}>
+                            {!edit ? (
+                                <View style={styles.editRow}>
+                                    <Text style={styles.userName}>
+                                        {user.firstName} {user.lastName}
+                                    </Text>
+                                    <TouchableOpacity onPress={() => setEdit(true)}>
+                                        <Ionicons name="create-outline" size={24} color={Colors.dark} />
+                                    </TouchableOpacity>
+                                </View>
+                            ) : (
+                                <View style={styles.editRow}>
+                                    <TextInput
+                                        placeholder="First Name"
+                                        value={firstName}
+                                        onChangeText={setFirstName}
+                                        style={[defaultStyles.inputField, { width: 100 }]}
+                                    />
+                                    <TextInput
+                                        placeholder="Last Name"
+                                        value={lastName}
+                                        onChangeText={setLastName}
+                                        style={[defaultStyles.inputField, { width: 100 }]}
+                                    />
+                                    <TouchableOpacity onPress={onSaveUser}>
+                                        <Ionicons name="checkmark-outline" size={24} color={Colors.dark} />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                            <Text style={styles.email}>{user.email}</Text>
+                            <Text style={styles.since}>Since {user.createdAt.toLocaleDateString()}</Text>
+                        </View>
+                    </View>
+                )}
 
-            {/* LIST OF SETTINGS */}
-            <FlatList
-                data={settingsData}
-                renderItem={renderSettingItem}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.settingsListContainer}
-               // ItemSeparatorComponent={() => <View style={styles.separator} />}
-            />
+                <View style={styles.settingsHeaderContainer}>
+                    <Text style={styles.settingsHeader}>Settings</Text>
+                </View>
 
+                {settingsData.map((item) => (
+                    <TouchableOpacity
+                        key={item.id}
+                        style={styles.settingItem}
+                        onPress={() => handleSettingPress(item)}
+                    >
+                        <Ionicons name={item.icon} size={24} color={Colors.dark} style={styles.settingIcon} />
+                        <Text style={styles.settingText}>{item.title}</Text>
+                        <Ionicons name="chevron-forward" size={24} color={Colors.dark} />
+                    </TouchableOpacity>
+                ))}
+                <Text style={styles.footerText}>taskLink</Text>
+            </ScrollView>
         </SafeAreaView>
     );
-
 };
 
 const styles = StyleSheet.create({
+    scrollContainer: {
+        paddingBottom: 60, // Чтобы taskLink не пересекался с нижней частью экрана
+    },
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -202,10 +171,7 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOpacity: 0.2,
         shadowRadius: 6,
-        shadowOffset: {
-            width: 1,
-            height: 2,
-        },
+        shadowOffset: { width: 1, height: 2 },
         alignItems: 'center',
         gap: 14,
         marginBottom: 24,
@@ -251,13 +217,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: Colors.dark,
     },
-    settingsListContainer: {
-        paddingHorizontal: 24,
-    },
     settingItem: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 16,
+        paddingHorizontal: 24,
     },
     settingIcon: {
         marginRight: 16,
@@ -267,10 +231,13 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: Colors.dark,
     },
-    separator: {
-        height: 1,
-        backgroundColor: Colors.grey,
-        marginLeft: 40,
+    footerText: {
+        fontSize: 18,
+        fontFamily: 'modernaRegular',
+        color: '#888888',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginTop: 20,
     },
 });
 
