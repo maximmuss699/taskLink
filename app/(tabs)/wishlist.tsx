@@ -6,8 +6,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Screen2 from '../createNew/screenTwo';
-import Screen3 from '../createNew/screenThree';
+import MapScreen from '../createNew/mapScreen';
+import FormScreen from '../createNew/formScreen';
+import CategoryScreen from '../createNew/categoryScreen';
 import { FormProvider } from '../context/FormContext';
 import { useForm } from '../context/FormContext';
 
@@ -19,8 +20,9 @@ const NewStack = () => {
             <NavigationContainer independent={true}>
                 <Stack.Navigator initialRouteName="New">
                     <Stack.Screen name="New" component={New} options={{ headerShown: false }} />
-                    <Stack.Screen name="Screen2" component={Screen2} options={{ title: "Create new task"}} />
-                    <Stack.Screen name="Screen3" component={Screen3} />
+                    <Stack.Screen name="categoryScreen" component={CategoryScreen} options={{ title: "Category"}} />
+                    <Stack.Screen name="mapScreen" component={MapScreen} />
+                    <Stack.Screen name="formScreen" component={FormScreen} />
                 </Stack.Navigator>
             </NavigationContainer>
         </FormProvider>
@@ -35,13 +37,13 @@ const New = ({ navigation }: { navigation: NativeStackNavigationProp<any> }) => 
             <View>
                 <Text style={styles.header}>I want to: </Text>
 
-                <TouchableOpacity style={styles.categoryButton} onPress={() => { setFormData({ offeringTask: true }); navigation.navigate('Screen2'); }}>
+                <TouchableOpacity style={styles.categoryButton} onPress={() => { setFormData({ ...formData, offeringTask: true }); navigation.navigate('categoryScreen'); }}>
                     <View style={styles.dropShadow} />
                     <Text style={styles.text}>{'Offer a \nnew task'}</Text>
                     <FontAwesome6 style={styles.icon} resizeMode="cover" name="file-invoice-dollar" size={55} color="black" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.categoryButton} onPress={() => { setFormData({ offeringTask: false }); navigation.navigate('Screen2'); }}>
+                <TouchableOpacity style={styles.categoryButton} onPress={() => { setFormData({ ...formData, offeringTask: false }); navigation.navigate('categoryScreen'); }}>
                     <View style={styles.dropShadow} />
                     <Text style={styles.text}>Seek out a new task</Text>
                     <MaterialIcons style={styles.icon} resizeMode="cover" name="person-search" size={70} color="black" />

@@ -30,14 +30,13 @@ const BottomButton: React.FC<{ title: string; onPress?: () => void; disabled: bo
     );
 };
 
-const Screen2 = () => {
+const MapScreen = () => {
     const navigation = useNavigation();
     const { formData, setFormData } = useForm();
     const mapRef = React.useRef<MapView>(null);
 
     const handleMapPress = async (event: MapPressEvent) => {
         const { latitude, longitude } = event.nativeEvent.coordinate;
-        // setFormData({ ...formData, coordinates: { latitude, longitude } });
     
         if (mapRef.current) {
             try {
@@ -62,7 +61,7 @@ const Screen2 = () => {
         <View style={{ flex: 1 }}>
             <View>
                 <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
-                <Text style={styles.upperText} >Address:</Text>
+                <Text style={styles.upperText}>Address:</Text>
                 <ScrollView horizontal={true} style={styles.addressContainer}>
                     {formData.address ? (
                         <Text style={styles.addressText} numberOfLines={1}>{formData.address.name}</Text>
@@ -88,7 +87,7 @@ const Screen2 = () => {
                 <BottomButton
                     title="Next"
                     disabled={!formData.coordinates}
-                    onPress={() => navigation.navigate('Screen3' as never)}  // The 'as never' is a slight workaround
+                    onPress={() => navigation.navigate('formScreen' as never)}  // The 'as never' is a slight workaround
                 />
             </View>
         </View>
@@ -152,4 +151,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Screen2;
+export default MapScreen;

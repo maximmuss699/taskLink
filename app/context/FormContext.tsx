@@ -6,9 +6,23 @@ interface FormData {
      * Indicates whether the user is offering a task or seeking a task.
      * True if offering a task, false if seeking a task.
      */
-    offeringTask: boolean;
+    title?: string;
+    price?: number;
+    description?: string;
+    date?: Date;
+    offeringTask?: boolean;
     coordinates?: { latitude: number; longitude: number };
     address?: Address;
+    category?: Category;
+}
+
+export enum Category {
+    Professionals = 'Professionals',
+    Furniture = 'Furniture',
+    Moving = 'Moving',
+    Housework = 'Housework',
+    Garden = 'Garden',
+    Cleaning = 'Cleaning',
 }
 
 interface FormContextProps {
@@ -19,7 +33,7 @@ interface FormContextProps {
 const FormContext = createContext<FormContextProps | undefined>(undefined);
 
 export const FormProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-    const [formData, setFormData] = useState<FormData>({ offeringTask: true });
+    const [formData, setFormData] = useState<FormData>({});
 
     return (
         <FormContext.Provider value={{ formData, setFormData }}>
