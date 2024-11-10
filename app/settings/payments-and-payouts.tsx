@@ -16,21 +16,17 @@ export interface PersonalInfoProps {
     testID?: string,
 }
 
-// Пример данных
+// Example data
 const paymentData = [
     { id: '1', name: 'Alice Johnson', avatar: 'https://via.placeholder.com/100', date: '2023.11.01', amount: '50 €' },
     { id: '2', name: 'Bob Smith', avatar: 'https://via.placeholder.com/100', date: '2023.10.20', amount: '30 €' },
-    { id: '3', name: 'Charlie Brown', avatar: 'https://via.placeholder.com/100', date: '2023.10.15', amount: '20 €' },
-    { id: '4', name: 'David White', avatar: 'https://via.placeholder.com/100', date: '2023.10.10', amount: '10 €' },
-    { id: '5', name: 'Eve Black', avatar: 'https://via.placeholder.com/100', date: '2023.10.05', amount: '5 €' },
+    // ... more data
 ];
 
 const payoutData = [
     { id: '1', name: 'John Doe', avatar: 'https://via.placeholder.com/100', date: '2023.11.05', amount: '100 €' },
     { id: '2', name: 'Emily Rose', avatar: 'https://via.placeholder.com/100', date: '2023.10.25', amount: '75 €' },
-    { id: '3', name: 'Michael Johnson', avatar: 'https://via.placeholder.com/100', date: '2023.10.10', amount: '60 €' },
-    { id: '4', name: 'Sarah Smith', avatar: 'https://via.placeholder.com/100', date: '2023.10.05', amount: '40 €' },
-    { id: '5', name: 'Tom Brown', avatar: 'https://via.placeholder.com/100', date: '2023.10.01', amount: '30 €' },
+    // ... more data
 ];
 
 const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
@@ -38,7 +34,9 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
 
     const renderItem = ({ item, isPayout }: { item: typeof paymentData[0], isPayout: boolean }) => (
         <View style={styles.paymentItem}>
-            <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            <TouchableOpacity onPress={() => router.push(`/profile/${item.id}`)}>
+                <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            </TouchableOpacity>
             <View style={styles.paymentInfo}>
                 <Text style={styles.userName}>{item.name}</Text>
                 <Text style={styles.date}>{item.date}</Text>
@@ -184,10 +182,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     paymentAmount: {
-        color: '#FF3B30', // Красный для платежей
+        color: '#FF3B30',
     },
     payoutAmount: {
-        color: '#34C759', // Зеленый для выплат
+        color: '#34C759',
     },
     footerText: {
         fontSize: 18,

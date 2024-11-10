@@ -41,10 +41,12 @@ const ChatScreen = () => {
             item.sender === 'user' ? styles.messageRowUser : styles.messageRowOther
         ]}>
             {item.sender === 'other' && (
-                <Image
-                    source={{ uri: 'https://via.placeholder.com/50' }}
-                    style={styles.messageAvatar}
-                />
+                <TouchableOpacity onPress={() => router.push(`/profile/${item.sender}`)}>
+                    <Image
+                        source={{ uri: 'https://via.placeholder.com/50' }}
+                        style={styles.messageAvatar}
+                    />
+                </TouchableOpacity>
             )}
             <View style={[
                 styles.messageBubble,
@@ -73,10 +75,12 @@ const ChatScreen = () => {
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="#000" />
                     </TouchableOpacity>
-                    <Image
-                        source={{ uri: 'https://via.placeholder.com/50' }}
-                        style={styles.profileImage}
-                    />
+                    <TouchableOpacity onPress={() => router.push(`/profile/${id}`)}>
+                        <Image
+                            source={{ uri: 'https://via.placeholder.com/50' }}
+                            style={styles.profileImage}
+                        />
+                    </TouchableOpacity>
                     <View style={styles.headerTextContainer}>
                         <Text style={styles.profileName}>Matty Mazowecki</Text>
                         <Text style={styles.chatId}>Chat with ID: {id}</Text>
@@ -92,7 +96,6 @@ const ChatScreen = () => {
                     renderItem={renderItem}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.chatContainer}
-
                 />
 
                 {/* Input Box */}
