@@ -23,6 +23,13 @@ export interface PersonalInfoProps {
     testID?: string,
 }
 
+interface Card {
+    id: string;
+    name: string;
+    number: string;
+    expiry: string;
+}
+
 const paymentData = [
     { id: '1', name: 'Alice Johnson', avatar: 'https://via.placeholder.com/100', date: '2023.11.01', amount: '50 €' },
     { id: '2', name: 'Bob Smith', avatar: 'https://via.placeholder.com/100', date: '2023.10.20', amount: '30 €' },
@@ -39,33 +46,37 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
     const [cardName, setCardName] = useState('');
     const [cardNumber, setCardNumber] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
-    const [cvv, setCvv] = useState(''); // Добавляем состояние для CVV
-    const [savedCard, setSavedCard] = useState<{ name: string; number: string; expiry: string } | null>(null);
+    const [cvv, setCvv] = useState('');
+    const [savedCards, setSavedCards] = useState<Card[]>([]); // Изменено на массив карт
 
     const handleAddPayment = () => {
-        if (cardName && cardNumber && expiryDate && cvv) { // Проверяем наличие CVV
-            setSavedCard({
+        if (cardName && cardNumber && expiryDate && cvv) {
+            const newCard: Card = {
+                id: Date.now().toString(),
                 name: cardName,
                 number: cardNumber,
                 expiry: expiryDate,
-            });
+            };
+            setSavedCards([...savedCards, newCard]); // Добавляем новую карту в массив
             setModalVisible(false);
             setCardName('');
             setCardNumber('');
             setExpiryDate('');
-            setCvv(''); // Очищаем CVV
+            setCvv('');
         } else {
             Alert.alert('Please fill in all fields');
         }
     };
 
-    const handleDeleteCard = () => {
+    const handleDeleteCard = (id: string) => {
         Alert.alert(
             'Delete Card',
             'Are you sure you want to delete this card?',
             [
                 { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive', onPress: () => setSavedCard(null) },
+                { text: 'Delete', style: 'destructive', onPress: () => {
+                        setSavedCards(savedCards.filter(card => card.id !== id));
+                    } },
             ]
         );
     };
@@ -116,22 +127,22 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     </Text>
                 </View>
 
-                {/* Display saved card information */}
-                {savedCard && (
-                    <TouchableOpacity onPress={handleDeleteCard}>
+                {/* Display saved cards */}
+                {savedCards.map((card) => (
+                    <TouchableOpacity key={card.id} onPress={() => handleDeleteCard(card.id)}>
                         <View style={styles.savedCardContainer}>
                             <View style={styles.cardIcon}>
                                 <Ionicons name="card-outline" size={30} color="#fff" />
                             </View>
                             <View style={styles.cardDetails}>
-                                <Text style={styles.cardName}>{savedCard.name}</Text>
+                                <Text style={styles.cardName}>{card.name}</Text>
                                 <Text style={styles.cardInfo}>
-                                    {savedCard.number} • {savedCard.expiry}
+                                    {card.number} • {card.expiry}
                                 </Text>
                             </View>
                         </View>
                     </TouchableOpacity>
-                )}
+                ))}
 
                 <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)} testID="add-payment-button">
                     <Text style={styles.addButtonText}>Add Payment Method</Text>
@@ -217,7 +228,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                             placeholder="Expiry Date (MM/YY)"
                                             placeholderTextColor="#aaa"
                                             value={expiryDate}
-                                            onChangeText={handleExpiryDateChange} // Используем специальный обработчик
+                                            onChangeText={handleExpiryDateChange}
                                             style={styles.input}
                                             keyboardType="numeric"
                                             maxLength={5}
