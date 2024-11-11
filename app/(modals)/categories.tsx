@@ -26,37 +26,37 @@ const Categories = () => {
 
             <Text>Categories</Text>
 
-            <Link href={{ pathname: '/(modals)/posts'}}>
+            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Taskers"}}}>
                 <Text>Taskers</Text>
             </Link>
 
-            <TouchableOpacity>
+            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Seekers"}}}>
                 <Text>Seekers</Text>
-            </TouchableOpacity>
+            </Link>
 
-            <TouchableOpacity>
+            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Professionals"}}}>
                 <Text>Professionals</Text>
-            </TouchableOpacity>
+            </Link>
 
-            <TouchableOpacity>
+            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Moving"}}}>
                 <Text>Moving</Text>
-            </TouchableOpacity>
+            </Link>
 
-            <TouchableOpacity>
+            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Garden"}}}>
                 <Text>Garden</Text>
-            </TouchableOpacity>
+            </Link>
 
-            <TouchableOpacity>
+            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Furniture"}}}>
                 <Text>Furniture</Text>
-            </TouchableOpacity>
+            </Link>
 
-            <TouchableOpacity>
+            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Housework"}}}>
                 <Text>Housework</Text>
-            </TouchableOpacity>
+            </Link>
 
-            <TouchableOpacity>
+            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Cleaning"}}}>
                 <Text>Cleaning</Text>
-            </TouchableOpacity>
+            </Link>
             </View>
 
         </View>
