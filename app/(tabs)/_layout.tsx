@@ -32,10 +32,12 @@ const Layout = () => {
         }}/>
         <Tabs.Screen name="inbox" options={{
             tabBarLabel: 'Chat',
+            headerShown: false,
             tabBarIcon: ({color}) => <Fontisto name="hipchat" size={24} color={color} />
         }}/>
         <Tabs.Screen name="profile" options={{
             tabBarLabel: 'Profile',
+            headerShown: false,
             tabBarIcon: ({color}) => <Ionicons name="person-circle-outline" size={24} color={color} />
         }}/>
     </Tabs>;
