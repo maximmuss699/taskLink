@@ -5,9 +5,9 @@ import Colors from "@/constants/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { category } = useLocalSearchParams<{ category: string }>();
 
 const Page = () => {
+    const { category } = useLocalSearchParams<{ category: string }>();
     return (
         <View>
             <Text style={styles.MainText}>Posts in { category } </Text>
