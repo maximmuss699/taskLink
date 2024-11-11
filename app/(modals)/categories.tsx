@@ -24,11 +24,14 @@ const Categories = () => {
                 <Ionicons style={styles.SearchIcon} name='options-outline' size={18}/>
             </TouchableOpacity>
 
-            <Text>Categories</Text>
+            <Text style={styles.MainText}>Categories</Text>
 
-            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Taskers"}}}>
-                <Text>Taskers</Text>
-            </Link>
+            <TouchableOpacity style={styles.categoryBtn}>
+                <Ionicons name=''/>
+                <Link href={{ pathname: '/(modals)/posts', params:{ category: "Taskers"}}}>
+                    <Text>Taskers</Text>
+                </Link>
+            </TouchableOpacity>
 
             <Link href={{ pathname: '/(modals)/posts', params:{ category: "Seekers"}}}>
                 <Text>Seekers</Text>
@@ -89,6 +92,23 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center'
+    },
+    MainText: {
+        alignSelf: "center",
+        fontSize: 28,
+        fontFamily: 'mon-b',
+        fontWeight: 'bold',
+        color: 'black',
+        marginLeft: 5
+    },
+    categoryBtn: {
+        height: 80,
+        width: 80,
+        margin: 20,
+        backgroundColor: "#FCFFFB",
+        alignContent: "center",
+        justifyContent: "center",
+        borderRadius: 20
     }
 })
 
