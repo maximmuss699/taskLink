@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "883995908953",
+    "project_id": "itutasklink",
+    "storage_bucket": "itutasklink.firebasestorage.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:883995908953:android:85b9f073f7204fe78a4a48",
+        "android_client_info": {
+          "package_name": "task.link.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXjEH1-TjOHV9I-HrQSAqL-KuzX_9a4j8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
