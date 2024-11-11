@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { BottomButton } from './mapScreen';
 import { useNavigation } from '@react-navigation/native';
 import { useForm } from '../context/FormContext';
+import Colors from '@/constants/Colors';
 
 const FormScreen = () => {
     const navigation = useNavigation();
@@ -38,6 +39,7 @@ const FormScreen = () => {
                 <TextInput
                     style={styles.inputField}
                     placeholder="Title"
+                    placeholderTextColor={'#666666'}
                     value={formData.title}
                     autoCorrect={false}
                     autoComplete='off'
@@ -46,6 +48,7 @@ const FormScreen = () => {
                 <TextInput
                     style={styles.inputField}
                     placeholder="Price"
+                    placeholderTextColor={'#666666'}
                     value={formData.price?.toString()}
                     autoCorrect={false}
                     autoComplete='off'
@@ -55,6 +58,7 @@ const FormScreen = () => {
                 <TextInput
                     style={[styles.inputField, styles.descriptionField, {marginBottom: 0}]}
                     placeholder="Description"
+                    placeholderTextColor={'#666666'}
                     value={formData.description}
                     autoCorrect={false}
                     autoComplete='off'
@@ -65,6 +69,8 @@ const FormScreen = () => {
                     style={{width: '90%'}}
                     value={formData.date || currentDate}
                     minimumDate={new Date()}
+                    accentColor={Colors.primary}
+                    themeVariant='light'
                     mode="date"
                     display="inline"    // maybe change to "spinner" to save vertical space
                     onChange={handleDateChange}
@@ -100,6 +106,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         marginBottom: 15,
+        
     },
     descriptionField: {
         height: 80,
