@@ -1,6 +1,4 @@
-// app/settings/personal-information.tsx
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -10,27 +8,30 @@ import {
     TouchableOpacity,
     Alert,
     ScrollView,
+    ActivityIndicator,
 } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from 'expo-router';
-import { useFonts } from 'expo-font';
+import firestore from '@react-native-firebase/firestore'; // Import Firestore
+import Colors from "../../constants/Colors"; // Import colors if available
 
 export interface PersonalInfoProps {
-    /** Используется для локализации этого представления в end-to-end тестах. */
+    /** Used to locate this view in end-to-end tests. */
     testID?: string,
 }
 
 const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
     const router = useRouter();
+    const [loading, setLoading] = useState(true); // Loading state
 
-    // Состояния для каждого поля
-    const [firstName, setFirstName] = useState('Luka');
-    const [lastName, setLastName] = useState('Zaniola');
-    const [phoneNumber, setPhoneNumber] = useState('+4202281337');
-    const [address, setAddress] = useState('Česká 228/67');
-    const [email, setEmail] = useState('zaniola@gmail.com');
+    // States for each field
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [address, setAddress] = useState('');
+    const [email, setEmail] = useState('');
 
-    // Состояния редактирования для каждого поля
+    // Editing states for each field
     const [isEditing, setIsEditing] = useState({
         firstName: false,
         lastName: false,
@@ -39,11 +40,45 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         email: false,
     });
 
-    // Обработчик сохранения изменений
-    const handleSave = (field: keyof typeof isEditing) => {
-        // Простая валидация
+    // Your document ID
+    const userId = "295QvAWplDHFfIrXM5XG"; // Replace with the actual user ID
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const userDoc = await firestore().collection('users').doc(userId).get();
+
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    if (userData) {
+                        setFirstName(userData.firstName || '');
+                        setLastName(userData.lastName || '');
+                        setPhoneNumber(userData.phoneNumber || '');
+                        setAddress(userData.address || '');
+                        setEmail(userData.email || '');
+                        console.log("Fetched User Data:", userData);
+                    } else {
+                        Alert.alert('Error', 'User data is empty.');
+                    }
+                } else {
+                    Alert.alert('Error', 'User not found.');
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                Alert.alert('Error', 'Failed to fetch user data.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    // Handler for saving changes
+    const handleSave = async (field: keyof typeof isEditing) => {
+        // Simple validation
         let value = '';
-        switch(field) {
+        switch (field) {
             case 'firstName':
                 value = firstName;
                 break;
@@ -64,42 +99,54 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         }
 
         if (!value.trim()) {
-            Alert.alert('Ошибка', 'Поле не может быть пустым.');
+            Alert.alert('Error', 'Field cannot be empty.');
             return;
         }
 
         if (field === 'email') {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
-                Alert.alert('Ошибка', 'Введите корректный email.');
+                Alert.alert('Error', 'Please enter a valid email.');
                 return;
             }
         }
 
-        // Здесь можно добавить логику сохранения данных на сервере или в хранилище
-        Alert.alert('Успех', 'Информация обновлена.');
-
-        // Выключаем режим редактирования
-        setIsEditing(prev => ({ ...prev, [field]: false }));
+        try {
+            await firestore().collection('users').doc(userId).update({
+                [field]: value,
+            });
+            Alert.alert('Success', 'Information updated.');
+            setIsEditing(prev => ({ ...prev, [field]: false }));
+        } catch (error) {
+            console.error(`Error updating field ${field}:`, error);
+            Alert.alert('Error', 'Failed to update information.');
+        }
     };
 
-    // Обработчик отмены изменений
+    // Handler for cancelling changes
     const handleCancel = (field: keyof typeof isEditing) => {
-        // Здесь можно сбросить изменения, если сохранять предыдущие значения
-        // Для простоты, просто выключаем режим редактирования
+        // Here you can reset changes if previous values are stored
+        // For simplicity, just turn off editing mode
         setIsEditing(prev => ({ ...prev, [field]: false }));
     };
+
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <ActivityIndicator size="large" color={Colors.dark} />
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container} testID={props.testID ?? "personal-info"}>
-            {/* Кастомный Header */}
+            {/* Custom Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>
                 <Text style={styles.title}>Personal Information</Text>
             </View>
-
 
             <ScrollView contentContainerStyle={styles.content}>
                 {/* First Name */}
@@ -287,6 +334,7 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
 };
 
 const styles = StyleSheet.create({
+    // Your styles remain unchanged
     container: {
         flex: 1,
         backgroundColor: '#FFFFFF',
@@ -294,8 +342,6 @@ const styles = StyleSheet.create({
     header: {
         paddingTop: 16,
         paddingHorizontal: 16,
-        fontFamily: 'mon-b',
-        fontSize: 24,
     },
     backButton: {
         padding: 8,
@@ -305,11 +351,11 @@ const styles = StyleSheet.create({
         fontSize: 30,
         fontWeight: '700',
         color: '#000',
-        textAlign: 'left', // Выравнивание заголовка влево
+        textAlign: 'left',
         fontFamily: 'mon-b',
     },
     placeholder: {
-        width: 32, // Для симметрии заголовка
+        width: 32,
     },
     content: {
         padding: 16,
@@ -361,14 +407,13 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontSize: 18,
-        fontFamily: 'modernaRegular', // Используем шрифт MuseoModerno
-        color: '#888888', // Серый цвет текста
+        fontFamily: 'modernaRegular',
+        color: '#888888',
         fontWeight: 'bold',
         position: 'absolute',
-        bottom: 20, // Отступ от низа экрана
+        bottom: 20,
         alignSelf: 'center',
     },
-
 });
 
 export default PersonalInformation;

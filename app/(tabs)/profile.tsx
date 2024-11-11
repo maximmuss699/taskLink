@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// ProfilePage.tsx
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -9,19 +10,33 @@ import {
     TouchableOpacity,
     TextInput,
     Alert,
+    ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Colors from '@/constants/Colors';
-import { Href, Link } from 'expo-router';
+import Colors from "../../constants/Colors";
+import { Href } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { defaultStyles } from '@/constants/Styles';
+import { defaultStyles } from '../../constants/Styles';
 import { useRouter } from 'expo-router';
+import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage'; // Импорт Firebase Storage
 
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+interface User {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    address: string;
+    profilePicture: string;
+    createdAt: Date;
+    isVerified: boolean;
+}
+
 interface SettingItem {
     id: string;
     title: string;
-    icon: IoniconsName;
+    icon: keyof typeof Ionicons.glyphMap;
     route: string;
 }
 
@@ -37,47 +52,137 @@ const settingsData: SettingItem[] = [
 
 const ProfilePage = () => {
     const router = useRouter();
-    const [user, setUser] = useState({
-        firstName: 'Donald',
-        lastName: 'Trump',
-        email: 'Donald@example.com',
-        imageUrl: 'https://d39-a.sdn.cz/d_39/c_img_gR_0/nKri/donald-trump-usa.jpeg?fl=cro,398,557,2352,1323%7Cres,722,,1%7Cwebp,75',
-        createdAt: new Date('2023-01-01'),
-    });
-    const [firstName, setFirstName] = useState(user.firstName);
-    const [lastName, setLastName] = useState(user.lastName);
+    const [user, setUser] = useState<User | null>(null);
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [edit, setEdit] = useState(false);
+    const [loading, setLoading] = useState(true); // Состояние загрузки
 
-    const onSaveUser = () => {
+    // Ваш документ ID
+    const userId = "295QvAWplDHFfIrXM5XG"; // Замените на реальный ID пользователя
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const userDoc = await firestore().collection('users').doc(userId).get();
+
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    if (userData) {
+                        const fetchedUser: User = {
+                            id: userDoc.id,
+                            firstName: userData.firstName,
+                            lastName: userData.lastName,
+                            email: userData.email,
+                            phoneNumber: userData.phoneNumber,
+                            address: userData.address,
+                            profilePicture: userData.profilePicture,
+                            createdAt: userData.createdAt.toDate(),
+                            isVerified: userData.isVerified,
+                        };
+                        setUser(fetchedUser);
+                        setFirstName(userData.firstName);
+                        setLastName(userData.lastName);
+                        console.log("Fetched User Data:", fetchedUser);
+                    } else {
+                        Alert.alert('Ошибка', 'Данные пользователя пусты.');
+                    }
+                } else {
+                    Alert.alert('Ошибка', 'Пользователь не найден.');
+                }
+            } catch (error) {
+                console.error("Ошибка при получении данных пользователя:", error);
+                Alert.alert('Ошибка', 'Не удалось получить данные пользователя.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    const onSaveUser = async () => {
         if (!firstName.trim() || !lastName.trim()) {
-            Alert.alert('Error', 'Empty name or surname.');
+            Alert.alert('Ошибка', 'Имя или фамилия не могут быть пустыми.');
             return;
         }
-        setUser({ ...user, firstName, lastName });
-        setEdit(false);
+        try {
+            await firestore().collection('users').doc(userId).update({
+                firstName: firstName,
+                lastName: lastName,
+            });
+            if (user) {
+                setUser({ ...user, firstName, lastName });
+            }
+            setEdit(false);
+            Alert.alert('Успех', 'Информация пользователя обновлена.');
+        } catch (error) {
+            console.error("Ошибка при обновлении данных пользователя:", error);
+            Alert.alert('Ошибка', 'Не удалось обновить данные пользователя.');
+        }
     };
 
     const onCaptureImage = async () => {
+        // Запрос разрешений на доступ к медиабиблиотеке
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Error', 'You need permission.');
+            Alert.alert('Ошибка', 'Требуются разрешения для доступа к медиабиблиотеке.');
             return;
         }
 
+        // Выбор изображения пользователем
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             quality: 0.75,
         });
 
-        if (!result.canceled) {
-            setUser({ ...user, imageUrl: result.assets[0].uri });
+        if (!result.canceled && result.assets.length > 0) {
+            try {
+                const selectedImage = result.assets[0];
+                console.log("Selected Image:", selectedImage.uri);
+
+                // Загрузка изображения в Firebase Storage
+                const response = await fetch(selectedImage.uri);
+                const blob = await response.blob();
+                const storageRef = storage().ref().child(`profilePictures/${userId}`);
+                await storageRef.put(blob);
+                console.log("Image uploaded to Firebase Storage.");
+
+                // Получение публичного URL изображения
+                const downloadURL = await storageRef.getDownloadURL();
+                console.log("Download URL:", downloadURL);
+
+                // Обновление поля profilePicture в Firestore
+                await firestore().collection('users').doc(userId).update({
+                    profilePicture: downloadURL,
+                });
+                console.log("Firestore updated with new profilePicture URL.");
+
+                // Обновление локального состояния
+                if (user) {
+                    setUser({ ...user, profilePicture: downloadURL });
+                }
+
+                Alert.alert('Успех', 'Изображение профиля обновлено.');
+            } catch (error) {
+                console.error("Ошибка при обновлении изображения профиля:", error);
+                Alert.alert('Ошибка', 'Не удалось обновить изображение профиля.');
+            }
         }
     };
 
     const handleSettingPress = (item: SettingItem) => {
         router.push(item.route as Href);
     };
+
+    if (loading) {
+        return (
+            <SafeAreaView style={defaultStyles.container}>
+                <ActivityIndicator size="large" color={Colors.dark} />
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={defaultStyles.container}>
@@ -87,10 +192,13 @@ const ProfilePage = () => {
                     <Ionicons name="notifications-outline" size={26} />
                 </View>
 
-                {user && (
+                {user ? (
                     <View style={styles.card}>
                         <TouchableOpacity onPress={onCaptureImage}>
-                            <Image source={{ uri: user.imageUrl }} style={styles.avatar} />
+                            <Image
+                                source={{ uri: user.profilePicture || 'https://via.placeholder.com/100' }}
+                                style={styles.avatar}
+                            />
                         </TouchableOpacity>
                         <View style={styles.profileInfo}>
                             {!edit ? (
@@ -106,12 +214,14 @@ const ProfilePage = () => {
                                 <View style={styles.editRow}>
                                     <TextInput
                                         placeholder="First Name"
+                                        placeholderTextColor="#aaa"
                                         value={firstName}
                                         onChangeText={setFirstName}
                                         style={[defaultStyles.inputField, { width: 100 }]}
                                     />
                                     <TextInput
                                         placeholder="Last Name"
+                                        placeholderTextColor="#aaa"
                                         value={lastName}
                                         onChangeText={setLastName}
                                         style={[defaultStyles.inputField, { width: 100 }]}
@@ -125,6 +235,8 @@ const ProfilePage = () => {
                             <Text style={styles.since}>Since {user.createdAt.toLocaleDateString()}</Text>
                         </View>
                     </View>
+                ) : (
+                    <Text style={styles.noUserText}>Данные пользователя отсутствуют.</Text>
                 )}
 
                 <View style={styles.settingsHeaderContainer}>
@@ -237,6 +349,12 @@ const styles = StyleSheet.create({
         color: '#888888',
         fontWeight: 'bold',
         textAlign: 'center',
+        marginTop: 20,
+    },
+    noUserText: {
+        textAlign: 'center',
+        fontSize: 18,
+        color: '#888',
         marginTop: 20,
     },
 });

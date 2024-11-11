@@ -1,7 +1,7 @@
 import { View, Text} from 'react-native';
 import React from 'react';
 import {Tabs} from "expo-router";
-import Colors from "@/constants/Colors";
+import Colors from "../../constants/Colors";
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
