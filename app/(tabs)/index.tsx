@@ -10,47 +10,47 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const TEST_DATA = [
     {
         id: "1",
-        username: "Alice Smith",
-        location: "San Francisco, CA",
-        job_name: "Dog Walking",
+        username: "Alice",
+        location: "Šternberk, Olomoucký kraj",
+        job_name: "Venčení psa",
         date: "2024-11-01",
-        price: "$20/hr",
+        price: "200kč/hod",
     },
     {
         id: "2",
-        username: "Bob Johnson",
-        location: "Los Angeles, CA",
-        job_name: "Gardening",
+        username: "Jan",
+        location: "Krnov, Moravskoslezský kraj",
+        job_name: "Sečení trávy",
         date: "2024-11-02",
-        price: "$30/hr",
+        price: "500kč/hod",
     },
     {
         id: "3",
-        username: "Charlie Brown",
-        location: "New York, NY",
-        job_name: "House Cleaning",
+        username: "Emanuel",
+        location: "Bruntál, Moravskoslezský kraj",
+        job_name: "Profesionální úklid",
         date: "2024-11-03",
-        price: "$25/hr",
+        price: "300kč/hod",
     },
 ];
 
 const job_ad = (id: string, username: string, location: string, job_name: string, date: string, price: string) => (
     <TouchableOpacity style={styles.JobAdvertisement}>
-        <Link href={{ pathname: '/(modals)/job_post', params: { id,
+    <Link href={{ pathname: '/(modals)/job_post', params: { id,
                                                                 username,
                                                                 location,
                                                                 job_name,
                                                                 date,
                                                                 price
-                                                              } }}>
-        <Text>{username}</Text>
+                                                            } }}>
+        <Text style={styles.ItemText}>{username}</Text>
         {/* <Image src="pfp"/>
         <Image src="images"/> */}
-        <Text>{location}</Text>
-        <Text>{job_name}</Text>
-        <Text>{date}</Text>
-        <Text>{price}</Text>
-        </Link>
+        <Text style={styles.ItemText}>{location}</Text>
+        <Text style={styles.ItemText}>{job_name}</Text>
+        <Text style={styles.ItemText}>{date}</Text>
+        <Text style={styles.ItemText}>{price}</Text>
+    </Link>
     </TouchableOpacity>
 )
 
@@ -142,10 +142,14 @@ const styles = StyleSheet.create({
         backgroundColor: "green",
         alignItems: "center",
         width: "95%",
-        alignSelf: 'center'
+        alignSelf: 'center',
+        justifyContent: 'center'
     },
     JobPanel: {
         height: "75%"
+    },
+    ItemText: {
+        margin: 10,
     }
 })
 
