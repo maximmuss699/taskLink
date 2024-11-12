@@ -142,8 +142,8 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.container}>
-                <ActivityIndicator size="large" color={Colors.dark} />
+            <SafeAreaView style={styles.loading}>
+                <ActivityIndicator size="large" color={Colors.primary} />
             </SafeAreaView>
         );
     }
@@ -348,6 +348,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#FFFFFF',
+    },
+    loading: {
+        flex: 1,
+        justifyContent: 'center', 
+        alignItems: 'center',   
+        backgroundColor: '#fff',  
     },
     header: {
         paddingTop: 16,
