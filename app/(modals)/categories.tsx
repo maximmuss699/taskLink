@@ -1,67 +1,80 @@
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, SafeAreaView } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React from 'react';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const Categories = () => {
     const router = useRouter();
     return (
         <SafeAreaView>
-            <View>
-            <TouchableOpacity>
-                <Ionicons style={styles.SearchIcon} name='close-outline' size={18}/>
+            <TouchableOpacity style={[styles.OtherBtn, {marginLeft: 10}]}>
+                <Ionicons name='close-outline' size={25}/>
             </TouchableOpacity>
+        <View style={styles.OuterView}>
 
             <View style={styles.SearchBarCollection}>
-                <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
+                <Ionicons style={styles.SearchIcon} name='search-outline' size={25}/>
                 <TextInput
                     style={styles.SearchBar}
                     placeholder='What job are you searching for?'
                     placeholderTextColor="black"
                     />
-            </View>
-
-            <TouchableOpacity>
-                <Ionicons style={styles.SearchIcon} name='options-outline' size={18}/>
+            <TouchableOpacity style={styles.OtherBtn}>
+                <Ionicons name='options-outline' size={20}/>
             </TouchableOpacity>
+            </View>
 
             <Text style={styles.MainText}>Categories</Text>
 
-            <TouchableOpacity style={styles.categoryBtn}>
-                <Link href={{ pathname: '/(modals)/posts', params:{ category: "Taskers"}}}>
-                    <Text>Taskers</Text>
-                </Link>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={ () => router.push({ pathname: '/(modals)/posts', params:{ category: "Seekers"}})}>
-                <Text>Seekers</Text>
-            </TouchableOpacity>
-
-            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Professionals"}}}>
-                <Text>Professionals</Text>
-            </Link>
-
-            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Moving"}}}>
-                <Text>Moving</Text>
-            </Link>
-
-            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Garden"}}}>
-                <Text>Garden</Text>
-            </Link>
-
-            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Furniture"}}}>
-                <Text>Furniture</Text>
-            </Link>
-
-            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Housework"}}}>
-                <Text>Housework</Text>
-            </Link>
-
-            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Cleaning"}}}>
-                <Text>Cleaning</Text>
-            </Link>
+            <View style={styles.CategView}>
+                <TouchableOpacity style={styles.categoryBtn} onPress={() => router.push({ pathname: '/(modals)/posts', params:{ category: "Taskers"}})}>
+                    <MaterialIcons name="engineering" size={40}/>
+                    <Text style={styles.CategBtnText}>Taskers</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.categoryBtn} onPress={() => router.push({ pathname: '/(modals)/posts', params:{ category: "Seekers"}})}>
+                    <MaterialIcons name="person-search" size={40}/>
+                    <Text style={styles.CategBtnText}>Seekers</Text>
+                </TouchableOpacity>
             </View>
 
+            <View style={styles.CategView}>
+                <TouchableOpacity style={styles.categoryBtn} onPress={() => router.push({ pathname: '/(modals)/posts', params:{ category: "Professionals"}})}>
+                    <FontAwesome5 name="wrench" size={40}/>
+                    <Text style={styles.CategBtnText}>Professionals</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.categoryBtn} onPress={() => router.push({ pathname: '/(modals)/posts', params:{ category: "Moving"}})}>
+                    <FontAwesome5 name="truck" size={40}/>
+                    <Text style={styles.CategBtnText}>Moving</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.categoryBtn} onPress={() => router.push({ pathname: '/(modals)/posts', params:{ category: "Garden"}})}>
+                    <FontAwesome5 name="leaf" size={40}/>
+                    <Text style={styles.CategBtnText}>Garden</Text>
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.CategView}>
+                <TouchableOpacity style={styles.categoryBtn} onPress={() => router.push({ pathname: '/(modals)/posts', params:{ category: "Furniture"}})}>
+                    <FontAwesome5 name="couch" size={40}/>
+                    <Text style={styles.CategBtnText}>Furniture</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.categoryBtn} onPress={() => router.push({ pathname: '/(modals)/posts', params:{ category: "Housework"}})}>
+                    <FontAwesome6 name="house-chimney" size={40}/>
+                    <Text style={styles.CategBtnText}>Housework</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.categoryBtn} onPress={() => router.push({ pathname: '/(modals)/posts', params:{ category: "Cleaning"}})}>
+                    <FontAwesome5 name="broom" size={40}/>
+                    <Text style={styles.CategBtnText}>Cleaning</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+            <Text style={styles.tasklinkLogo}>taskLink</Text>
         </SafeAreaView>
     );
 }
@@ -91,7 +104,8 @@ const styles = StyleSheet.create({
     SearchBarCollection: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        alignContent: "center"
     },
     MainText: {
         alignSelf: "center",
@@ -102,13 +116,56 @@ const styles = StyleSheet.create({
         marginLeft: 5
     },
     categoryBtn: {
-        height: 80,
-        width: 80,
-        margin: 20,
-        backgroundColor: "#FCFFFB",
-        alignContent: "center",
+        height: 100,
+        width: 100,
+        margin: 8,
+        backgroundColor: "white",
         justifyContent: "center",
-        borderRadius: 20
+        alignItems: "center",
+        borderRadius: 20,
+        shadowColor: '#DEDEDE',
+        shadowOpacity: 1,
+        shadowOffset: { width: 0, height: 1},
+        flexDirection: "column"
+    },
+    CategView: {
+        flexDirection: "row",
+        alignItems: "center"
+    },
+    OuterView: {
+        width: "95%",
+        height: 500,
+        backgroundColor: "#FCFFFB",
+        alignSelf: "center",
+        alignItems: "center",
+        borderRadius: 20,
+        margin: 8,
+        padding: 10
+    },
+    CategBtnText: {
+        fontFamily: 'mon-b'
+    },
+    tasklinkLogo: {
+        fontSize: 18,
+        fontFamily: 'modernaRegular',
+        color: '#888888',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginTop: 20,
+        position: "absolute",
+        top: 750,
+        alignSelf: "center"
+    },
+    OtherBtn: {
+        width: 30,
+        height: 30,
+        shadowColor: '#DEDEDE',
+        backgroundColor: "white",
+        shadowOpacity: 1,
+        shadowOffset: { width: 0, height: 1},
+        borderRadius: 50,
+        alignItems: "center",
+        justifyContent: "center"
     }
 })
 
