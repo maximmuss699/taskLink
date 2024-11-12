@@ -15,7 +15,8 @@ const TEST_DATA = [
         job_name: "Venčení psa",
         date: "2024-11-01",
         price: "200kč/hod",
-        image: 'https://via.placeholder.com/150'
+        image: 'https://via.placeholder.com/150',
+        post_type: 0
     },
     {
         id: "2",
@@ -24,7 +25,8 @@ const TEST_DATA = [
         job_name: "Sečení trávy",
         date: "2024-11-02",
         price: "500kč/hod",
-        image: 'https://via.placeholder.com/150'
+        image: 'https://via.placeholder.com/150',
+        post_type: 1
     },
     {
         id: "3",
@@ -33,15 +35,19 @@ const TEST_DATA = [
         job_name: "Profesionální úklid",
         date: "2024-11-03",
         price: "300kč/hod",
-        image: 'https://via.placeholder.com/150'
+        image: 'https://via.placeholder.com/150',
+        post_type: 0
     },
 ];
 
 const job_ad = (id: string, username: string,
-                location: string, job_name: string,
-                date: string, price: string, router: any, image: string) => (
-    <TouchableOpacity style={styles.JobAdvertisement} onPress={() => router.push({
-                                                                                pathname: '/(modals)/job_post',
+    location: string, job_name: string,
+    date: string, price: string, router: any, image: string,
+    post_type: number) => {
+        const tcolor = post_type === 0 ? "#717171" : "white";
+        const bckgColor = post_type === 0 ? "#D9D9D9" : "#52812F";
+        return (<TouchableOpacity style={[styles.JobAdvertisement, {backgroundColor: bckgColor}]} onPress={() => router.push({
+            pathname: '/(modals)/job_post',
                                                                                 params: { id,
                                                                                     username,
                                                                                     location,
@@ -49,15 +55,15 @@ const job_ad = (id: string, username: string,
                                                                                     date,
                                                                                     price
                                                                                 }
-                                                                                })}>
+                                                                            })}>
         <Text style={styles.JobAdHeader}>{username}</Text>
         <Image source={{ uri: image }} style={{width: "95%", height: "60%", padding: 5, marginBottom: 10}}/>
         <Text style={styles.PriceLocText}>{location}</Text>
-        <Text style={styles.ItemText}>{job_name}</Text>
-        <Text style={styles.ItemText}>{date}</Text>
+        <Text style={[styles.ItemText, {color: tcolor}]}>{job_name}</Text>
+        <Text style={[styles.ItemText, {color: tcolor}]}>{date}</Text>
         <Text style={styles.PriceLocText}>{price}</Text>
     </TouchableOpacity>
-)
+)}
 
 const Page = () => {
     const router = useRouter();
@@ -84,7 +90,8 @@ const Page = () => {
                                                     item.date,
                                                     item.price,
                                                     router,
-                                                    item.image
+                                                    item.image,
+                                                    item.post_type
                                                 )}
                     keyExtractor={(item) => item.id}
                     />
