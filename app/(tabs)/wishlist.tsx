@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MapScreen from '../createNew/mapScreen';
 import FormScreen from '../createNew/formScreen';
 import CategoryScreen from '../createNew/categoryScreen';
+import PictureScreen from '../createNew/pictureScreen';
 import { FormProvider } from '../context/FormContext';
 import { useForm } from '../context/FormContext';
 
@@ -23,6 +24,7 @@ const NewStack = () => {
                     <Stack.Screen name="categoryScreen" component={CategoryScreen} options={{ title: "Category"}} />
                     <Stack.Screen name="mapScreen" component={MapScreen} />
                     <Stack.Screen name="formScreen" component={FormScreen} />
+                    <Stack.Screen name="pictureScreen" component={PictureScreen} />
                 </Stack.Navigator>
             </NavigationContainer>
         </FormProvider>

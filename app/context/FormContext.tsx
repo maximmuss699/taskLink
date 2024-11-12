@@ -14,6 +14,7 @@ interface FormData {
     coordinates?: { latitude: number; longitude: number };
     address?: Address;
     category?: Category;
+    images?: string[];
 }
 
 export enum Category {

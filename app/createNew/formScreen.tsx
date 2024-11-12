@@ -82,7 +82,7 @@ const FormScreen = () => {
             <View style={{justifyContent: 'flex-end'}}>
                 <BottomButton
                     title="Next"
-                    // onPress={() => navigation.navigate('Confirmation')} TODO: Add next screen
+                    onPress={() => navigation.navigate('pictureScreen' as never)}
                     disabled={!formData.title || !formData.price || !formData.description || !formData.date}
                 />
             </View>
