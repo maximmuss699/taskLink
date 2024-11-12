@@ -2,18 +2,18 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import React from 'react';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Colors from "@/constants/Colors";
-import { useNavigation } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Link } from "expo-router";
+
+const router = useRouter();
 
 const Explore = () => {
     return (
         <View>
             <Text style={styles.MainText}>Explore Jobs</Text>
-            <TouchableOpacity style={styles.SearchBtn}>
-                <Link href="/(modals)/categories" style={styles.SearchLink}>
+            <TouchableOpacity style={styles.SearchBtn} onPress={() => router.push({pathname: '/(modals)/categories'})}>
                     <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
                     <Text style={styles.SearchBtnText}>What job are you searching for?</Text>
-                </Link>
             </TouchableOpacity>
         </View>
     );
