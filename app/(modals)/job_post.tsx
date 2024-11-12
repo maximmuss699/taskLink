@@ -11,6 +11,7 @@ const Page = () => {
     const { job_name } = useLocalSearchParams<{ job_name: string }>();
     const { date } = useLocalSearchParams<{ date: string }>();
     const { price } = useLocalSearchParams<{ price: string }>();
+    const { description } = useLocalSearchParams<{ description: string }>();
 
     return (
         <ScrollView style={styles.ScrollView}>
@@ -41,7 +42,7 @@ const Page = () => {
                 </View>
             </View>
             <Text style={styles.Text}>Popis</Text>
-            <Text style={styles.DescText}>{ job_name }</Text>
+            <Text style={styles.DescText}>{ description }</Text>
             </View>
         </ScrollView>
     );
