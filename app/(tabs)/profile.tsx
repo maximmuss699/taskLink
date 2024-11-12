@@ -205,14 +205,14 @@ const ProfilePage = () => {
                         setLastName(fetchedUser.lastName);
                         console.log("Fetched User Data:", fetchedUser);
                     } else {
-                        Alert.alert('Ошибка', 'Данные пользователя пусты.');
+                        Alert.alert('Error', 'Empty data.');
                     }
                 } else {
-                    Alert.alert('Ошибка', 'Пользователь не найден.');
+                    Alert.alert('Error', 'Cant found user.');
                 }
             } catch (error) {
-                console.error("Ошибка при получении данных пользователя:", error);
-                Alert.alert('Ошибка', 'Не удалось получить данные пользователя.');
+                console.error("Error while fetching data", error);
+                Alert.alert('Error', 'Cant fetch data');
             } finally {
                 setLoading(false);
             }
@@ -223,7 +223,7 @@ const ProfilePage = () => {
 
     const onSaveUser = async () => {
         if (!firstName.trim() || !lastName.trim()) {
-            Alert.alert('Ошибка', 'Имя или фамилия не могут быть пустыми.');
+            Alert.alert('Error', 'Cant be empty');
             return;
         }
         try {
@@ -236,18 +236,18 @@ const ProfilePage = () => {
                 setUser({ ...user, firstName, lastName });
             }
             setEdit(false);
-            Alert.alert('Успех', 'Информация пользователя обновлена.');
+            Alert.alert('Success', 'Information updated.');
         } catch (error) {
-            console.error("Ошибка при обновлении данных пользователя:", error);
-            Alert.alert('Ошибка', 'Не удалось обновить данные пользователя.');
+            console.error("Error while updating date", error);
+            Alert.alert('Error', 'Cant update data');
         }
     };
 
     const onCaptureImage = async () => {
-        // Запрос разрешений на доступ к медиабиблиотеке
+
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Ошибка', 'Требуются разрешения для доступа к медиабиблиотеке.');
+            Alert.alert('Error', 'You should have access to the camera roll.');
             return;
         }
 
@@ -290,10 +290,10 @@ const ProfilePage = () => {
                     setUser({ ...user, profilePicture: downloadURL });
                 }
 
-                Alert.alert('Успех', 'Изображение профиля обновлено.');
+                Alert.alert('Success', 'Image updated successfully.');
             } catch (error) {
-                console.error("Ошибка при обновлении изображения профиля:", error);
-                Alert.alert('Ошибка', 'Не удалось обновить изображение профиля.');
+                console.error("Error", error);
+                Alert.alert('Error', 'Cant update image');
             }
         }
     };
@@ -366,7 +366,7 @@ const ProfilePage = () => {
                         </View>
                     </View>
                 ) : (
-                    <Text style={styles.noUserText}>Данные пользователя отсутствуют.</Text>
+                    <Text style={styles.noUserText}>No date for the user</Text>
                 )}
 
                 <View style={styles.settingsHeaderContainer}>
