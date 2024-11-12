@@ -4,9 +4,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Colors from "@/constants/Colors";
 import { useRouter } from 'expo-router';
 
-const router = useRouter();
-
 const Explore = () => {
+    const router = useRouter();
     return (
         <View>
             <Text style={styles.MainText}>Explore Jobs</Text>
