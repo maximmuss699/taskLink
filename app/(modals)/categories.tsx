@@ -1,11 +1,12 @@
-import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, SafeAreaView } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React from 'react';
 
 const Categories = () => {
+    const router = useRouter();
     return (
-        <View>
+        <SafeAreaView>
             <View>
             <TouchableOpacity>
                 <Ionicons style={styles.SearchIcon} name='close-outline' size={18}/>
@@ -27,15 +28,14 @@ const Categories = () => {
             <Text style={styles.MainText}>Categories</Text>
 
             <TouchableOpacity style={styles.categoryBtn}>
-                <Ionicons name=''/>
                 <Link href={{ pathname: '/(modals)/posts', params:{ category: "Taskers"}}}>
                     <Text>Taskers</Text>
                 </Link>
             </TouchableOpacity>
 
-            <Link href={{ pathname: '/(modals)/posts', params:{ category: "Seekers"}}}>
+            <TouchableOpacity onPress={ () => router.push({ pathname: '/(modals)/posts', params:{ category: "Seekers"}})}>
                 <Text>Seekers</Text>
-            </Link>
+            </TouchableOpacity>
 
             <Link href={{ pathname: '/(modals)/posts', params:{ category: "Professionals"}}}>
                 <Text>Professionals</Text>
@@ -62,7 +62,7 @@ const Categories = () => {
             </Link>
             </View>
 
-        </View>
+        </SafeAreaView>
     );
 }
 
