@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, FlatList } from 'react-native';
 import { BottomButton } from './mapScreen';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +11,7 @@ const PictureScreen = () => {
     const navigation = useNavigation();
     const { formData, setFormData } = useForm();
 
+    // Function to capture images from the gallery
     const onCaptureImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
@@ -36,6 +37,10 @@ const PictureScreen = () => {
         setFormData({ ...formData, images: newImages });
     };
 
+    const onNext = () => {
+        navigation.navigate('finalScreen' as never);
+    };
+
     return (
         <View style={{ flex: 1 }}>
             <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
@@ -56,7 +61,7 @@ const PictureScreen = () => {
                                 </TouchableOpacity>
                             )
                         }
-                        keyExtractor={(item, index) => index.toString()}
+                        keyExtractor={(index) => index.toString()}
                         numColumns={3}
                         style={{ maxHeight: '100%' }}
                         contentContainerStyle={styles.flatListContent}
@@ -64,13 +69,11 @@ const PictureScreen = () => {
                 </View>
             </View>
 
-            <View style={{justifyContent: 'flex-end', borderWidth: 1}}>
-                <BottomButton
-                    title="Publish"
-                    // onPress={() => navigation.navigate('pictureScreen' as never)}
-                    disabled={false}
-                />
-            </View>
+            <BottomButton
+                title="Next"
+                onPress={onNext}
+                disabled={false}
+            />
         </View>
     )
 };
