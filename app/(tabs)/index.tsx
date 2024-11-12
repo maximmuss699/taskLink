@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList, Image } from 'react-native';
 import React from 'react';
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
 import { SearchBar } from 'react-native-screens';
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -15,6 +15,8 @@ const TEST_DATA = [
         job_name: "Venčení psa",
         date: "2024-11-01",
         price: "200kč/hod",
+        image: 'https://via.placeholder.com/150',
+        post_type: 0
     },
     {
         id: "2",
@@ -23,6 +25,8 @@ const TEST_DATA = [
         job_name: "Sečení trávy",
         date: "2024-11-02",
         price: "500kč/hod",
+        image: 'https://via.placeholder.com/150',
+        post_type: 1
     },
     {
         id: "3",
@@ -31,32 +35,40 @@ const TEST_DATA = [
         job_name: "Profesionální úklid",
         date: "2024-11-03",
         price: "300kč/hod",
+        image: 'https://via.placeholder.com/150',
+        post_type: 0
     },
 ];
 
-const job_ad = (id: string, username: string, location: string, job_name: string, date: string, price: string) => (
-    <TouchableOpacity style={styles.JobAdvertisement}>
-    <Link href={{ pathname: '/(modals)/job_post', params: { id,
-                                                                username,
-                                                                location,
-                                                                job_name,
-                                                                date,
-                                                                price
-                                                            } }}>
-        <Text style={styles.ItemText}>{username}</Text>
-        {/* <Image src="pfp"/>
-        <Image src="images"/> */}
-        <Text style={styles.ItemText}>{location}</Text>
-        <Text style={styles.ItemText}>{job_name}</Text>
-        <Text style={styles.ItemText}>{date}</Text>
-        <Text style={styles.ItemText}>{price}</Text>
-    </Link>
+const job_ad = (id: string, username: string,
+    location: string, job_name: string,
+    date: string, price: string, router: any, image: string,
+    post_type: number) => {
+        const tcolor = post_type === 0 ? "#717171" : "white";
+        const bckgColor = post_type === 0 ? "#D9D9D9" : "#52812F";
+        return (<TouchableOpacity style={[styles.JobAdvertisement, {backgroundColor: bckgColor}]} onPress={() => router.push({
+            pathname: '/(modals)/job_post',
+                                                                                params: { id,
+                                                                                    username,
+                                                                                    location,
+                                                                                    job_name,
+                                                                                    date,
+                                                                                    price
+                                                                                }
+                                                                            })}>
+        <Text style={styles.JobAdHeader}>{username}</Text>
+        <Image source={{ uri: image }} style={{width: "95%", height: "60%", padding: 5, marginBottom: 10}}/>
+        <Text style={styles.PriceLocText}>{location}</Text>
+        <Text style={[styles.ItemText, {color: tcolor}]}>{job_name}</Text>
+        <Text style={[styles.ItemText, {color: tcolor}]}>{date}</Text>
+        <Text style={styles.PriceLocText}>{price}</Text>
     </TouchableOpacity>
-)
+)}
 
 const Page = () => {
+    const router = useRouter();
     return (
-        <View>
+        <View style={styles.main}>
             <Text style={styles.MainText}>Explore tasks near You</Text>
             <Text style={styles.LocationText}>Location</Text>
             <View style={styles.SearchBarCollection}>
@@ -68,17 +80,7 @@ const Page = () => {
                     />
             </View>
 
-            {/* <Text>Page</Text>
-            <Link href={'/(modals)/login'}>
-            Login
-            </Link>
-            <Link href={'/(modals)/booking'}>
-            Booking
-            </Link>
-            <Link href={'/listing/1337'}>
-                Listing details
-            </Link> */}
-            <SafeAreaView style={styles.JobPanel}>
+            <View style={styles.JobPanel}>
                 <FlatList
                     data={TEST_DATA}
                     renderItem = {({ item }) => job_ad(item.id,
@@ -86,11 +88,14 @@ const Page = () => {
                                                     item.location,
                                                     item.job_name,
                                                     item.date,
-                                                    item.price
+                                                    item.price,
+                                                    router,
+                                                    item.image,
+                                                    item.post_type
                                                 )}
                     keyExtractor={(item) => item.id}
                     />
-            </SafeAreaView>
+            </View>
         </View>
     );
 }
@@ -143,13 +148,37 @@ const styles = StyleSheet.create({
         alignItems: "center",
         width: "95%",
         alignSelf: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        height: 480,
+        borderRadius: 5
     },
     JobPanel: {
-        height: "75%"
+        height: "100%",
+        flex: 1
+    },
+    JobAdHeader: {
+        margin: 10,
+        marginTop: 2,
+        fontFamily: 'mon-b',
+        alignSelf: "center",
+        fontSize: 20
     },
     ItemText: {
-        margin: 10,
+        margin: 5,
+        marginLeft: 10,
+        fontFamily: 'mon',
+        alignSelf: "flex-start",
+        color: "white"
+    },
+    PriceLocText: {
+        margin: 5,
+        marginLeft: 10,
+        fontFamily: 'mon-b',
+        alignSelf: "flex-start",
+    },
+    main: {
+        flex: 1,
+        backgroundColor: "white"
     }
 })
 

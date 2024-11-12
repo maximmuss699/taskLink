@@ -1,15 +1,15 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList, SafeAreaView } from 'react-native';
 import React from 'react';
 import { Link, useLocalSearchParams } from "expo-router";
 import Colors from "@/constants/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const Page = () => {
     const { category } = useLocalSearchParams<{ category: string }>();
     return (
-        <View>
+        <SafeAreaView>
             <Text style={styles.MainText}>Posts in { category } </Text>
             {/* <SafeAreaView style={styles.JobPanel}>
                 <FlatList
@@ -24,7 +24,7 @@ const Page = () => {
                     keyExtractor={(item) => item.id}
                     />
             </SafeAreaView> */}
-        </View>
+        </SafeAreaView>
     );
 }
 
