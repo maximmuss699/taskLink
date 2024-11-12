@@ -1,9 +1,10 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList, SafeAreaView } from 'react-native';
 import React from 'react';
-import { Link, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, usePathname } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 const Page = () => {
+    const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
     const { username } = useLocalSearchParams<{ username: string }>();
     const { location } = useLocalSearchParams<{ location: string }>();
@@ -12,7 +13,12 @@ const Page = () => {
     const { price } = useLocalSearchParams<{ price: string }>();
 
     return (
-        <View>
+        <SafeAreaView>
+            {/* <TouchableOpacity style={styles.backBtn} onPress={() => router.push({
+                                                                        pathname: '/(tabs)/inbox'
+                                                                        })}>
+                <Ionicons style={styles.icon} name='chevron-back-outline'/>
+            </TouchableOpacity> */}
             <Text style={styles.Username}>{ username }</Text>
             <Text style={styles.LocText}>{ location }</Text>
             <View style={styles.datePrice}>
@@ -27,7 +33,7 @@ const Page = () => {
             </View>
             <Text style={styles.Text}>Popis</Text>
             <Text style={styles.DescText}>{ job_name }</Text>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -67,6 +73,17 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontFamily: 'mon',
         color: 'black',
+    },
+    backBtn: {
+        height: 80,
+        width: 80,
+        position: "absolute",
+        left: 20,
+        top: 50
+    },
+    icon: {
+        width: "90%",
+        height: "90%"
     }
 })
 
