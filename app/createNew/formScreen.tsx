@@ -78,14 +78,11 @@ const FormScreen = () => {
 
             </View>
 
-            {/* If the following view is blocking other elements, add 'borderWidth: 1' to style to see the border */}
-            <View style={{justifyContent: 'flex-end'}}>
-                <BottomButton
-                    title="Next"
-                    // onPress={() => navigation.navigate('Confirmation')} TODO: Add next screen
-                    disabled={!formData.title || !formData.price || !formData.description || !formData.date}
-                />
-            </View>
+            <BottomButton
+                title="Next"
+                onPress={() => navigation.navigate('pictureScreen' as never)}
+                disabled={!formData.title || !formData.price || !formData.description || !formData.date}
+            />
         </View>
     );
 };
