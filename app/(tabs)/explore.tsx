@@ -3,7 +3,6 @@ import React from 'react';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Colors from "@/constants/Colors";
 import { useRouter } from 'expo-router';
-import { Link } from "expo-router";
 
 const router = useRouter();
 
