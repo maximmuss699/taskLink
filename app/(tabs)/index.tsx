@@ -1,10 +1,14 @@
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList, Image } from 'react-native';
-import React from 'react';
 import { Link, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
 import { SearchBar } from 'react-native-screens';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
+/* firestore imports */
+import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot } from 'firebase/firestore';
+import { FIRESTORE } from '@/firebaseConfig';
+
 
 // Only for testing
 const TEST_DATA = [
@@ -43,9 +47,9 @@ const TEST_DATA = [
 const job_ad = (id: string, username: string,
     location: string, job_name: string,
     date: string, price: string, router: any, image: string,
-    post_type: number) => {
-        const tcolor = post_type === 0 ? "#717171" : "white";
-        const bckgColor = post_type === 0 ? "#D9D9D9" : "#52812F";
+    post_type: boolean, description: string) => {
+        const tcolor = post_type === false ? "#717171" : "white";
+        const bckgColor = post_type === false ? "#D9D9D9" : "#52812F";
         return (<TouchableOpacity style={[styles.JobAdvertisement, {backgroundColor: bckgColor}]} onPress={() => router.push({
             pathname: '/(modals)/job_post',
                                                                                 params: { id,
@@ -53,7 +57,8 @@ const job_ad = (id: string, username: string,
                                                                                     location,
                                                                                     job_name,
                                                                                     date,
-                                                                                    price
+                                                                                    price,
+                                                                                    description
                                                                                 }
                                                                             })}>
         <Text style={styles.JobAdHeader}>{username}</Text>
@@ -61,12 +66,47 @@ const job_ad = (id: string, username: string,
         <Text style={styles.PriceLocText}>{location}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{job_name}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{date}</Text>
-        <Text style={styles.PriceLocText}>{price}</Text>
+        <Text style={styles.PriceLocText}>{price} Kč</Text>
     </TouchableOpacity>
 )}
 
+// interface definition
+interface jobPost {
+    id: string;
+    username: string;
+    date: Timestamp;
+    location: string;
+    title: string;
+    description: string;
+    offeringTask: boolean;
+    address: {
+        locality: string;
+    }
+    price: string;
+    image: string; // FIXME VT change this
+}
+
 const Page = () => {
     const router = useRouter();
+    // state definition
+    const [loadedPosts, setPosts] = useState<jobPost[]>([]);
+    // FIXME VT: move the db handling logic to BE; fix memory leak
+    useEffect(() => {
+        // get the firestore instance
+        const dbEngine = getFirestore();
+        // get everything from posts
+        const collectionRef = collection(dbEngine, "posts");
+        // listener for changes
+        onSnapshot(collectionRef, (sshot) => {
+            // process of "snapshot"
+            const jobArray: any = [];
+            sshot.docs.forEach((data) => {
+                jobArray.push({ id: data.id , ...data.data() });
+            })
+            setPosts(jobArray); // state set
+        });
+    }, ([]));
+
     return (
         <View style={styles.main}>
             <Text style={styles.MainText}>Explore tasks near You</Text>
@@ -82,16 +122,18 @@ const Page = () => {
 
             <View style={styles.JobPanel}>
                 <FlatList
-                    data={TEST_DATA}
+                    data={loadedPosts}
                     renderItem = {({ item }) => job_ad(item.id,
-                                                    item.username,
-                                                    item.location,
-                                                    item.job_name,
-                                                    item.date,
+                                                    // item.username,
+                                                    "Kamil",
+                                                    item.address.locality,
+                                                    item.title,
+                                                    item.date.toDate().toLocaleDateString(),
                                                     item.price,
                                                     router,
                                                     item.image,
-                                                    item.post_type
+                                                    item.offeringTask,
+                                                    item.description,
                                                 )}
                     keyExtractor={(item) => item.id}
                     />
