@@ -10,10 +10,10 @@ const Explore = () => {
         <View>
             <Text style={styles.MainText}>Explore Jobs</Text>
             <TouchableOpacity style={styles.SearchBtn}>
-                {/* <Link href="/(modals)/categories" style={styles.SearchLink}> */}
+                <Link href="/(modals)/categories" style={styles.SearchLink}>
                     <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
                     <Text style={styles.SearchBtnText}>What job are you searching for?</Text>
-                {/* </Link> */}
+                </Link>
             </TouchableOpacity>
         </View>
     );
@@ -36,6 +36,8 @@ const styles = StyleSheet.create({
         color: Colors.primary
     },
     SearchBtn: {
+        height: 40,
+        width: "80%",
         marginTop: 8,
         alignSelf: 'center',
         borderWidth: 2,
@@ -61,16 +63,11 @@ const styles = StyleSheet.create({
         marginTop: 5
     },
     SearchLink: {
-        marginTop: 8,
-        alignSelf: 'center',
-        borderWidth: 2,
-        borderColor: '#DEDEDE',
-        borderRadius: 30,
-        backgroundColor: '#FFFFFF',
-        shadowColor: '#DEDEDE',
-        shadowOpacity: 1,
-        shadowOffset: { width: 0, height: 1},
-        flexDirection: 'row'
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        height: "100%"
     }
 })
 

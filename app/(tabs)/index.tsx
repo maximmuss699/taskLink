@@ -1,10 +1,58 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList } from 'react-native';
 import React from 'react';
 import { Link } from "expo-router";
 import Colors from "@/constants/Colors";
 import { SearchBar } from 'react-native-screens';
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { FlatList } from 'react-native-reanimated/lib/typescript/Animated';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Only for testing
+const TEST_DATA = [
+    {
+        id: "1",
+        username: "Alice",
+        location: "Šternberk, Olomoucký kraj",
+        job_name: "Venčení psa",
+        date: "2024-11-01",
+        price: "200kč/hod",
+    },
+    {
+        id: "2",
+        username: "Jan",
+        location: "Krnov, Moravskoslezský kraj",
+        job_name: "Sečení trávy",
+        date: "2024-11-02",
+        price: "500kč/hod",
+    },
+    {
+        id: "3",
+        username: "Emanuel",
+        location: "Bruntál, Moravskoslezský kraj",
+        job_name: "Profesionální úklid",
+        date: "2024-11-03",
+        price: "300kč/hod",
+    },
+];
+
+const job_ad = (id: string, username: string, location: string, job_name: string, date: string, price: string) => (
+    <TouchableOpacity style={styles.JobAdvertisement}>
+    <Link href={{ pathname: '/(modals)/job_post', params: { id,
+                                                                username,
+                                                                location,
+                                                                job_name,
+                                                                date,
+                                                                price
+                                                            } }}>
+        <Text style={styles.ItemText}>{username}</Text>
+        {/* <Image src="pfp"/>
+        <Image src="images"/> */}
+        <Text style={styles.ItemText}>{location}</Text>
+        <Text style={styles.ItemText}>{job_name}</Text>
+        <Text style={styles.ItemText}>{date}</Text>
+        <Text style={styles.ItemText}>{price}</Text>
+    </Link>
+    </TouchableOpacity>
+)
 
 const Page = () => {
     return (
@@ -20,7 +68,7 @@ const Page = () => {
                     />
             </View>
 
-            <Text>Page</Text>
+            {/* <Text>Page</Text>
             <Link href={'/(modals)/login'}>
             Login
             </Link>
@@ -29,12 +77,20 @@ const Page = () => {
             </Link>
             <Link href={'/listing/1337'}>
                 Listing details
-            </Link>
-            {/* <FlatList
-                data={data}
-                renderItem = {({}) => }
-                keyExtractor={}
-            /> */}
+            </Link> */}
+            <SafeAreaView style={styles.JobPanel}>
+                <FlatList
+                    data={TEST_DATA}
+                    renderItem = {({ item }) => job_ad(item.id,
+                                                    item.username,
+                                                    item.location,
+                                                    item.job_name,
+                                                    item.date,
+                                                    item.price
+                                                )}
+                    keyExtractor={(item) => item.id}
+                    />
+            </SafeAreaView>
         </View>
     );
 }
@@ -80,6 +136,20 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center'
+    },
+    JobAdvertisement: {
+        marginBottom: 10,
+        backgroundColor: "green",
+        alignItems: "center",
+        width: "95%",
+        alignSelf: 'center',
+        justifyContent: 'center'
+    },
+    JobPanel: {
+        height: "75%"
+    },
+    ItemText: {
+        margin: 10,
     }
 })
 
