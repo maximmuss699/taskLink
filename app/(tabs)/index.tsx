@@ -177,7 +177,8 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
     },
     main: {
-        flex: 1
+        flex: 1,
+        backgroundColor: "white"
     }
 })
 
