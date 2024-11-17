@@ -7,47 +7,14 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
 /* firestore imports */
 import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot } from 'firebase/firestore';
-import { FIRESTORE } from '@/firebaseConfig';
+import Carousel from 'react-native-reanimated-carousel';
 
-
-// Only for testing
-const TEST_DATA = [
-    {
-        id: "1",
-        username: "Alice",
-        location: "Šternberk, Olomoucký kraj",
-        job_name: "Venčení psa",
-        date: "2024-11-01",
-        price: "200kč/hod",
-        image: 'https://via.placeholder.com/150',
-        post_type: 0
-    },
-    {
-        id: "2",
-        username: "Jan",
-        location: "Krnov, Moravskoslezský kraj",
-        job_name: "Sečení trávy",
-        date: "2024-11-02",
-        price: "500kč/hod",
-        image: 'https://via.placeholder.com/150',
-        post_type: 1
-    },
-    {
-        id: "3",
-        username: "Emanuel",
-        location: "Bruntál, Moravskoslezský kraj",
-        job_name: "Profesionální úklid",
-        date: "2024-11-03",
-        price: "300kč/hod",
-        image: 'https://via.placeholder.com/150',
-        post_type: 0
-    },
-];
 
 const job_ad = (id: string, username: string,
     location: string, job_name: string,
-    date: string, price: string, router: any, image: string,
+    date: string, price: string, router: any, images: Array<string>,
     post_type: boolean, description: string) => {
+        // to differentiate offered and searched jobs; they have different colors
         const tcolor = post_type === false ? "#717171" : "white";
         const bckgColor = post_type === false ? "#D9D9D9" : "#52812F";
         return (<TouchableOpacity style={[styles.JobAdvertisement, {backgroundColor: bckgColor}]} onPress={() => router.push({
@@ -58,11 +25,21 @@ const job_ad = (id: string, username: string,
                                                                                     job_name,
                                                                                     date,
                                                                                     price,
-                                                                                    description
+                                                                                    description,
+                                                                                    images,
+                                                                                    post_type
                                                                                 }
                                                                             })}>
         <Text style={styles.JobAdHeader}>{username}</Text>
-        <Image source={{ uri: image }} style={{width: "95%", height: "60%", padding: 5, marginBottom: 10}}/>
+        {/* FIXME, displaying images */}
+        <Carousel
+            width={300}
+            height={480 * 0.6}
+            autoPlay={false}
+            data={images}
+            renderItem={({ item }) => (
+                <Image source={{ uri: item }} style={{width: "100%", height: "100%", padding: 5, marginBottom: 10}}/>
+            )}/>
         <Text style={styles.PriceLocText}>{location}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{job_name}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{date}</Text>
@@ -83,28 +60,28 @@ interface jobPost {
         locality: string;
     }
     price: string;
-    image: string; // FIXME VT change this
+    image: Array<string>; // array of image URL
 }
 
 const Page = () => {
     const router = useRouter();
-    // state definition
     const [loadedPosts, setPosts] = useState<jobPost[]>([]);
-    // FIXME VT: move the db handling logic to BE; fix memory leak
+
     useEffect(() => {
         // get the firestore instance
         const dbEngine = getFirestore();
         // get everything from posts
         const collectionRef = collection(dbEngine, "posts");
         // listener for changes
-        onSnapshot(collectionRef, (sshot) => {
-            // process of "snapshot"
+        const end = onSnapshot(collectionRef, (sshot) => {
+            // "snapshot" processing
             const jobArray: any = [];
             sshot.docs.forEach((data) => {
                 jobArray.push({ id: data.id , ...data.data() });
             })
             setPosts(jobArray); // state set
         });
+        return () => end();
     }, ([]));
 
     return (
