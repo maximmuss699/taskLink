@@ -87,7 +87,7 @@ const Page = () => {
     return (
         <View style={styles.main}>
             <Text style={styles.MainText}>Explore tasks near You</Text>
-            <Text style={styles.LocationText}>Location</Text>
+            <Text style={styles.LocationText}>Brno</Text>
             <View style={styles.SearchBarCollection}>
                 <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
                 <TextInput
