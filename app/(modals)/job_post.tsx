@@ -69,7 +69,8 @@ const Page = () => {
                     </TouchableOpacity>
                 </View>
             <View style={styles.textHeader}>
-                {offeringTask ? (<TouchableOpacity style={styles.ContactBtn}>
+                {offeringTask ? (<TouchableOpacity style={styles.ContactBtn} onPress={() => router.push({pathname: "/comments/commentMain"
+                                                                                                         ,params: {id}})}>
                     <Text style={styles.contactText}>Evaluate</Text>
                 </TouchableOpacity>): <View style={[styles.ContactBtn, { backgroundColor: "none" }]}></View>}
 
@@ -100,6 +101,27 @@ const Page = () => {
                     <Text style={styles.Text}>Description</Text>
                     <Text style={styles.DescText}>{ description }</Text>
                 </View>
+                <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View>
+
+                {offeringTask && (
+                <View>
+                    <View>
+                        {/* Kvalifikace */}
+                        <Text></Text>
+                        <Text>Kvalifikace</Text>
+                    </View>
+                    <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View>
+                    <View>
+                        {/* rating */}
+                        <Text>3.2</Text>
+                    </View>
+                    <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View>
+                    <View>
+                        {/* evaluations */}
+                        <Text>Super</Text>
+                    </View>
+                </View>
+                )}
             </View>
         </ScrollView>
     );
