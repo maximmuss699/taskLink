@@ -1,46 +1,52 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { useLocalSearchParams, useRouter } from "expo-router";
-import Colors from "@/constants/Colors";
-import { SearchBar } from 'react-native-screens';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, TouchableWithoutFeedback, Keyboard, TextInput } from 'react-native';
+import { useLocalSearchParams, router, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
 /* firestore imports */
-import { collection, doc, query, getDocs, addDoc, onSnapshot } from 'firebase/firestore';
+import { collection, setDoc, doc, getDoc } from 'firebase/firestore';
 import { FIRESTORE } from '@/firebaseConfig';
 import Slider from '@react-native-community/slider';
-import Toast from 'react-native-toast-message';
 
-// show popup message
-export async function popupMsg() {
-    const showMsg = () => {
-        console.log("Message popup!")
-        Toast.show({
-            type: 'success',
-            text1: 'Your evaluation was successfuly added!'
-        })
-    }
-    showMsg();
+interface evaluation {
+    id: string; // postId; FIXME: make the variable name unambiguous
+    commId: string;
+    comment: string;
+    rating: number;
 }
 
-// sends the evaluation collected from the user to the firebase
-async function updateEval(rating: number, comment: string, id: string, router: any) {
+// updates the evaluation
+async function evalToDB(rating: number, comment: string, id: string, router: any, commId: string) {
     const collectionRef = collection(FIRESTORE, 'jobEval');
-    await addDoc(collectionRef, { comment: comment, rating: rating, postId: id });
-    popupMsg();
-    setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}),1000);
+    const docRef = doc(collectionRef, commId);
+
+    await setDoc(docRef, { comment: comment, rating: rating, postId: id });
+    setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}), 500);
 }
 
 function resizeCommWin() {
     return styles.Comment.height * 1.5;
 }
 
-const evaluationForm = () => {
+const editCommPage = () => {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
+    const { commId } = useLocalSearchParams<{ commId: string }>();
 
     const [sliderVal, setSliderVal] = useState<number>(0);
     const [comment, setComment] = useState<string>("");
+
+    useEffect(() => {
+        // fetch the evaluation from firebase and let the user modify it
+        const func = async () => {
+            const collectionRef = collection(FIRESTORE, "jobEval");
+            const docToLoad = doc(collectionRef, commId);
+            const loadedData = await getDoc(docToLoad);
+            setSliderVal(loadedData.data()?.rating);
+            setComment(loadedData.data()?.comment);
+        }
+        func();
+    }, ([]));
 
     return (
     <SafeAreaView style={styles.mainView}>
@@ -48,9 +54,8 @@ const evaluationForm = () => {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.push({pathname: "/comments/commentMain", params: {id}})}>
             <Ionicons name='chevron-back-outline' size={24}/>
         </TouchableOpacity>
-        <Text style={styles.mainText}>Evaluate Tasker</Text>
+        <Text style={styles.mainText}>Modify Evaluation</Text>
         </View>
-        {/* final evaluation */}
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View style={styles.header}>
             <View style={styles.rating}>
@@ -66,11 +71,10 @@ const evaluationForm = () => {
                 // minimumTrackTintColor="#FFFFFF"
                 minimumTrackTintColor="green"
                 onValueChange={(value) => {setSliderVal(value)}}
+                value={sliderVal}
             />
                 <TextInput
                     style={styles.Comment}
-                    placeholder='Add your comment here'
-                    placeholderTextColor="gray"
                     onChangeText={(comm) => setComment(comm)}
                     value={comment}
                     multiline
@@ -80,8 +84,8 @@ const evaluationForm = () => {
         </View>
         </TouchableWithoutFeedback>
 
-        <TouchableOpacity style={styles.button} onPress={() => updateEval(sliderVal, comment, id, router)}>
-            <Text style={styles.buttonText}>Add evaluation</Text>
+        <TouchableOpacity style={styles.button} onPress={() => evalToDB(sliderVal, comment, id, router, commId)}>
+            <Text style={styles.buttonText}>Modify evaluation</Text>
         </TouchableOpacity>
     </SafeAreaView>
     );
@@ -96,7 +100,7 @@ const styles = StyleSheet.create({
         fontFamily: 'mon-b',
         fontWeight: 'bold',
         color: 'black',
-        marginLeft: 15
+        marginLeft: 5
     },
     button: {
         marginTop: 300,
@@ -184,4 +188,4 @@ const styles = StyleSheet.create({
     }
 })
 
-export default evaluationForm;
+export default editCommPage;
