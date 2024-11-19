@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 /* firestore imports */
 import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot } from 'firebase/firestore';
 import Carousel from 'react-native-reanimated-carousel';
-
+import Toast from 'react-native-toast-message';
 
 const job_ad = (id: string, username: string,
     location: string, job_name: string,
@@ -18,7 +18,7 @@ const job_ad = (id: string, username: string,
         const tcolor = post_type === false ? "#717171" : "white";
         const bckgColor = post_type === false ? "#D9D9D9" : "#52812F";
         return (<TouchableOpacity style={[styles.JobAdvertisement, {backgroundColor: bckgColor}]} onPress={() => router.push({
-            pathname: '/(modals)/job_post',
+                                                                                pathname: '/(modals)/job_post',
                                                                                 params: { id,
                                                                                     username,
                                                                                     location,
@@ -115,6 +115,7 @@ const Page = () => {
                     keyExtractor={(item) => item.id}
                     />
             </View>
+        <Toast/>
         </View>
     );
 }
