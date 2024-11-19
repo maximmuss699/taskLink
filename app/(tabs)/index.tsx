@@ -10,6 +10,30 @@ import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot } from 
 import Carousel from 'react-native-reanimated-carousel';
 import Toast from 'react-native-toast-message';
 
+// FIXME: optimize using filter?
+// quicksearch filtering
+function filterQS(postArray: jobPost[], qsResult: string | null) {
+    // if the search string is null, return the array unchanged...
+    if (qsResult === "" || qsResult === null || qsResult === undefined) return postArray;
+
+    var filteredArray: jobPost[] = [];
+    // filter the array
+    postArray.forEach((arrElem) => {
+        var isInFilter: boolean = false;
+        if (arrElem.title !== undefined) isInFilter = isInFilter || arrElem.title.toLowerCase().includes(qsResult.toLowerCase());
+        if (arrElem.location !== undefined) isInFilter = isInFilter || arrElem.location.toLowerCase().includes(qsResult.toLowerCase());
+        if (arrElem.username !== undefined) isInFilter = isInFilter || arrElem.username.toLowerCase().includes(qsResult.toLowerCase());
+        if (arrElem.address.locality !== undefined) isInFilter = isInFilter || arrElem.address.locality.toLowerCase().includes(qsResult.toLowerCase());
+
+        if (isInFilter) {
+            // put it into the array
+            filteredArray.push(arrElem);
+        }
+    })
+
+    return filteredArray;
+}
+
 const job_ad = (id: string, username: string,
     location: string, job_name: string,
     date: string, price: string, router: any, images: Array<string>,
@@ -66,6 +90,7 @@ interface jobPost {
 const Page = () => {
     const router = useRouter();
     const [loadedPosts, setPosts] = useState<jobPost[]>([]);
+    const [quickSearch, setQSval] = useState<string | null>(null);
 
     useEffect(() => {
         // get the firestore instance
@@ -94,12 +119,13 @@ const Page = () => {
                     style={styles.SearchBar}
                     placeholder='What job are you searching for?'
                     placeholderTextColor="black"
+                    onChangeText={setQSval}
                     />
             </View>
 
             <View style={styles.JobPanel}>
                 <FlatList
-                    data={loadedPosts}
+                    data={filterQS(loadedPosts, quickSearch)}
                     renderItem = {({ item }) => job_ad(item.id,
                                                     // item.username,
                                                     "Kamil",
