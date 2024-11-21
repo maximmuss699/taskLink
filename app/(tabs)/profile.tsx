@@ -23,10 +23,16 @@ import Colors from "../../constants/Colors"; // Import colors if available
 import { defaultStyles } from '../../constants/Styles';
 import { Href, useRouter } from 'expo-router';
 
-// Define styles before the component to prevent TS2448 error
+
 const styles = StyleSheet.create({
     scrollContainer: {
-        paddingBottom: 60, // Чтобы taskLink не пересекался с нижней частью экрана
+        paddingBottom: 60, 
+    },
+    loading: {
+        flex: 1,
+        justifyContent: 'center', 
+        alignItems: 'center',   
+        backgroundColor: '#fff',  
     },
     headerContainer: {
         flexDirection: 'row',
@@ -308,8 +314,8 @@ const ProfilePage = () => {
 
     if (loading) {
         return (
-            <SafeAreaView style={defaultStyles.container}>
-                <ActivityIndicator size="large" color={Colors.dark} />
+            <SafeAreaView style={styles.loading}>
+                <ActivityIndicator size="large" color={Colors.primary} />
             </SafeAreaView>
         );
     }

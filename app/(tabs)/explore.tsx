@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 const Explore = () => {
     const router = useRouter();
     return (
-        <View>
+        <View style={styles.mainView}>
             <Text style={styles.MainText}>Explore Jobs</Text>
             <TouchableOpacity style={styles.SearchBtn} onPress={() => router.push({pathname: '/(modals)/categories'})}>
                     <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
@@ -18,6 +18,9 @@ const Explore = () => {
 }
 
 const styles = StyleSheet.create({
+    mainView: {
+        backgroundColor: "white"
+    },
     MainText: {
         fontSize: 28,
         fontFamily: 'mon-b',
@@ -41,7 +44,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#DEDEDE',
         borderRadius: 30,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: "white",
         shadowColor: '#DEDEDE',
         shadowOpacity: 1,
         shadowOffset: { width: 0, height: 1},

@@ -8,10 +8,8 @@ import {
     Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import {Ionicons} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Href } from "expo-router";
-
-
 
 interface Chat {
     id: string;
@@ -22,10 +20,10 @@ interface Chat {
 }
 
 const chats: Chat[] = [
-    { id: '1', name: 'Alice Johnson', lastMessage: 'Привет! Как дела?', timestamp: '10:30', avatar: 'https://via.placeholder.com/100' },
-    { id: '2', name: 'Bob Smith', lastMessage: 'Давай встретимся завтра', timestamp: 'Вчера', avatar: 'https://via.placeholder.com/100' },
-    { id: '3', name: 'Charlie Brown', lastMessage: 'Отправлю файлы позже', timestamp: 'Понедельник', avatar: 'https://via.placeholder.com/100' },
-    { id: '4', name: 'David White', lastMessage: 'Спасибо за помощь!', timestamp: '1 ноября', avatar: 'https://via.placeholder.com/100' },
+    { id: '1', name: 'Alice Johnson', lastMessage: 'Hi! How are you?', timestamp: '10:30 AM', avatar: 'https://via.placeholder.com/100' },
+    { id: '2', name: 'Bob Smith', lastMessage: 'Let\'s meet tomorrow.', timestamp: 'Yesterday', avatar: 'https://via.placeholder.com/100' },
+    { id: '3', name: 'Charlie Brown', lastMessage: 'I\'ll send the files later.', timestamp: 'Monday', avatar: 'https://via.placeholder.com/100' },
+    { id: '4', name: 'David White', lastMessage: 'Thank you for your help!', timestamp: 'November 1', avatar: 'https://via.placeholder.com/100' },
 ];
 
 const Inbox = () => {
@@ -34,7 +32,7 @@ const Inbox = () => {
     const renderItem = ({ item }: { item: Chat }) => (
         <TouchableOpacity
             style={styles.chatItem}
-            onPress={() => router.push(`/chats/${item.id}` as Href<`/chat/${string}`>)}
+            onPress={() => router.push(`/chats/${item.id}` as Href<`/chats/${string}`>)}
         >
             <Image source={{ uri: item.avatar }} style={styles.avatar} />
             <View style={styles.chatInfo}>
@@ -50,7 +48,6 @@ const Inbox = () => {
             <View style={styles.headerContainer}>
                 <Text style={styles.header}>Messages</Text>
                 <Ionicons name="search-outline" size={26} />
-
             </View>
             <FlatList
                 data={chats}
@@ -72,10 +69,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         padding: 24,
+        alignItems: 'center', // Center vertically
     },
     header: {
         fontFamily: 'mon-b',
         fontSize: 30,
+        color: '#000', // Ensure text color is set
     },
     chatList: {
         paddingHorizontal: 16,
@@ -104,6 +103,7 @@ const styles = StyleSheet.create({
     lastMessage: {
         fontSize: 14,
         color: '#666',
+        marginTop: 4, // Add some spacing between name and last message
     },
     timestamp: {
         fontSize: 12,

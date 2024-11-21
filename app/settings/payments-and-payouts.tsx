@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// Payments.tsx
+
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -15,9 +17,13 @@ import {
     Keyboard,
     Platform,
     KeyboardAvoidingView,
+    ActivityIndicator,
 } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from 'expo-router';
+import { FIRESTORE } from '@/firebaseConfig';
+import { collection, getDocs, query, where, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import Colors from "../../constants/Colors";
 
 export interface PersonalInfoProps {
     testID?: string,
@@ -26,19 +32,18 @@ export interface PersonalInfoProps {
 interface Card {
     id: string;
     name: string;
-    number: string;
+    last4: string;
     expiry: string;
 }
 
-const paymentData = [
-    { id: '1', name: 'Alice Johnson', avatar: 'https://via.placeholder.com/100', date: '2023.11.01', amount: '50 €' },
-    { id: '2', name: 'Bob Smith', avatar: 'https://via.placeholder.com/100', date: '2023.10.20', amount: '30 €' },
-];
-
-const payoutData = [
-    { id: '1', name: 'John Doe', avatar: 'https://via.placeholder.com/100', date: '2023.11.05', amount: '100 €' },
-    { id: '2', name: 'Emily Rose', avatar: 'https://via.placeholder.com/100', date: '2023.10.25', amount: '75 €' },
-];
+interface PaymentItem {
+    id: string;
+    taskerId: string;
+    date: any;
+    amount: string;
+    fullName: string;
+    profilePicture: string;
+}
 
 const Payments: React.FC<PersonalInfoProps> = (props) => {
     const router = useRouter();
@@ -47,24 +52,114 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
     const [cardNumber, setCardNumber] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [cvv, setCvv] = useState('');
-    const [savedCards, setSavedCards] = useState<Card[]>([]); // Изменено на массив карт
+    const [savedCards, setSavedCards] = useState<Card[]>([]);
+    // states for payments and payouts
+    const [payments, setPayments] = useState<PaymentItem[]>([]);
+    const [payouts, setPayouts] = useState<PaymentItem[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleAddPayment = () => {
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            try {
+                const paymentsSnapshot = await getDocs(collection(FIRESTORE, 'payments'));
+                const payoutsSnapshot = await getDocs(collection(FIRESTORE, 'payouts'));
+                // Get data from snapshots and add id field
+                const paymentsData = paymentsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                const payoutsData = payoutsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+
+                // Concatenate payments and payouts data
+                const allTransactions = [...paymentsData, ...payoutsData];
+                const taskerIds = Array.from(new Set(allTransactions.map(item => item.taskerId)));
+
+                // Receive tasker data
+                const taskersData: { [key: string]: { fullName: string; profilePicture: string } } = {};
+
+
+                // Fetch tasker data in batches of 10
+                for (let i = 0; i < taskerIds.length; i += 10) {
+                    const batch = taskerIds.slice(i, i + 10);
+                    const q = query(collection(FIRESTORE, 'taskers'), where('taskerId', 'in', batch));
+                    const taskersSnapshot = await getDocs(q);
+                    taskersSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        taskersData[data.taskerId] = {
+                            fullName: data.fullName || 'Unknown Tasker',
+                            profilePicture: data.profilePicture || 'https://via.placeholder.com/100',
+                        };
+                    });
+                }
+
+                // Add tasker info to payments
+                const paymentsWithTaskerInfo = paymentsData.map(item => ({
+                    ...item,
+                    fullName: taskersData[item.taskerId]?.fullName || 'Unknown Tasker',
+                    profilePicture: taskersData[item.taskerId]?.profilePicture || 'https://via.placeholder.com/100',
+                }));
+                // Add tasker info to payouts
+                const payoutsWithTaskerInfo = payoutsData.map(item => ({
+                    ...item,
+                    fullName: taskersData[item.taskerId]?.fullName || 'Unknown Tasker',
+                    profilePicture: taskersData[item.taskerId]?.profilePicture || 'https://via.placeholder.com/100',
+                }));
+
+                // Update state
+                setPayments(paymentsWithTaskerInfo);
+                setPayouts(payoutsWithTaskerInfo);
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+                Alert.alert('Error', 'Cant fetch transactions.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const fetchSavedCards = async () => {
+            try {
+                // Fetch saved cards from Firestore
+                const cardsSnapshot = await getDocs(collection(FIRESTORE, 'cards'));
+                const cardsData = cardsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Card[];
+                setSavedCards(cardsData);
+            } catch (error) {
+                console.error('Error fetching saved cards:', error);
+                Alert.alert('Error', 'Cant fetch cards');
+            }
+        };
+        // Fetch transactions and saved cards
+        fetchTransactions();
+        fetchSavedCards();
+    }, []);
+
+    const handleAddPayment = async () => {
         if (cardName && cardNumber && expiryDate && cvv) {
+            // Saving only last 4 digits of card number
+            const last4 = cardNumber.slice(-4);
             const newCard: Card = {
-                id: Date.now().toString(),
+                id: '',
                 name: cardName,
-                number: cardNumber,
+                last4: last4,
                 expiry: expiryDate,
             };
-            setSavedCards([...savedCards, newCard]); // Добавляем новую карту в массив
-            setModalVisible(false);
-            setCardName('');
-            setCardNumber('');
-            setExpiryDate('');
-            setCvv('');
+
+            try {
+                // Add card to Firestore
+                const docRef = await addDoc(collection(FIRESTORE, 'cards'), newCard);
+                newCard.id = docRef.id;
+
+                // Update state
+                setSavedCards([...savedCards, newCard]);
+
+                // Close modal and clear input fields
+                setModalVisible(false);
+                setCardName('');
+                setCardNumber('');
+                setExpiryDate('');
+                setCvv('');
+            } catch (error) {
+                console.error('Error adding card:', error);
+                Alert.alert('Error', 'card');
+            }
         } else {
-            Alert.alert('Please fill in all fields');
+            Alert.alert('Please, complete all fields');
         }
     };
 
@@ -74,30 +169,37 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
             'Are you sure you want to delete this card?',
             [
                 { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive', onPress: () => {
-                        setSavedCards(savedCards.filter(card => card.id !== id));
-                    } },
+                {
+                    text: 'Delete', style: 'destructive', onPress: async () => {
+                        try {
+                            await deleteDoc(doc(FIRESTORE, 'cards', id));
+                            setSavedCards(savedCards.filter(card => card.id !== id));
+                        } catch (error) {
+                            console.error('Error deleting card:', error);
+                            Alert.alert('Error', 'cant delete card');
+                        }
+                    }
+                },
             ]
         );
     };
 
-    const renderItem = ({ item, isPayout }: { item: typeof paymentData[0], isPayout: boolean }) => (
+    const renderItem = ({ item, isPayout }: { item: PaymentItem, isPayout: boolean }) => (
         <View style={styles.paymentItem}>
-            <TouchableOpacity onPress={() => router.push(`/profile/${item.id}`)}>
-                <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            <TouchableOpacity onPress={() => router.push(`/profile/${item.taskerId}`)}>
+                <Image source={{ uri: item.profilePicture }} style={styles.avatar} />
             </TouchableOpacity>
             <View style={styles.paymentInfo}>
-                <Text style={styles.userName}>{item.name}</Text>
-                <Text style={styles.date}>{item.date}</Text>
+                <Text style={styles.userName}>{item.fullName}</Text>
+                <Text style={styles.date}>{new Date(item.date.seconds * 1000).toLocaleDateString()}</Text>
             </View>
             <Text style={[styles.amount, isPayout ? styles.payoutAmount : styles.paymentAmount]}>
-                {item.amount}
+                {item.amount} EUR
             </Text>
         </View>
     );
 
     const handleExpiryDateChange = (text: string) => {
-        // Удаляем все символы кроме цифр
         let cleaned = text.replace(/[^\d]/g, '');
         if (cleaned.length > 4) {
             cleaned = cleaned.slice(0, 4);
@@ -109,6 +211,14 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
 
         setExpiryDate(cleaned);
     };
+
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.loading}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container} testID={props.testID ?? "personal-info"}>
@@ -127,7 +237,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     </Text>
                 </View>
 
-                {/* Display saved cards */}
+
                 {savedCards.map((card) => (
                     <TouchableOpacity key={card.id} onPress={() => handleDeleteCard(card.id)}>
                         <View style={styles.savedCardContainer}>
@@ -137,7 +247,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                             <View style={styles.cardDetails}>
                                 <Text style={styles.cardName}>{card.name}</Text>
                                 <Text style={styles.cardInfo}>
-                                    {card.number} • {card.expiry}
+                                    **** **** **** {card.last4} • {card.expiry}
                                 </Text>
                             </View>
                         </View>
@@ -148,13 +258,13 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     <Text style={styles.addButtonText}>Add Payment Method</Text>
                 </TouchableOpacity>
 
-                {/* Your Payments Section */}
+
                 <View style={styles.content}>
                     <View style={styles.infoRow}>
                         <Text style={styles.label}>Your payments</Text>
                     </View>
                     <FlatList
-                        data={paymentData}
+                        data={payments}
                         renderItem={({ item }) => renderItem({ item, isPayout: false })}
                         keyExtractor={(item) => item.id}
                         contentContainerStyle={styles.paymentList}
@@ -162,13 +272,13 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     />
                 </View>
 
-                {/* Your Payouts Section */}
+
                 <View style={styles.content}>
                     <View style={styles.infoRow}>
                         <Text style={styles.label}>Your payouts</Text>
                     </View>
                     <FlatList
-                        data={payoutData}
+                        data={payouts}
                         renderItem={({ item }) => renderItem({ item, isPayout: true })}
                         keyExtractor={(item) => item.id}
                         contentContainerStyle={[styles.paymentList, styles.lastList]}
@@ -178,7 +288,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                 <Text style={styles.footerText}>taskLink</Text>
             </ScrollView>
 
-            {/* Modal for Adding Payment Method */}
+
             <Modal
                 visible={isModalVisible}
                 animationType="slide"
@@ -195,7 +305,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                 <View style={styles.modalContent}>
                                     <Text style={styles.modalTitle}>Add Payment Method</Text>
 
-                                    {/* Поле для имени держателя карты */}
+                                    {/* Поле "Имя держателя карты" */}
                                     <View style={styles.inputContainer}>
                                         <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
                                         <TextInput
@@ -207,7 +317,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                         />
                                     </View>
 
-                                    {/* Поле для номера карты */}
+
                                     <View style={styles.inputContainer}>
                                         <Ionicons name="card-outline" size={20} color="#666" style={styles.inputIcon} />
                                         <TextInput
@@ -221,7 +331,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                         />
                                     </View>
 
-                                    {/* Поле для даты истечения срока действия */}
+
                                     <View style={styles.inputContainer}>
                                         <Ionicons name="calendar-outline" size={20} color="#666" style={styles.inputIcon} />
                                         <TextInput
@@ -235,7 +345,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                         />
                                     </View>
 
-                                    {/* Поле для CVV-кода */}
+
                                     <View style={styles.inputContainer}>
                                         <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
                                         <TextInput
@@ -267,13 +377,18 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
             </Modal>
         </SafeAreaView>
     );
-
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#FFFFFF',
+    },
+    loading: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
     },
     header: {
         flexDirection: 'row',
@@ -431,7 +546,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         textAlign: 'center',
     },
-    inputContainer: { // Новый стиль для контейнера с иконкой и полем ввода
+    inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
@@ -442,7 +557,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         backgroundColor: '#f9f9f9',
     },
-    inputIcon: { // Новый стиль для иконки внутри поля ввода
+    inputIcon: {
         marginRight: 10,
     },
     input: {
@@ -502,7 +617,7 @@ const styles = StyleSheet.create({
         marginRight: 12,
     },
     extraSpace: {
-        height: 20, // Добавляем 20 единиц высоты под кнопками
+        height: 20,
     },
 });
 

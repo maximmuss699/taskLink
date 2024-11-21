@@ -1,101 +1,147 @@
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList, Image } from 'react-native';
-import React from 'react';
 import { Link, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
 import { SearchBar } from 'react-native-screens';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
+/* firestore imports */
+import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot } from 'firebase/firestore';
+import Carousel from 'react-native-reanimated-carousel';
+import Toast from 'react-native-toast-message';
 
-// Only for testing
-const TEST_DATA = [
-    {
-        id: "1",
-        username: "Alice",
-        location: "Šternberk, Olomoucký kraj",
-        job_name: "Venčení psa",
-        date: "2024-11-01",
-        price: "200kč/hod",
-        image: 'https://via.placeholder.com/150',
-        post_type: 0
-    },
-    {
-        id: "2",
-        username: "Jan",
-        location: "Krnov, Moravskoslezský kraj",
-        job_name: "Sečení trávy",
-        date: "2024-11-02",
-        price: "500kč/hod",
-        image: 'https://via.placeholder.com/150',
-        post_type: 1
-    },
-    {
-        id: "3",
-        username: "Emanuel",
-        location: "Bruntál, Moravskoslezský kraj",
-        job_name: "Profesionální úklid",
-        date: "2024-11-03",
-        price: "300kč/hod",
-        image: 'https://via.placeholder.com/150',
-        post_type: 0
-    },
-];
+// FIXME: optimize using filter?
+// quicksearch filtering
+function filterQS(postArray: jobPost[], qsResult: string | null) {
+    // if the search string is null, return the array unchanged...
+    if (qsResult === "" || qsResult === null || qsResult === undefined) return postArray;
+
+    var filteredArray: jobPost[] = [];
+    // filter the array
+    postArray.forEach((arrElem) => {
+        var isInFilter: boolean = false;
+        if (arrElem.title !== undefined) isInFilter = isInFilter || arrElem.title.toLowerCase().includes(qsResult.toLowerCase());
+        if (arrElem.location !== undefined) isInFilter = isInFilter || arrElem.location.toLowerCase().includes(qsResult.toLowerCase());
+        if (arrElem.username !== undefined) isInFilter = isInFilter || arrElem.username.toLowerCase().includes(qsResult.toLowerCase());
+        if (arrElem.address.locality !== undefined) isInFilter = isInFilter || arrElem.address.locality.toLowerCase().includes(qsResult.toLowerCase());
+
+        if (isInFilter) {
+            // put it into the array
+            filteredArray.push(arrElem);
+        }
+    })
+
+    return filteredArray;
+}
 
 const job_ad = (id: string, username: string,
     location: string, job_name: string,
-    date: string, price: string, router: any, image: string,
-    post_type: number) => {
-        const tcolor = post_type === 0 ? "#717171" : "white";
-        const bckgColor = post_type === 0 ? "#D9D9D9" : "#52812F";
+    date: string, price: string, router: any, images: Array<string>,
+    post_type: boolean, description: string) => {
+        // to differentiate offered and searched jobs; they have different colors
+        const tcolor = post_type === false ? "#717171" : "white";
+        const bckgColor = post_type === false ? "#D9D9D9" : "#52812F";
         return (<TouchableOpacity style={[styles.JobAdvertisement, {backgroundColor: bckgColor}]} onPress={() => router.push({
-            pathname: '/(modals)/job_post',
+                                                                                pathname: '/(modals)/job_post',
                                                                                 params: { id,
                                                                                     username,
                                                                                     location,
                                                                                     job_name,
                                                                                     date,
-                                                                                    price
+                                                                                    price,
+                                                                                    description,
+                                                                                    images,
+                                                                                    post_type
                                                                                 }
                                                                             })}>
         <Text style={styles.JobAdHeader}>{username}</Text>
-        <Image source={{ uri: image }} style={{width: "95%", height: "60%", padding: 5, marginBottom: 10}}/>
+        {/* FIXME, displaying images */}
+        <Carousel
+            width={300}
+            height={480 * 0.6}
+            autoPlay={false}
+            data={images}
+            renderItem={({ item }) => (
+                <Image source={{ uri: item }} style={{width: "100%", height: "100%", padding: 5, marginBottom: 10}}/>
+            )}/>
         <Text style={styles.PriceLocText}>{location}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{job_name}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{date}</Text>
-        <Text style={styles.PriceLocText}>{price}</Text>
+        <Text style={styles.PriceLocText}>{price} Kč</Text>
     </TouchableOpacity>
 )}
 
+// interface definition
+interface jobPost {
+    id: string;
+    username: string;
+    date: Timestamp;
+    location: string;
+    title: string;
+    description: string;
+    offeringTask: boolean;
+    address: {
+        locality: string;
+    }
+    price: string;
+    image: Array<string>; // array of image URL
+}
+
 const Page = () => {
     const router = useRouter();
+    const [loadedPosts, setPosts] = useState<jobPost[]>([]);
+    const [quickSearch, setQSval] = useState<string | null>(null);
+
+    useEffect(() => {
+        // get the firestore instance
+        const dbEngine = getFirestore();
+        // get everything from posts
+        const collectionRef = collection(dbEngine, "posts");
+        // listener for changes
+        const end = onSnapshot(collectionRef, (sshot) => {
+            // "snapshot" processing
+            const jobArray: any = [];
+            sshot.docs.forEach((data) => {
+                jobArray.push({ id: data.id , ...data.data() });
+            })
+            setPosts(jobArray); // state set
+        });
+        return () => end();
+    }, ([]));
+
     return (
         <View style={styles.main}>
             <Text style={styles.MainText}>Explore tasks near You</Text>
-            <Text style={styles.LocationText}>Location</Text>
+            <Text style={styles.LocationText}>Brno</Text>
             <View style={styles.SearchBarCollection}>
                 <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
                 <TextInput
                     style={styles.SearchBar}
                     placeholder='What job are you searching for?'
                     placeholderTextColor="black"
+                    onChangeText={setQSval}
                     />
             </View>
 
             <View style={styles.JobPanel}>
                 <FlatList
-                    data={TEST_DATA}
+                    data={filterQS(loadedPosts, quickSearch)}
                     renderItem = {({ item }) => job_ad(item.id,
-                                                    item.username,
-                                                    item.location,
-                                                    item.job_name,
-                                                    item.date,
+                                                    // item.username,
+                                                    "Kamil",
+                                                    item.address.locality,
+                                                    item.title,
+                                                    item.date.toDate().toLocaleDateString(),
                                                     item.price,
                                                     router,
                                                     item.image,
-                                                    item.post_type
+                                                    item.offeringTask,
+                                                    item.description,
                                                 )}
                     keyExtractor={(item) => item.id}
                     />
             </View>
+        <Toast/>
         </View>
     );
 }
