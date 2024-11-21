@@ -18,6 +18,7 @@ const FinalScreen = () => {
     const onPublish = async () => {
         setLoading(true);
         setError(false);
+        setFormData({ ...formData, userName: 'Michael Scott' });  // Hardcoded user name demonstration purposes
         try {
             await addDoc(collection(FIRESTORE, 'posts'), formData);
             setSuccess(true);
