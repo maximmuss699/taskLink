@@ -11,23 +11,10 @@ import { FIRESTORE } from '@/firebaseConfig';
 import Slider from '@react-native-community/slider';
 import Toast from 'react-native-toast-message';
 
-// show popup message
-export async function popupMsg() {
-    const showMsg = () => {
-        console.log("Message popup!")
-        Toast.show({
-            type: 'success',
-            text1: 'Your evaluation was successfuly added!'
-        })
-    }
-    showMsg();
-}
-
 // sends the evaluation collected from the user to the firebase
 async function updateEval(rating: number, comment: string, id: string, router: any) {
     const collectionRef = collection(FIRESTORE, 'jobEval');
     await addDoc(collectionRef, { comment: comment, rating: rating, postId: id });
-    popupMsg();
     setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}),1000);
 }
 
@@ -63,7 +50,6 @@ const evaluationForm = () => {
                 maximumValue={5}
                 step={1}
                 maximumTrackTintColor="#000000"
-                // minimumTrackTintColor="#FFFFFF"
                 minimumTrackTintColor="green"
                 onValueChange={(value) => {setSliderVal(value)}}
             />
