@@ -10,9 +10,9 @@ import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot } from 
 import Carousel from 'react-native-reanimated-carousel';
 import Toast from 'react-native-toast-message';
 
-// FIXME: optimize using filter?
+// FIXME: optimize using filter function?
 // quicksearch filtering
-function filterQS(postArray: jobPost[], qsResult: string | null) {
+export function filterQS(postArray: jobPost[], qsResult: string | null) {
     // if the search string is null, return the array unchanged...
     if (qsResult === "" || qsResult === null || qsResult === undefined) return postArray;
 
@@ -34,7 +34,7 @@ function filterQS(postArray: jobPost[], qsResult: string | null) {
     return filteredArray;
 }
 
-const job_ad = (id: string, username: string,
+export const job_ad = (id: string, username: string,
     location: string, job_name: string,
     date: string, price: string, router: any, images: Array<string>,
     post_type: boolean, description: string) => {
@@ -67,12 +67,12 @@ const job_ad = (id: string, username: string,
         <Text style={styles.PriceLocText}>{location}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{job_name}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{date}</Text>
-        <Text style={styles.PriceLocText}>{price} Kč</Text>
+        <Text style={styles.PriceLocText}>{price} €</Text>
     </TouchableOpacity>
 )}
 
 // interface definition
-interface jobPost {
+export interface jobPost {
     id: string;
     username: string;
     date: Timestamp;
