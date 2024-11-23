@@ -1,11 +1,29 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Colors from "@/constants/Colors";
 import { useRouter } from 'expo-router';
+import { FIRESTORE } from '@/firebaseConfig';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { job_ad, jobPost } from '../(tabs)/index';
 
 const Explore = () => {
     const router = useRouter();
+    const [loadedPosts, setPosts] = useState<jobPost[]>([]);
+
+    useEffect(() => {
+        const collectionRef = collection(FIRESTORE, "posts");
+        const queryQ = query(collectionRef, where('offeringTask', '==', true));
+        const end = onSnapshot(queryQ, (sshot) => {
+            const jobArray: any = [];
+            sshot.docs.forEach((data) => {
+                jobArray.push({ id: data.id , ...data.data() });
+            })
+            setPosts(jobArray);
+        });
+        return () => end();
+    }, ([]));
+
     return (
         <View style={styles.mainView}>
             <Text style={styles.MainText}>Explore Jobs</Text>
@@ -13,13 +31,32 @@ const Explore = () => {
                     <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
                     <Text style={styles.SearchBtnText}>What job are you searching for?</Text>
             </TouchableOpacity>
+
+            <View style={styles.jobPanel}>
+                <FlatList
+                    data={loadedPosts}
+                    renderItem = {({ item }) => job_ad(item.id,
+                                                      // item.username,
+                                                      "Kamil",
+                                                      item.address.locality,
+                                                      item.title,
+                                                      item.date.toDate().toLocaleDateString(),
+                                                      item.price,
+                                                      router,
+                                                      item.image,
+                                                      item.offeringTask,
+                                                      item.description,)}
+                    keyExtractor={(item) => item.id}
+                />
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     mainView: {
-        backgroundColor: "white"
+        backgroundColor: "white",
+        flex: 1
     },
     MainText: {
         fontSize: 28,
@@ -69,6 +106,10 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         width: "100%",
         height: "100%"
+    },
+    jobPanel: {
+        flex: 1,
+        marginTop: 20
     }
 })
 
