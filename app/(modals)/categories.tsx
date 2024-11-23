@@ -10,9 +10,7 @@ const Categories = () => {
     const router = useRouter();
     return (
         <SafeAreaView>
-            <TouchableOpacity style={[styles.OtherBtn, {marginLeft: 10}]} onPress={() => router.push({
-                                                                                    pathname: '/(tabs)/explore'
-                                                                                    })}>
+            <TouchableOpacity style={[styles.OtherBtn, {marginLeft: 10}]} onPress={() => router.back()}>
                 <Ionicons name='close-outline' size={25}/>
             </TouchableOpacity>
         <View style={styles.OuterView}>
