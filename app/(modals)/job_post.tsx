@@ -61,7 +61,7 @@ const Page = () => {
         <ScrollView style={styles.ScrollView}>
             <View style={styles.outerView}>
                 <View style={styles.header}>
-                    <TouchableOpacity style={styles.backBtn} onPress={() => router.push({pathname: "/(tabs)"})}>
+                    <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
                         <Ionicons name='chevron-back-outline' size={24}/>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.backBtn} onPress={() => addToFavourites(id)}>
