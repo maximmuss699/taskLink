@@ -4,7 +4,7 @@ import { useLocalSearchParams, router, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
 /* firestore imports */
-import { collection, query, doc, where, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { collection, query, doc, where, onSnapshot, deleteDoc, updateDoc } from 'firebase/firestore';
 import { FIRESTORE } from '@/firebaseConfig';
 
 // evaluation interface
@@ -36,7 +36,6 @@ const computeWholeEval = (evalArr: Array<evaluation>) => {
 
 // function rendering single comment
 const renderEval = (id: string, rating: number, comment: string, commId: string, router: any) => {
-
     return(
         <View style={{ width: "100%" }}>
         <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
@@ -71,6 +70,8 @@ const commentMain = () => {
 
     // get the post evaluations
     const [loadedEvals, setEvals] = useState<evaluation[]>([]);
+    const [postRating, setPostRating] = useState<string | 0>();
+
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "jobEval");
         const queryQ = query(collectionRef, where('postId', '==', id));
@@ -80,6 +81,12 @@ const commentMain = () => {
                 evalArray.push({ commId: data.id, ...data.data() });
             })
             setEvals(evalArray);
+            // compute the overall job rating
+            const postEvaluation = computeWholeEval(evalArray);
+            const postDoc = doc(collection(FIRESTORE, "posts"), id);
+            // update the rating in the post collection
+            updateDoc(postDoc, { rating: postEvaluation, ratingCnt: evalArray.length });
+            setPostRating(postEvaluation);
         });
         return () => end();
     }, ([]));
@@ -87,7 +94,7 @@ const commentMain = () => {
     return (
         <SafeAreaView>
         <View style={styles.header}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => router.push({pathname: "/"})}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
                 <Ionicons name='chevron-back-outline' size={24}/>
             </TouchableOpacity>
             <Text style={styles.mainText}>Job Evaluations</Text>
@@ -96,7 +103,7 @@ const commentMain = () => {
         <View style={styles.evalHeader}>
             <View style={{ flexDirection: "row", marginLeft: 30 }}>
                 <Ionicons name="star" size={20}/>
-                <Text style={{ fontFamily: 'mon-b', fontSize: 20 }}>{computeWholeEval(loadedEvals)} ({loadedEvals.length})</Text>
+                <Text style={{ fontFamily: 'mon-b', fontSize: 20 }}>{postRating} ({loadedEvals.length})</Text>
             </View>
         <TouchableOpacity style={styles.button} onPress={() => router.push({pathname: "/comments/evaluationForm", params: {id} })}>
             <Text style={styles.buttonText}>Add evaluation</Text>
