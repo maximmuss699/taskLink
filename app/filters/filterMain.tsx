@@ -5,7 +5,7 @@ import Colors from "@/constants/Colors";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, addDoc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, where } from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { jobPost } from '../(tabs)';
 import { parse } from '@babel/core';
@@ -25,6 +25,8 @@ export interface filter {
 /* TODO: wrap other functions inside try-catch */
 async function saveFilter(filter: filter) {
     try {
+        const collectionRef = collection(FIRESTORE, "presetFilter");
+
         /* To dynamically store only defined values */
         const parsedFilter: any = { filterName: filter.filterName };
 
@@ -37,7 +39,6 @@ async function saveFilter(filter: filter) {
         if (filter.fromDate !== undefined) parsedFilter.fromDate = filter.fromDate;
         if (filter.toDate !== undefined) parsedFilter.toDate = filter.toDate;
 
-        const collectionRef = collection(FIRESTORE, "presetFilter");
         await addDoc(collectionRef, parsedFilter);
     } catch(error){
         console.log("error while saving filter: ", error);
@@ -61,6 +62,26 @@ const filterPage = () => {
 
     const [modalVis, setModalVis] = useState<boolean>(false);
     const [filterName, setFilterName] = useState<string>("");
+    const [matchedFilterName, setMatchedFilterName] = useState<string | undefined>("");
+
+    const [fNameExists, setFNameExists] = useState<boolean>(false);
+
+    /* check for duplicite filter names */
+    useEffect(() => {
+        // fetch the filters from the database
+        const collectionRef = collection(FIRESTORE, "presetFilter");
+        const queryQ = query(collectionRef, where("filterName", "==", filterName));
+        setFNameExists(false);
+        const end = onSnapshot(queryQ, (sshot) => {
+            sshot.docs.forEach((data) => {
+                if(data.data()?.filterName === filterName) {
+                    console.log(data.data()?.filterName);
+                    setFNameExists(true);
+                }
+            })
+        });
+        return () => end();
+    }, ([filterName]));
 
     return (
         <SafeAreaView>
@@ -82,12 +103,19 @@ const filterPage = () => {
                         maxLength={30}
                         onChangeText={(name) => setFilterName(name)}
                         />
+                    {fNameExists && (
+                        <Text style={[styles.subText, { color: "red", margin: 5 }]}>Filter name already exists!!!</Text>
+                    )}
+                    {!fNameExists && (
+                        <Text style={[styles.subText, { color: "white", margin: 5 }]}>Filter name already exists!!!</Text>
+                    )}
+
                     <View style={styles.modalBtns}>
                     <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVis(false)}>
                         <Text style={styles.fBtnText}>Cancel</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.submitBtn} onPress={() => {const filter = {
+                    {!fNameExists && (<TouchableOpacity style={styles.submitBtn} onPress={() => {const filter = {
                         fromDate: fromDate,
                         toDate: toDate,
                         minPrice: fromPrice,
@@ -100,7 +128,7 @@ const filterPage = () => {
                     setModalVis(false);
                     router.back();}}>
                         <Text style={styles.fBtnText}>Save</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity>)}
                     </View>
                 </View>
                 </Modal>

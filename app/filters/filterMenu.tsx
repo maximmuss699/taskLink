@@ -145,7 +145,7 @@ const Page = () => {
                 <FlatList
                     data={filters}
                     renderItem={(filter) => renderFilter(filter, router, category)}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => item.filterId}
                 />
             </View>
         </SafeAreaView>

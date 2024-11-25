@@ -5,7 +5,7 @@ import Colors from "@/constants/Colors";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, setDoc, doc, getDoc, addDoc } from 'firebase/firestore';
+import { collection, setDoc, doc, getDoc, addDoc, query, where, onSnapshot } from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles, filter } from '../filters/filterMain';
 
@@ -54,6 +54,8 @@ const filterPage = () => {
     const [modalVis, setModalVis] = useState<boolean>(false);
     const [filterName, setFilterName] = useState<string>("");
 
+    const [fNameExists, setFNameExists] = useState<boolean>(false);
+
     useEffect(() => {
         // fetch the filters from firebase and let the user modify it
         const func = async () => {
@@ -73,6 +75,23 @@ const filterPage = () => {
         }
         func();
     }, ([]));
+
+    /* check for duplicite filter names */
+    useEffect(() => {
+        // fetch the filters from the database
+        const collectionRef = collection(FIRESTORE, "presetFilter");
+        const queryQ = query(collectionRef, where("filterName", "==", filterName));
+        setFNameExists(false);
+        const end = onSnapshot(queryQ, (sshot) => {
+            sshot.docs.forEach((data) => {
+                if(data.data()?.filterName === filterName && data.id !== filterId) {
+                    console.log(data.data()?.filterName);
+                    setFNameExists(true);
+                }
+            })
+        });
+        return () => end();
+    }, ([filterName]));
 
     return (
         <SafeAreaView>
@@ -131,6 +150,12 @@ const filterPage = () => {
                             value={filterName}
                             onChangeText={(name) => setFilterName(name)}
                         />
+                        {fNameExists && (
+                        <Text style={[styles.subText, { color: "red", margin: 5 }]}>Filter name already exists!!!</Text>
+                        )}
+                        {!fNameExists && (
+                            <Text style={[styles.subText, { color: "white", margin: 5 }]}>Filter name already exists!!!</Text>
+                        )}
                     </View>
                     <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
                     <Text style={styles.subText}>Price</Text>
@@ -215,7 +240,7 @@ const filterPage = () => {
 
                 <View style={styles.buttonRow}>
 
-                    <TouchableOpacity style={styles.fButton} onPress={() => {
+                    {!fNameExists && (<TouchableOpacity style={styles.fButton} onPress={() => {
                                                                         const filter = {
                                                                             fromDate: fromDate,
                                                                             toDate: toDate,
@@ -230,7 +255,7 @@ const filterPage = () => {
                                                                         router.back();
                                                                     }}>
                         <Text style={styles.fBtnText}>Save</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity>)}
                 </View>
             </ScrollView>
         </SafeAreaView>
