@@ -1,11 +1,14 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, FlatList } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useRouter, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Header } from 'react-native/Libraries/NewAppScreen';
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, setDoc, getFirestore, onSnapshot, query, where, deleteDoc, getDocs, doc } from 'firebase/firestore';
+import { collection, setDoc, getFirestore, onSnapshot, query, where, deleteDoc, getDoc, getDocs, doc } from 'firebase/firestore';
+import { renderEval, evaluation } from '../comments/commentMain';
+import { jobPost } from '../(tabs)';
+import filterPage from '../filters/filterMain';
 
+/* adds post to favourites if its not already... if it is in favourites, it will remove it from favourites */
 async function addToFavourites(id: string) {
     const collectionRef = collection(FIRESTORE, 'favJobs');
     const queryQ = query(collectionRef, where('postId', '==', id));
@@ -36,6 +39,7 @@ const Page = () => {
     const { post_type } = useLocalSearchParams<{ post_type: string }>();
 
     const [isFavourite, setIsFavourite] = useState<boolean>(false);
+    const [loadedPost, setLoadedPost] = useState<any | undefined>();
 
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "favJobs");
@@ -50,11 +54,23 @@ const Page = () => {
         return () => end();
     }, [id]);
 
+    useEffect(() => {
+        const main = async () => {
+            const docRef = doc(FIRESTORE, "posts", id);
+            const post: any = await getDoc(docRef);
+            if(post.exists()){
+                setLoadedPost(post.data());
+            }
+        }
+        main();
+    }, []);
+
     var offeringTask = false;
     if (post_type === "false") {
         offeringTask = true;
     }
 
+    console.log(loadedPost);
     // icon setup to make it responsive
     const icon = isFavourite === false ? 'heart-outline' : 'heart';
     return (
@@ -104,22 +120,29 @@ const Page = () => {
                 <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View>
 
                 {offeringTask && (
-                <View>
+                <View style={styles.offTaskView}>
                     <View>
                         {/* Kvalifikace */}
                         <Text></Text>
                         <Text>Kvalifikace</Text>
                     </View>
-                    <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View>
                     <View>
                         {/* rating */}
                         <Text>3.2</Text>
                     </View>
-                    <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View>
                     <View>
                         {/* evaluations */}
                         <Text>Super</Text>
                     </View>
+
+                    {loadedPost?.rating && (
+                    <View style={styles.offTaskView}>
+                        <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View>
+                        <View style={styles.postRatingView}>
+                            <Ionicons name="star" size={25}/>
+                            <Text style={[styles.Text, { fontSize: 20 }]}>{ loadedPost?.rating } ({ loadedPost?.ratingCnt })</Text>
+                        </View>
+                    </View>)}
                 </View>
                 )}
             </View>
@@ -217,6 +240,19 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         position: "relative"
+    },
+    commentView: {
+        flexDirection: "column",
+        width: "100%"
+    },
+    postRatingView: {
+        width: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "row"
+    },
+    offTaskView: {
+        width: "100%"
     }
 })
 
