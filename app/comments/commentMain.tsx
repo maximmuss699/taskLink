@@ -114,7 +114,7 @@ const commentMain = () => {
             <FlatList
                 data={loadedEvals}
                 renderItem = {({ item }) => renderEval(item.postId, item.rating, item.comment, item.commId, router)}
-                keyExtractor={(item) => item.postId}
+                keyExtractor={(item) => item.commId}
             />
         </View>
 
