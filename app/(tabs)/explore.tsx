@@ -36,8 +36,7 @@ const Explore = () => {
                 <FlatList
                     data={loadedPosts}
                     renderItem = {({ item }) => job_ad(item.id,
-                                                      // item.username,
-                                                      "Kamil",
+                                                      item.username,
                                                       item.address.locality,
                                                       item.title,
                                                       item.date.toDate().toLocaleDateString(),

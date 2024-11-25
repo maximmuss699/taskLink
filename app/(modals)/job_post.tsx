@@ -41,6 +41,7 @@ const Page = () => {
     const [isFavourite, setIsFavourite] = useState<boolean>(false);
     const [loadedPost, setLoadedPost] = useState<any | undefined>();
 
+    /* fetch whether the post is liked or not... */
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "favJobs");
         const queryQ = query(collectionRef, where('postId', '==', id));
@@ -54,6 +55,7 @@ const Page = () => {
         return () => end();
     }, [id]);
 
+    /* fetch the post rating */
     useEffect(() => {
         const main = async () => {
             const docRef = doc(FIRESTORE, "posts", id);
@@ -123,16 +125,8 @@ const Page = () => {
                 <View style={styles.offTaskView}>
                     <View>
                         {/* Kvalifikace */}
-                        <Text></Text>
-                        <Text>Kvalifikace</Text>
-                    </View>
-                    <View>
-                        {/* rating */}
-                        <Text>3.2</Text>
-                    </View>
-                    <View>
-                        {/* evaluations */}
-                        <Text>Super</Text>
+                        <Text>Certificates</Text>
+                        {/* TODO: Load certificates */}
                     </View>
 
                     {loadedPost?.rating && (
