@@ -92,7 +92,10 @@ const Page = () => {
                     <Text style={styles.contactText}>Evaluate</Text>
                 </TouchableOpacity>): <View style={[styles.ContactBtn, { backgroundColor: "none" }]}></View>}
 
-                <Text style={styles.Username}>{ username }</Text>
+                {/* TODO: FIX THIS ROUTER */}
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Text style={styles.Username}>{ username }</Text>
+                </TouchableOpacity>
 
                 <TouchableOpacity style={styles.ContactBtn}>
                     <Text style={styles.contactText}>Contact</Text>
