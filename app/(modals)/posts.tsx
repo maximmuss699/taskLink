@@ -4,58 +4,94 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, query, where, onSnapshot, DocumentData, QuerySnapshot, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, DocumentData, QuerySnapshot, QueryDocumentSnapshot, doc, getDoc } from 'firebase/firestore';
 import { job_ad, jobPost, filterQS } from '../(tabs)/index';
 import { filter } from '../filters/filterMain';
+import { parse } from '@babel/core';
 
 /* Parses the filter and constructs a chained firebase query */
 export function applyFilter(filter: any, queryQ: any) {
+    console.log("applyFilter: ", filter);
     if (filter === undefined) return null;
     if (filter === "") return null;
     const collectionRef = collection(FIRESTORE, "posts");
+    console.log("Initial queryQ: ", queryQ);
 
     // join the tables on postId
     if (filter.maxRating !== undefined && Number(filter.maxRating) > 0 && filter.maxRating !== "") {
         console.log("using maxRating: ", filter.maxRating);
         queryQ = query(queryQ, where("rating", '<=', Number(filter.maxRating)));
+        console.log("Updated queryQ: ", queryQ);
+
     }
 
     if (filter.minRating !== undefined && Number(filter.minRating) > 0 && filter.minRating !== "") {
         console.log("using minRating: ", filter.minRating);
         queryQ = query(queryQ, where("rating", '>=', Number(filter.minRating)));
+        console.log("Updated queryQ: ", queryQ);
+
     }
 
     if (filter.fromDate !== undefined) {
+        // convert to date
+        const fromDateDate = new Date(filter.fromDate?.seconds * 1000);
         console.log("using fromDate: ", filter.fromDate);
-        queryQ = query(queryQ, where("date", '>=', filter.fromDate));
+        if (fromDateDate) {
+            queryQ = query(queryQ, where("date", '>=', fromDateDate));
+            console.log("Updated queryQ: ", queryQ);
+
+        } else {
+            queryQ = query(queryQ, where("date", '>=', filter.fromDate));
+            console.log("Updated queryQ: ", queryQ);
+
+        }
     }
 
     if (filter.toDate !== undefined) {
+        const toDateDate = new Date(filter.toDate?.seconds * 1000);
         console.log("using toDate: ", filter.toDate);
-        queryQ = query(queryQ, where("date", '<=', filter.toDate));
+        if (toDateDate) {
+            queryQ = query(queryQ, where("date", '>=', toDateDate));
+            console.log("Updated queryQ: ", queryQ);
+
+        } else {
+            queryQ = query(queryQ, where("date", '<=', filter.toDate));
+            console.log("Updated queryQ: ", queryQ);
+
+        }
     }
 
     if (Number(filter.minPrice) > 0 && filter.minPrice !== undefined) {
-        console.log("using minPrice: ", filter.minPrice);
+        console.log("using minPrice: ", Number(filter.minPrice));
         queryQ = query(queryQ, where("price", '>=', Number(filter.minPrice)));
+        console.log("Updated queryQ: ", queryQ);
     }
 
     if (Number(filter.maxPrice) > 0 && filter.maxPrice !== undefined) {
         console.log("using maxPrice: ", filter.maxPrice);
         queryQ = query(queryQ, where("price", '<=', Number(filter.maxPrice)));
+        console.log("Updated queryQ: ", queryQ);
     }
 
+    console.log("Initial queryQ: ", queryQ);
     return queryQ;
 }
 
 const Page = () => {
     const router = useRouter();
     const [loadedPosts, setPosts] = useState<jobPost[]>([]);
+    const [savedFilter, setSavedFilter] = useState<any>(null);
+
     const { category } = useLocalSearchParams<{ category: string }>();
     const { filter } = useLocalSearchParams<{ filter?: string }>();
+    const { filterId } = useLocalSearchParams<{ filterId?: string }>();
 
-    if (filter !== undefined) {
-        const parsed_filter = filter ? JSON.parse(filter): null; // checks for undefined values
+    // console.log(filterId);
+    // console.log(filter);
+
+    var parsed_filter: any = null;
+    if (filter !== undefined && filter !== "") {
+        parsed_filter = filter ? JSON.parse(filter): null; // checks for undefined values
         // console.log(parsed_filter);
         console.log("Applying filters:", {
             minPrice: parsed_filter.minPrice,
@@ -63,9 +99,7 @@ const Page = () => {
             fromDate: parsed_filter.fromDate,
             toDate: parsed_filter.toDate,
         });
-        console.log("minPrice type:", typeof parsed_filter.minPrice, parsed_filter.minPrice);
     }
-
     const [quickSearch, setQSval] = useState<string | null>(null);
 
     var no_categ = false;
@@ -76,8 +110,23 @@ const Page = () => {
     }
 
     useEffect(() => {
+        if (filterId !== undefined) {
+            const fetchFilter = async () => {
+                const docRef = doc(FIRESTORE, "presetFilter", filterId);
+                const filterObj = await getDoc(docRef);
+                if (filterObj.exists()) {
+                    setSavedFilter(filterObj.data());
+                    console.log("saved filter fetched from the firebase based on filterID: ", savedFilter);
+                }
+            }
+            fetchFilter();
+        }
+        return () => {};
+    }, ([filterId]));
+
+    useEffect(() => {
+        var queryQ: any;
         const collectionRef = collection(FIRESTORE, "posts");
-        var queryQ;
         if (!no_categ) {
             queryQ = query(collectionRef, where('category', '==', category));
         } else {
@@ -86,22 +135,31 @@ const Page = () => {
 
         /* apply filters, if they are defined... */
         try {
-            var filterQuery = applyFilter(JSON.parse(filter || ""), queryQ);
-            if (filterQuery !== null) queryQ = filterQuery;
+            // if (filterQuery !== null) {
+            if (parsed_filter !== null) {
+                var filterQuery = applyFilter(parsed_filter, queryQ);
+                console.log("aplikace filtru 138: ", filterQuery);
+                queryQ = filterQuery;
+            }
+            if (savedFilter !== null) {
+                console.log("using savedFilter: ", savedFilter);
+                queryQ = applyFilter(savedFilter, queryQ);
+            }
         } catch (error) {
             console.log("filter parsing went wrong: ", error);
         }
+
         console.log("Query with filters applied:", queryQ);
         const end = onSnapshot(queryQ, (sshot: QuerySnapshot) => {
             const jobArray: any = [];
             sshot.docs.forEach((data: QueryDocumentSnapshot) => {
                 jobArray.push({ id: data.id , ...data.data() });
             })
-            console.log(jobArray);
+            // console.log(jobArray);
             setPosts(jobArray);
         });
         return () => end();
-    }, ([]));
+    }, ([savedFilter, parsed_filter]));
 
     return (
         <SafeAreaView style={styles.mainView}>
@@ -196,7 +254,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         backgroundColor: "green",
         alignItems: "center",
-        width: "95%",
+        width: "100%",
         alignSelf: 'center'
     },
     JobPanel: {

@@ -5,25 +5,16 @@ import Colors from "@/constants/Colors";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, addDoc, onSnapshot } from 'firebase/firestore';
+import { collection, setDoc, doc, getDoc, addDoc } from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { jobPost } from '../(tabs)';
-import { parse } from '@babel/core';
+import { styles, filter } from '../filters/filterMain';
 
 /* Filter interface definition */
 /* all of them are optional... */
-export interface filter {
-    fromDate?: Date;
-    toDate?: Date;
-    minPrice?: string;
-    maxPrice?: string;
-    minRating?: number;
-    maxRating?: number;
-    filterName?: string;
-}
 
 /* TODO: wrap other functions inside try-catch */
-async function saveFilter(filter: filter) {
+async function saveFilter(filter: filter, filterId: string) {
+
     try {
         /* To dynamically store only defined values */
         const parsedFilter: any = { filterName: filter.filterName };
@@ -37,8 +28,8 @@ async function saveFilter(filter: filter) {
         if (filter.fromDate !== undefined) parsedFilter.fromDate = filter.fromDate;
         if (filter.toDate !== undefined) parsedFilter.toDate = filter.toDate;
 
-        const collectionRef = collection(FIRESTORE, "presetFilter");
-        await addDoc(collectionRef, parsedFilter);
+        const docRef = doc(collection(FIRESTORE, "presetFilter"), filterId);
+        await setDoc(docRef, parsedFilter);
     } catch(error){
         console.log("error while saving filter: ", error);
     }
@@ -46,7 +37,8 @@ async function saveFilter(filter: filter) {
 
 const filterPage = () => {
     const router = useRouter();
-    const { category } = useLocalSearchParams<{ category: string }>();;
+    const { filterId } = useLocalSearchParams<{ filterId: string }>();
+
     const [minRatingSliderVal, setMinRatingSliderVal] = useState<number>(0);
     const [maxRatingSliderVal, setMaxRatingSliderVal] = useState<number>(0);
 
@@ -61,6 +53,26 @@ const filterPage = () => {
 
     const [modalVis, setModalVis] = useState<boolean>(false);
     const [filterName, setFilterName] = useState<string>("");
+
+    useEffect(() => {
+        // fetch the filters from firebase and let the user modify it
+        const func = async () => {
+            const collectionRef = collection(FIRESTORE, "presetFilter");
+            const docToLoad = doc(collectionRef, filterId);
+            const loadedData = await getDoc(docToLoad);
+
+            // set the loaded initial values
+            setFromPrice(loadedData.data()?.minPrice || "");
+            setToPrice(loadedData.data()?.maxPrice || "");
+
+            setFromDate(loadedData.data()?.fromDate?.toDate() || today);
+            setToDate(loadedData.data()?.toDate?.toDate() || today);
+            setMinRatingSliderVal(loadedData.data()?.minRating || 0);
+            setMaxRatingSliderVal(loadedData.data()?.maxRating || 0);
+            setFilterName(loadedData.data()?.filterName || "");
+        }
+        func();
+    }, ([]));
 
     return (
         <SafeAreaView>
@@ -96,7 +108,6 @@ const filterPage = () => {
                         maxRating: maxRatingSliderVal,
                         filterName: filterName
                     }
-                    saveFilter(filter);
                     setModalVis(false);
                     router.back();}}>
                         <Text style={styles.fBtnText}>Save</Text>
@@ -108,8 +119,19 @@ const filterPage = () => {
 
                 <View style={styles.OuterView}>
 
-                    <Text style={styles.MainText}>Filters</Text>
+                    <Text style={styles.MainText}>Edit Filter</Text>
 
+                    <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
+                    <View style={[styles.subView, { flexDirection: "column" }]}>
+                        <Text style={styles.subText}>Filter name</Text>
+                        <TextInput style={[styles.priceInput, { width: 150 }]}
+                            placeholder='filter name'
+                            placeholderTextColor="gray"
+                            maxLength={20}
+                            value={filterName}
+                            onChangeText={(name) => setFilterName(name)}
+                        />
+                    </View>
                     <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
                     <Text style={styles.subText}>Price</Text>
 
@@ -119,6 +141,7 @@ const filterPage = () => {
                             placeholder='min price'
                             placeholderTextColor="gray"
                             maxLength={10}
+                            value={fromPrice}
                             onChangeText={(price) => setFromPrice(price)}
                             />
                         <Text style={styles.subsubText}>To</Text>
@@ -126,6 +149,7 @@ const filterPage = () => {
                             placeholder='max price'
                             placeholderTextColor="gray"
                             maxLength={10}
+                            value={toPrice}
                             onChangeText={(price) => setToPrice(price)}
                             />
                     </View>
@@ -135,7 +159,7 @@ const filterPage = () => {
                         <Text style={styles.subsubText}>From</Text>
                         <DateTimePicker
                             style={styles.datetimepicker}
-                            value={filter?.fromDate || today}
+                            value={fromDate || today}
                             minimumDate={new Date()}
                             accentColor={Colors.primary}
                             themeVariant='light'
@@ -146,7 +170,7 @@ const filterPage = () => {
                         <Text style={styles.subsubText}>To</Text>
                         <DateTimePicker
                             style={styles.datetimepicker}
-                            value={filter?.toDate || today}
+                            value={toDate || today}
                             minimumDate={new Date()}
                             accentColor={Colors.primary}
                             themeVariant='light'
@@ -168,6 +192,7 @@ const filterPage = () => {
                         step={1}
                         maximumTrackTintColor="#000000"
                         minimumTrackTintColor="green"
+                        value={minRatingSliderVal}
                         onValueChange={(value) => {setMinRatingSliderVal(value)}}
                     />
                     <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
@@ -183,14 +208,12 @@ const filterPage = () => {
                     step={1}
                     maximumTrackTintColor="#000000"
                     minimumTrackTintColor="green"
+                    value={maxRatingSliderVal}
                     onValueChange={(value) => {setMaxRatingSliderVal(value)}}
                     />
                 </View>
 
                 <View style={styles.buttonRow}>
-                    <TouchableOpacity style={styles.fButton} onPress={() => setModalVis(true)}>
-                        <Text style={styles.fBtnText}>Save</Text>
-                    </TouchableOpacity>
 
                     <TouchableOpacity style={styles.fButton} onPress={() => {
                                                                         const filter = {
@@ -199,195 +222,19 @@ const filterPage = () => {
                                                                             minPrice: fromPrice,
                                                                             maxPrice: toPrice,
                                                                             minRating: minRatingSliderVal,
-                                                                            maxRating: maxRatingSliderVal
+                                                                            maxRating: maxRatingSliderVal,
+                                                                            filterName: filterName
                                                                         }
                                                                         setFilter(filter);
-                                                                        router.push({ pathname: "/(modals)/posts",
-                                                                            params: {category: category, filter: JSON.stringify(filter)}});
-                                                                        }}>
-                        <Text style={styles.fBtnText}>Apply</Text>
+                                                                        saveFilter(filter, filterId);
+                                                                        router.back();
+                                                                    }}>
+                        <Text style={styles.fBtnText}>Save</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
         </SafeAreaView>
     );
 }
-
-export const styles = StyleSheet.create({
-    tasklinkLogo: {
-        fontSize: 18,
-        fontFamily: 'modernaRegular',
-        color: '#888888',
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginTop: 20,
-        position: "absolute",
-        top: 750,
-        alignSelf: "center"
-    },
-    OtherBtn: {
-        width: 30,
-        height: 30,
-        shadowColor: '#DEDEDE',
-        backgroundColor: "white",
-        shadowOpacity: 1,
-        shadowOffset: { width: 0, height: 1},
-        borderRadius: 50,
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    OuterView: {
-        width: "95%",
-        height: "auto",
-        backgroundColor: "#FCFFFB",
-        alignSelf: "center",
-        alignItems: "center",
-        borderRadius: 20,
-        margin: 8,
-        padding: 10
-    },
-    MainText: {
-        alignSelf: "center",
-        fontSize: 28,
-        fontFamily: 'mon-b',
-        fontWeight: 'bold',
-        color: 'black',
-        margin: 10,
-        marginLeft: 5
-    },
-    subText: {
-        alignSelf: "center",
-        fontSize: 20,
-        fontFamily: 'mon-b',
-        fontWeight: 'bold',
-        color: 'black',
-        margin: 10,
-        marginLeft: 5
-    },
-    CategView: {
-        flexDirection: "row",
-        alignItems: "center"
-    },
-    evalSlider: {
-        marginTop: 10,
-        marginBottom: 30,
-        width: 250,
-    },
-    rating: {
-        marginTop: 20,
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center"
-    },
-    ratingText: {
-        marginTop: 2,
-        fontFamily: 'mon-b',
-        justifyContent: "center",
-        alignItems: "center",
-        fontSize: 20
-    },
-    priceInput: {
-        width: 80,
-        height: 40,
-        borderWidth: 2,
-        borderColor: '#DEDEDE',
-        borderRadius: 10,
-        backgroundColor: '#FFFFFF',
-        shadowColor: '#DEDEDE',
-        shadowOpacity: 1,
-        shadowOffset: { width: 0, height: 1},
-        fontFamily: 'mon-b',
-        justifyContent: "center"
-    },
-    subView: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center"
-    },
-    subsubText: {
-        alignSelf: "flex-start",
-        fontSize: 16,
-        fontFamily: 'mon-b',
-        fontWeight: 'bold',
-        color: 'black',
-        margin: 10,
-        marginLeft: 5
-    },
-    datetimepicker: {
-        width: "90%",
-        borderColor: '#DEDEDE',
-        borderRadius: 10,
-        backgroundColor: '#FFFFFF',
-        shadowColor: '#DEDEDE',
-        shadowOpacity: 1,
-        shadowOffset: { width: 0, height: 1}
-    },
-    buttonRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
-        height: 80,
-        backgroundColor: "white"
-    },
-    fButton: {
-        width: 100,
-        height: 40,
-        backgroundColor: "green",
-        borderRadius: 10,
-        alignItems: "center",
-        justifyContent: "center",
-        margin: 30
-    },
-    fBtnText: {
-        fontFamily: 'mon-b',
-        color: "white"
-    },
-    cancelBtn: {
-        width: 80,
-        height: 30,
-        backgroundColor: "#D2122E",
-        borderRadius: 10,
-        alignItems: "center",
-        justifyContent: "center",
-        margin: 30
-    },
-    submitBtn: {
-        width: 80,
-        height: 30,
-        backgroundColor: "green",
-        borderRadius: 10,
-        alignItems: "center",
-        justifyContent: "center",
-        margin: 30
-    },
-    modal: {
-        flex: 1,
-        alignSelf: "center",
-        backgroundColor: "white",
-        alignContent: "center",
-        borderRadius: 30,
-        borderColor: "gray",
-        borderWidth: 2
-    },
-    modalBtns: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginTop: 20
-    },
-    modalView: {
-        position: "absolute",
-        top: 215,
-        width: "80%",
-        height: 250,
-        alignSelf: "center",
-        backgroundColor: "white",
-        alignContent: "center",
-        justifyContent: "center",
-        borderRadius: 30,
-        borderColor: "gray",
-        borderWidth: 2
-    }
-})
 
 export default filterPage;
