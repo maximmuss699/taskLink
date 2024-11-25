@@ -8,7 +8,7 @@ import { collection, query, doc, where, onSnapshot, deleteDoc, updateDoc } from 
 import { FIRESTORE } from '@/firebaseConfig';
 
 // evaluation interface
-interface evaluation {
+export interface evaluation {
     postId: string;
     commId: string;
     comment: string;
@@ -35,7 +35,7 @@ const computeWholeEval = (evalArr: Array<evaluation>) => {
 }
 
 // function rendering single comment
-const renderEval = (id: string, rating: number, comment: string, commId: string, router: any) => {
+export const renderEval = (id: string, rating: number, comment: string, commId: string, router: any) => {
     return(
         <View style={{ width: "100%" }}>
         <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
