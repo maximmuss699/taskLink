@@ -40,6 +40,7 @@ const Page = () => {
 
     const [isFavourite, setIsFavourite] = useState<boolean>(false);
     const [loadedPost, setLoadedPost] = useState<any | undefined>();
+    const [taskerId, setTaskerId] = useState<string>("");
 
     /* fetch whether the post is liked or not... */
     useEffect(() => {
@@ -67,12 +68,26 @@ const Page = () => {
         main();
     }, []);
 
+    /* fetch the taskerId */
+    useEffect(() => {
+        const collectionRef = collection(FIRESTORE, "taskers");
+        const queryQ = query(collectionRef, where("fullName", "==", username));
+        const end = onSnapshot(queryQ, (sshot) => {
+            sshot.forEach((data) => {
+                console.log("setting taskerID");
+                setTaskerId(data.data().taskerId);
+            })
+        });
+        return () => end();
+    }, []);
+
     var offeringTask = false;
     if (post_type === "false") {
         offeringTask = true;
     }
 
-    console.log(loadedPost);
+    // console.log(loadedPost);
+    console.log(taskerId);
     // icon setup to make it responsive
     const icon = isFavourite === false ? 'heart-outline' : 'heart';
     return (
@@ -92,8 +107,8 @@ const Page = () => {
                     <Text style={styles.contactText}>Evaluate</Text>
                 </TouchableOpacity>): <View style={[styles.ContactBtn, { backgroundColor: "none" }]}></View>}
 
-                {/* TODO: FIX THIS ROUTER */}
-                <TouchableOpacity onPress={() => router.back()}>
+                {/* TODO: FIX THIS ROUTER TO ALSO LOAD USER PROFILES...*/}
+                <TouchableOpacity onPress={() => router.push({pathname: "/profile/[taskerId]", params: {taskerId: taskerId}})}>
                     <Text style={styles.Username}>{ username }</Text>
                 </TouchableOpacity>
 
