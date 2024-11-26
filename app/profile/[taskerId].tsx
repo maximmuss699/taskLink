@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -10,11 +10,39 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { FIRESTORE } from '@/firebaseConfig';
+import {
+    collection,
+    getDocs,
+    query,
+    where,
+} from 'firebase/firestore';
 
 const TaskerProfile = () => {
     const router = useRouter();
+    const { taskerId } = useLocalSearchParams<{ taskerId: string }>();
+    const [tasker, setTasker] = useState<any>();
+    const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
+    /* fetch the tasker */
+    useEffect(() => {
+        const afun = async () => {
+            setIsLoaded(false);
+            const collectionRef = collection(FIRESTORE, "taskers");
+            console.log("looking for: ", taskerId);
+            const queryQ: any = query(collectionRef, where("taskerId", "==", taskerId));
+            const docRef = await getDocs(queryQ);
+            docRef.forEach((data) => {
+                setIsLoaded(true);
+                setTasker(data.data());
+            })
+        }
+        afun();
+    }, []);
+
+    console.log("taskerId in: ", taskerId);
+    console.log(tasker);
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -27,32 +55,34 @@ const TaskerProfile = () => {
                 </View>
 
                 {/* Profile Card */}
-                <View style={styles.card}>
+                {tasker && (<View style={styles.card}>
                     <Image
                         source={{ uri: 'https://via.placeholder.com/100' }}
                         style={styles.profileImage}
                     />
-                    <Text style={styles.name}>Thomas Muller</Text>
-                    <Text style={styles.email}>thomasMuller@gmail.com</Text>
-                    <Text style={styles.details}>Tasker rating: 4.92</Text>
-                    <Text style={styles.details}>Work area: Moving, garden and IT</Text>
-                    <Text style={styles.details}>Brno, Czech Republic</Text>
+                    <Text style={styles.name}>{ tasker.fullName }</Text>
+                    <Text style={styles.email}>{ tasker.email }</Text>
+                    <Text style={styles.details}>Tasker rating: { tasker.rating }</Text>
+                    <Text style={styles.details}>Work area: { tasker.workArea }</Text>
+                    <Text style={styles.details}>{ tasker.location }</Text>
                     <Text style={styles.details}>Since 11/06/2022</Text>
-                </View>
+                </View>)}
 
                 {/* About Section */}
-                <View style={styles.section}>
+                {tasker && (<View style={styles.section}>
                     <Text style={styles.sectionTitle}>About me</Text>
                     <Text style={styles.sectionText}>
-                        I am a trained gardener with 10 years of experience in landscaping and garden maintenance.
+                        { tasker.about }
                     </Text>
-                </View>
+                </View>)}
 
                 {/* Certificates Section */}
-                <View style={styles.section}>
+                {tasker && (<View style={styles.section}>
                     <Text style={styles.sectionTitle}>Certificates</Text>
                     {/* Certificates would go here if needed */}
-                </View>
+                    {/* Needs to be changed to flatlist? */}
+                    <Text>{ tasker.certificates[0] }</Text>
+                </View>)}
 
                 {/* Reviews Section */}
                 <View style={styles.section}>
