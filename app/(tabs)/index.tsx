@@ -10,7 +10,6 @@ import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot } from 
 import Carousel from 'react-native-reanimated-carousel';
 import Toast from 'react-native-toast-message';
 
-// FIXME: optimize using filter function?
 // quicksearch filtering
 export function filterQS(postArray: jobPost[], qsResult: string | null) {
     // if the search string is null, return the array unchanged...
@@ -195,7 +194,8 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         justifyContent: 'center',
         height: 480,
-        borderRadius: 5
+        borderRadius: 5,
+        flex: 1
     },
     JobPanel: {
         height: "100%",
