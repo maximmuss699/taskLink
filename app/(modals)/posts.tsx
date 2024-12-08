@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, ViewBase, FlatList, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Modal, FlatList, SafeAreaView } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
@@ -8,6 +8,52 @@ import { collection, query, where, onSnapshot, DocumentData, QuerySnapshot, Quer
 import { job_ad, jobPost, filterQS } from '../(tabs)/index';
 import { filter } from '../filters/filterMain';
 import { parse } from '@babel/core';
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
+
+interface filt {
+    filterCriteria: string;
+    value: any;
+}
+
+
+// (NOBRIDGE) LOG  using savedFilter:  {"filterName": "Filter2", "fromDate": {"nanoseconds": 0, "seconds": 1732550133}, "maxPrice": "600", "maxRating": 4, "minPrice": "300", "minRating": 1, "toDate": {"nanoseconds": 0, "seconds": 1734450935}}
+/* parses the filters to a more readable format */
+function parseFilters(filter: filt | undefined) {
+    if (filter === undefined) return;
+    if (filter?.value <= 0) return;
+    if (filter?.value === "") return;
+    if (filter?.filterCriteria === "maxRating") filter.filterCriteria = "maximal rating";
+    if (filter?.filterCriteria === "minRating") filter.filterCriteria = "minimal rating";
+    if (filter?.filterCriteria === "minPrice") filter.filterCriteria = "minimal price";
+    if (filter?.filterCriteria === "maxPrice") filter.filterCriteria = "maximal price";
+    if (filter?.filterCriteria === "filterName") filter.filterCriteria = "name";
+    if (filter?.filterCriteria === "fromDate" || filter?.filterCriteria === "toDate") {
+        // convert the value
+        const date = new Date(filter.value.seconds * 1000);
+        filter.value = date.toLocaleDateString();
+        if (filter?.filterCriteria === "fromDate") {
+            filter.filterCriteria = "from";
+        } else {
+            filter.filterCriteria = "to";
+        }
+    }
+
+    return filter
+}
+
+/* visualizes the used Filters */
+function visualizeUsedFilters(filter: filt | undefined, pos: number) {
+    // parseFilters(filter);
+    return(
+        <View key={ pos } style={{ flexDirection: "column", width: "100%" }}>
+            {/* <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View> */}
+            <View style={styles.usedFilterView}>
+                <Text style={{ fontFamily: 'mon-b', marginLeft: 10 }}>{filter?.filterCriteria}: </Text>
+                <Text style={{ fontFamily: 'mon' }}>{filter?.value}</Text>
+            </View>
+        </View>
+    )
+}
 
 /* Parses the filter and constructs a chained firebase query */
 export function applyFilter(filter: any, queryQ: any) {
@@ -15,65 +61,65 @@ export function applyFilter(filter: any, queryQ: any) {
     if (filter === undefined) return null;
     if (filter === "") return null;
     const collectionRef = collection(FIRESTORE, "posts");
-    console.log("Initial queryQ: ", queryQ);
+    // console.log("Initial queryQ: ", queryQ);
 
     // join the tables on postId
     if (filter.maxRating !== undefined && Number(filter.maxRating) > 0 && filter.maxRating !== "") {
-        console.log("using maxRating: ", filter.maxRating);
+        // console.log("using maxRating: ", filter.maxRating);
         queryQ = query(queryQ, where("rating", '<=', Number(filter.maxRating)));
-        console.log("Updated queryQ: ", queryQ);
+        // console.log("Updated queryQ: ", queryQ);
 
     }
 
     if (filter.minRating !== undefined && Number(filter.minRating) > 0 && filter.minRating !== "") {
-        console.log("using minRating: ", filter.minRating);
+        // console.log("using minRating: ", filter.minRating);
         queryQ = query(queryQ, where("rating", '>=', Number(filter.minRating)));
-        console.log("Updated queryQ: ", queryQ);
+        // console.log("Updated queryQ: ", queryQ);
 
     }
 
     if (filter.fromDate !== undefined) {
         // convert to date
         const fromDateDate = new Date(filter.fromDate?.seconds * 1000);
-        console.log("using fromDate: ", filter.fromDate);
+        // console.log("using fromDate: ", filter.fromDate);
         if (fromDateDate) {
             queryQ = query(queryQ, where("date", '>=', fromDateDate));
-            console.log("Updated queryQ: ", queryQ);
+            // console.log("Updated queryQ: ", queryQ);
 
         } else {
             queryQ = query(queryQ, where("date", '>=', filter.fromDate));
-            console.log("Updated queryQ: ", queryQ);
+            // console.log("Updated queryQ: ", queryQ);
 
         }
     }
 
     if (filter.toDate !== undefined) {
         const toDateDate = new Date(filter.toDate?.seconds * 1000);
-        console.log("using toDate: ", filter.toDate);
+        // console.log("using toDate: ", filter.toDate);
         if (toDateDate) {
             queryQ = query(queryQ, where("date", '>=', toDateDate));
-            console.log("Updated queryQ: ", queryQ);
+            // console.log("Updated queryQ: ", queryQ);
 
         } else {
             queryQ = query(queryQ, where("date", '<=', filter.toDate));
-            console.log("Updated queryQ: ", queryQ);
+            // console.log("Updated queryQ: ", queryQ);
 
         }
     }
 
     if (Number(filter.minPrice) > 0 && filter.minPrice !== undefined) {
-        console.log("using minPrice: ", Number(filter.minPrice));
+        // console.log("using minPrice: ", Number(filter.minPrice));
         queryQ = query(queryQ, where("price", '>=', Number(filter.minPrice)));
-        console.log("Updated queryQ: ", queryQ);
+        // console.log("Updated queryQ: ", queryQ);
     }
 
     if (Number(filter.maxPrice) > 0 && filter.maxPrice !== undefined) {
-        console.log("using maxPrice: ", filter.maxPrice);
+        // console.log("using maxPrice: ", filter.maxPrice);
         queryQ = query(queryQ, where("price", '<=', Number(filter.maxPrice)));
-        console.log("Updated queryQ: ", queryQ);
+        // console.log("Updated queryQ: ", queryQ);
     }
 
-    console.log("Initial queryQ: ", queryQ);
+    // console.log("Initial queryQ: ", queryQ);
     return queryQ;
 }
 
@@ -85,6 +131,7 @@ const Page = () => {
     const { category } = useLocalSearchParams<{ category: string }>();
     const { filter } = useLocalSearchParams<{ filter?: string }>();
     const { filterId } = useLocalSearchParams<{ filterId?: string }>();
+    const [modalVis, setModalVis] = useState<boolean>(false);
 
     // console.log(filterId);
     // console.log(filter);
@@ -93,12 +140,12 @@ const Page = () => {
     if (filter !== undefined && filter !== "") {
         parsed_filter = filter ? JSON.parse(filter): null; // checks for undefined values
         // console.log(parsed_filter);
-        console.log("Applying filters:", {
-            minPrice: parsed_filter.minPrice,
-            maxPrice: parsed_filter.maxPrice,
-            fromDate: parsed_filter.fromDate,
-            toDate: parsed_filter.toDate,
-        });
+        // console.log("Applying filters:", {
+        //     minPrice: parsed_filter.minPrice,
+        //     maxPrice: parsed_filter.maxPrice,
+        //     fromDate: parsed_filter.fromDate,
+        //     toDate: parsed_filter.toDate,
+        // });
     }
     const [quickSearch, setQSval] = useState<string | null>(null);
 
@@ -135,7 +182,6 @@ const Page = () => {
 
         /* apply filters, if they are defined... */
         try {
-            // if (filterQuery !== null) {
             if (parsed_filter !== null) {
                 var filterQuery = applyFilter(parsed_filter, queryQ);
                 console.log("aplikace filtru 138: ", filterQuery);
@@ -198,10 +244,34 @@ const Page = () => {
                                                     router,
                                                     item.image,
                                                     item.offeringTask,
-                                                    item.description,)}
+                                                    item.description)}
                     keyExtractor={(item) => item.id}
                     />
             </View>
+
+            {(savedFilter || filter) && (<View>
+                <TouchableOpacity onPress={() => setModalVis(true)} style={styles.showFilterBtn}>
+                    <Text style={styles.showFilterBtnText}>Show filter</Text>
+                </TouchableOpacity>
+            </View>)}
+            <Modal
+                  style={styles.modal}
+                  animationType="slide"
+                  transparent={true}
+                  visible={modalVis}>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                <View style={styles.modalView}>
+                    <Text style={styles.subText}>Used filter</Text>
+                    <ScrollView>
+                        {savedFilter && (Object.entries(savedFilter).map(([filter, val], pos) => visualizeUsedFilters(parseFilters({ filterCriteria: filter, value: val }), pos)))}
+                        {parsed_filter && (Object.entries(parsed_filter).map(([filter, val], pos) => visualizeUsedFilters(parseFilters({filterCriteria: filter, value: val}), pos)))}
+                    </ScrollView>
+                    <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVis(false)}>
+                        <Text style={styles.fBtnText}>Close</Text>
+                    </TouchableOpacity>
+                </View>
+                </GestureHandlerRootView>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -299,6 +369,72 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         marginRight: 20
+    },
+    modal: {
+        flex: 1,
+        alignSelf: "center",
+        backgroundColor: "white",
+        alignContent: "center",
+        borderRadius: 30,
+        borderColor: "gray",
+        borderWidth: 2
+    },
+    modalView: {
+        position: "absolute",
+        top: 215,
+        width: "80%",
+        height: 310,
+        alignSelf: "center",
+        backgroundColor: "white",
+        alignContent: "center",
+        borderRadius: 30,
+        borderColor: "gray",
+        borderWidth: 2
+    },
+    showFilterBtn: {
+        marginBottom: 1,
+        marginTop: 10,
+        marginLeft: 20,
+        backgroundColor: "#A9A9A9",
+        width: 95,
+        height: 30,
+        borderRadius: 20,
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    showFilterBtnText: {
+        fontFamily: 'mon-b'
+    },
+    subText: {
+        alignSelf: "center",
+        fontSize: 20,
+        fontFamily: 'mon-b',
+        fontWeight: 'bold',
+        color: 'black',
+        margin: 10,
+        marginLeft: 5
+    },
+    fBtnText: {
+        fontFamily: 'mon-b',
+        color: "white"
+    },
+    cancelBtn: {
+        width: 80,
+        height: 30,
+        backgroundColor: "#D2122E",
+        borderRadius: 10,
+        alignItems: "center",
+        justifyContent: "center",
+        margin: 30,
+        position: "absolute",
+        bottom: 2,
+        marginTop: 20,
+        alignSelf: "center"
+    },
+    usedFilterView: {
+        flexDirection: "row",
+        marginHorizontal: 15,
+        marginVertical: 5
     }
 })
 
