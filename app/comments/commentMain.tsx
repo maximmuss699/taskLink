@@ -13,6 +13,7 @@ export interface evaluation {
     commId: string;
     comment: string;
     rating: number;
+    username: string;
 }
 
 // deletes comment with comment id
@@ -35,13 +36,13 @@ const computeWholeEval = (evalArr: Array<evaluation>) => {
 }
 
 // function rendering single comment
-export const renderEval = (id: string, rating: number, comment: string, commId: string, router: any) => {
+export const renderEval = (id: string, rating: number, comment: string, commId: string, router: any, username: string) => {
     return(
         <View style={{ width: "100%" }}>
         <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
         <View style={styles.singleComm}>
             <View style={styles.signleCommL}>
-                <Text style={[styles.evalText, { marginBottom: 8} ]}>USERNAME</Text>
+                <Text style={[styles.evalText, { marginBottom: 8} ]}>{ username }</Text>
                 <Text style={styles.text}>{comment}</Text>
             </View>
             <View style={styles.outerSingleCommR}>
@@ -49,7 +50,8 @@ export const renderEval = (id: string, rating: number, comment: string, commId: 
                     <Ionicons name='star' size={15}/>
                     <Text style={styles.evalText}>{rating}/5</Text>
                 </View>
-                <View style={ { flexDirection: "row", marginTop: 15 } }>
+                {/* Michael Scott is the logged in user */}
+                {username === "Michael Scott" && (<View style={ { flexDirection: "row", marginTop: 15 } }>
                     <TouchableOpacity style={styles.commentActionBtn} onPress={() => {router.push({pathname: '/(modals)/editComment', params: { id, commId }})}}>
                         <Ionicons name="pencil-outline" size={25}/>
                     </TouchableOpacity>
@@ -57,7 +59,7 @@ export const renderEval = (id: string, rating: number, comment: string, commId: 
                         <Ionicons name="trash-outline" size={25}/>
                     </TouchableOpacity>
                     {/* FIXME: display prompt when the button is clicked */}
-                </View>
+                </View>)}
             </View>
         </View>
         </View>
@@ -113,7 +115,7 @@ const commentMain = () => {
         <View style={styles.commentView}>
             <FlatList
                 data={loadedEvals}
-                renderItem = {({ item }) => renderEval(item.postId, item.rating, item.comment, item.commId, router)}
+                renderItem = {({ item }) => renderEval(item.postId, item.rating, item.comment, item.commId, router, item.username)}
                 keyExtractor={(item) => item.commId}
             />
         </View>
@@ -178,7 +180,7 @@ const styles = StyleSheet.create({
     },
     singleCommR: {
         flexDirection: "row",
-        marginRight: 30
+        marginRight: 55
     },
     text: {
         fontFamily: 'mon'
