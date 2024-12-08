@@ -45,21 +45,20 @@ function parseFilters(filter: filt | undefined) {
 function visualizeUsedFilters(filter: filt | undefined, pos: number) {
     // parseFilters(filter);
     return(
-        <View key={ pos } style={{ flexDirection: "column", width: "100%" }}>
-            {/* <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View> */}
+        (filter?.filterCriteria && filter?.value) ? (<View key={ pos } style={{ flexDirection: "column", width: "100%" }}>
             <View style={styles.usedFilterView}>
                 <Text style={{ fontFamily: 'mon-b', marginLeft: 10 }}>{filter?.filterCriteria}: </Text>
                 <Text style={{ fontFamily: 'mon' }}>{filter?.value}</Text>
             </View>
-        </View>
+        </View>) : null
     )
 }
 
 /* Parses the filter and constructs a chained firebase query */
 export function applyFilter(filter: any, queryQ: any) {
     console.log("applyFilter: ", filter);
-    if (filter === undefined) return null;
-    if (filter === "") return null;
+    if (filter === undefined) return queryQ;
+    if (filter === "") return queryQ;
     const collectionRef = collection(FIRESTORE, "posts");
     // console.log("Initial queryQ: ", queryQ);
 
@@ -126,19 +125,20 @@ export function applyFilter(filter: any, queryQ: any) {
 const Page = () => {
     const router = useRouter();
     const [loadedPosts, setPosts] = useState<jobPost[]>([]);
-    const [savedFilter, setSavedFilter] = useState<any>(null);
+    const [savedFilter, setSavedFilter] = useState<any | undefined>(null);
 
     const { category } = useLocalSearchParams<{ category: string }>();
-    const { filter } = useLocalSearchParams<{ filter?: string }>();
+    const { filter } = useLocalSearchParams<{ filter?: string | undefined }>();
     const { filterId } = useLocalSearchParams<{ filterId?: string }>();
     const [modalVis, setModalVis] = useState<boolean>(false);
+    const [nonSavedFilter, setNonSavedFilter] = useState<string | undefined>(filter);
 
     // console.log(filterId);
     // console.log(filter);
 
     var parsed_filter: any = null;
-    if (filter !== undefined && filter !== "") {
-        parsed_filter = filter ? JSON.parse(filter): null; // checks for undefined values
+    if (nonSavedFilter !== undefined && nonSavedFilter !== "") {
+        parsed_filter = nonSavedFilter ? JSON.parse(nonSavedFilter): null; // checks useStatefor undefined values
         // console.log(parsed_filter);
         // console.log("Applying filters:", {
         //     minPrice: parsed_filter.minPrice,
@@ -205,7 +205,7 @@ const Page = () => {
             setPosts(jobArray);
         });
         return () => end();
-    }, ([savedFilter, parsed_filter]));
+    }, ([savedFilter, parsed_filter, nonSavedFilter]));
 
     return (
         <SafeAreaView style={styles.mainView}>
@@ -249,9 +249,15 @@ const Page = () => {
                     />
             </View>
 
-            {(savedFilter || filter) && (<View>
+            {(savedFilter || nonSavedFilter) && (<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                 <TouchableOpacity onPress={() => setModalVis(true)} style={styles.showFilterBtn}>
                     <Text style={styles.showFilterBtnText}>Show filter</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.showFilterBtn, { backgroundColor: "#D2122E" }]} onPress={() => {
+                                                                                                                if (savedFilter !== undefined) setSavedFilter(undefined);
+                                                                                                                if (nonSavedFilter !== undefined) setNonSavedFilter(undefined);
+                                                                                                                }}>
+                    <Text style={styles.showFilterBtnText}>Remove</Text>
                 </TouchableOpacity>
             </View>)}
             <Modal
@@ -394,7 +400,7 @@ const styles = StyleSheet.create({
     showFilterBtn: {
         marginBottom: 1,
         marginTop: 10,
-        marginLeft: 20,
+        marginHorizontal: 20,
         backgroundColor: "#A9A9A9",
         width: 95,
         height: 30,
@@ -403,7 +409,9 @@ const styles = StyleSheet.create({
         justifyContent: "center"
     },
     showFilterBtnText: {
-        fontFamily: 'mon-b'
+        fontFamily: 'mon-b',
+        alignSelf: "center",
+        color: "white"
     },
     subText: {
         alignSelf: "center",
