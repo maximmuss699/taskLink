@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import React from 'react';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationIndependentTree } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,16 +19,18 @@ const Stack = createNativeStackNavigator();
 const NewStack = () => {
     return (
         <FormProvider>
-            <NavigationContainer independent={true}>
-                <Stack.Navigator initialRouteName="New">
-                    <Stack.Screen name="new" component={New} options={{ headerShown: false }} />
-                    <Stack.Screen name="categoryScreen" component={CategoryScreen} options={{ title: "Category"}} />
-                    <Stack.Screen name="mapScreen" component={MapScreen} />
-                    <Stack.Screen name="formScreen" component={FormScreen} />
-                    <Stack.Screen name="pictureScreen" component={PictureScreen} />
-                    <Stack.Screen name="finalScreen" component={FinalScreen} />
-                </Stack.Navigator>
-            </NavigationContainer>
+            <NavigationIndependentTree>
+                <NavigationContainer>
+                    <Stack.Navigator initialRouteName="new">
+                        <Stack.Screen name="new" component={New} options={{ headerShown: false }} />
+                        <Stack.Screen name="categoryScreen" component={CategoryScreen} options={{ title: "Category"}} />
+                        <Stack.Screen name="mapScreen" component={MapScreen} />
+                        <Stack.Screen name="formScreen" component={FormScreen} />
+                        <Stack.Screen name="pictureScreen" component={PictureScreen} />
+                        <Stack.Screen name="finalScreen" component={FinalScreen} />
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </NavigationIndependentTree>
         </FormProvider>
     );
 };
