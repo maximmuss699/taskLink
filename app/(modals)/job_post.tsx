@@ -27,6 +27,10 @@ async function addToFavourites(id: string) {
     }
 }
 
+function renderCertification(certification: string, key: number) {
+    return (<Text style={styles.basicText} key={key}>{ certification }</Text>)
+}
+
 const Page = () => {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -41,6 +45,7 @@ const Page = () => {
     const [isFavourite, setIsFavourite] = useState<boolean>(false);
     const [loadedPost, setLoadedPost] = useState<any | undefined>();
     const [taskerId, setTaskerId] = useState<string>("");
+    const [taskerCertificates, setTaskerCertificates] = useState<string[]>([]);
 
     /* fetch whether the post is liked or not... */
     useEffect(() => {
@@ -74,7 +79,7 @@ const Page = () => {
         const queryQ = query(collectionRef, where("fullName", "==", username));
         const end = onSnapshot(queryQ, (sshot) => {
             sshot.forEach((data) => {
-                console.log("setting taskerID");
+                setTaskerCertificates(data.data().certificates);
                 setTaskerId(data.data().taskerId);
             })
         });
@@ -86,8 +91,7 @@ const Page = () => {
         offeringTask = true;
     }
 
-    // console.log(loadedPost);
-    console.log(taskerId);
+    // console.log(taskerId);
     // icon setup to make it responsive
     const icon = isFavourite === false ? 'heart-outline' : 'heart';
     return (
@@ -107,14 +111,15 @@ const Page = () => {
                     <Text style={styles.contactText}>Evaluate</Text>
                 </TouchableOpacity>): <View style={[styles.ContactBtn, { backgroundColor: "none" }]}></View>}
 
-                {/* TODO: FIX THIS ROUTER TO ALSO LOAD USER PROFILES...*/}
                 <TouchableOpacity onPress={() => router.push({pathname: "/profile/[taskerId]", params: {taskerId: taskerId}})}>
                     <Text style={styles.Username}>{ username }</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.ContactBtn}>
-                    <Text style={styles.contactText}>Contact</Text>
-                </TouchableOpacity>
+                {username !== "Michael Scott" ? (<TouchableOpacity style={styles.ContactBtn}>
+                    <Text style={styles.contactText}>Contact</Text> </TouchableOpacity>) :
+                (<TouchableOpacity style={[styles.ContactBtn, { backgroundColor: "" }]}>
+                    <Text style={{color: "white"}}>A</Text>
+                </TouchableOpacity>)}
             </View>
             <View style={{height: 2, backgroundColor: "black", width: "100%", margin: 5, marginTop: 8}}></View>
             <View style={styles.Location}>
@@ -142,9 +147,8 @@ const Page = () => {
                 {offeringTask && (
                 <View style={styles.offTaskView}>
                     <View>
-                        {/* Kvalifikace */}
-                        <Text>Certificates</Text>
-                        {/* TODO: Load certificates */}
+                        <Text style={styles.Text}>Certificates</Text>
+                        { taskerCertificates.map((certification, key) => renderCertification(certification, key)) }
                     </View>
 
                     {loadedPost?.rating && (
@@ -213,7 +217,8 @@ const styles = StyleSheet.create({
         justifyContent: "center"
     },
     ScrollView: {
-        marginTop: 70
+        marginTop: 70,
+        backgroundColor: "white"
     },
     Location: {
         flexDirection: "row",
@@ -265,7 +270,15 @@ const styles = StyleSheet.create({
     },
     offTaskView: {
         width: "100%"
-    }
+    },
+    basicText: {
+        fontSize: 14,
+        color: '#666',
+        margin: 4,
+        fontFamily: 'mon',
+        marginLeft: 15,
+        marginBottom: 15
+    },
 })
 
 export default Page;

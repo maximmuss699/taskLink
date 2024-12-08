@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, setDoc, doc, getDoc } from 'firebase/firestore';
 import { FIRESTORE } from '@/firebaseConfig';
 import Slider from '@react-native-community/slider';
+import { LearnMoreLinks } from 'react-native/Libraries/NewAppScreen';
 
 interface evaluation {
     id: string; // postId; FIXME: make the variable name unambiguous
@@ -16,11 +17,11 @@ interface evaluation {
 }
 
 // updates the evaluation
-async function evalToDB(rating: number, comment: string, id: string, router: any, commId: string) {
+async function evalToDB(rating: number, comment: string, id: string, router: any, commId: string, username: string) {
     const collectionRef = collection(FIRESTORE, 'jobEval');
     const docRef = doc(collectionRef, commId);
-
-    await setDoc(docRef, { comment: comment, rating: rating, postId: id });
+    if (username === "") username = "Michael Scott";
+    await setDoc(docRef, { comment: comment, rating: rating, postId: id, username: username });
     setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}), 500);
 }
 
@@ -35,6 +36,7 @@ const editCommPage = () => {
 
     const [sliderVal, setSliderVal] = useState<number>(0);
     const [comment, setComment] = useState<string>("");
+    const [username, setUsername] = useState<string>("");
 
     useEffect(() => {
         // fetch the evaluation from firebase and let the user modify it
@@ -44,6 +46,7 @@ const editCommPage = () => {
             const loadedData = await getDoc(docToLoad);
             setSliderVal(loadedData.data()?.rating);
             setComment(loadedData.data()?.comment);
+            setUsername(loadedData.data()?.username);
         }
         func();
     }, ([]));
@@ -84,7 +87,7 @@ const editCommPage = () => {
         </View>
         </TouchableWithoutFeedback>
 
-        <TouchableOpacity style={styles.button} onPress={() => evalToDB(sliderVal, comment, id, router, commId)}>
+        <TouchableOpacity style={styles.button} onPress={() => evalToDB(sliderVal, comment, id, router, commId, username)}>
             <Text style={styles.buttonText}>Modify evaluation</Text>
         </TouchableOpacity>
     </SafeAreaView>
