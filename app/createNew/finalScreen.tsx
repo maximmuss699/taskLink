@@ -18,7 +18,7 @@ const FinalScreen = () => {
     const onPublish = async () => {
         setLoading(true);
         setError(false);
-        setFormData({ ...formData, userName: 'Michael Scott' });  // Hardcoded user name demonstration purposes
+        setFormData({ ...formData, username: "Michael Scott" });  // Hardcoded user name demonstration purposes
         try {
             await addDoc(collection(FIRESTORE, 'posts'), formData);
             setSuccess(true);
@@ -62,10 +62,10 @@ const FinalScreen = () => {
                 {error && <Text style={styles.errorText}>{'Failed to upload post.\nPlease try again.'}</Text>}
             </View>
 
-            <BottomButton 
-                title="Publish" 
-                onPress={onPublish} 
-                disabled={loading || success} 
+            <BottomButton
+                title="Publish"
+                onPress={onPublish}
+                disabled={loading || success}
             />
         </View>
     );

@@ -6,7 +6,7 @@ interface FormData {
      * Indicates whether the user is offering a task or seeking a task.
      * True if offering a task, false if seeking a task.
      */
-    userName?: string;
+    username?: string;
     title?: string;
     price?: number;
     description?: string;
