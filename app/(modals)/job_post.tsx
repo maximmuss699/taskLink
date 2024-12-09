@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, FlatList, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useRouter, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FIRESTORE } from '@/firebaseConfig';
 import { collection, setDoc, getFirestore, onSnapshot, query, where, deleteDoc, getDoc, getDocs, doc } from 'firebase/firestore';
 import { renderEval, evaluation } from '../comments/commentMain';
+import Carousel from 'react-native-reanimated-carousel';
 import { jobPost } from '../(tabs)';
 import filterPage from '../filters/filterMain';
 
@@ -42,6 +43,8 @@ const Page = () => {
     const { description } = useLocalSearchParams<{ description: string }>();
     const { post_type } = useLocalSearchParams<{ post_type: string }>();
 
+    const [images, setImages] = useState<string[] | undefined>();
+
     const [isFavourite, setIsFavourite] = useState<boolean>(false);
     const [loadedPost, setLoadedPost] = useState<any | undefined>();
     const [taskerId, setTaskerId] = useState<string>("");
@@ -61,17 +64,18 @@ const Page = () => {
         return () => end();
     }, [id]);
 
-    /* fetch the post rating */
+    /* fetch the post rating and pictures */
     useEffect(() => {
         const main = async () => {
             const docRef = doc(FIRESTORE, "posts", id);
             const post: any = await getDoc(docRef);
             if(post.exists()){
+                setImages(post.data().images);
                 setLoadedPost(post.data());
             }
         }
         main();
-    }, []);
+    }, [id, loadedPost]);
 
     /* fetch the taskerId */
     useEffect(() => {
@@ -84,7 +88,7 @@ const Page = () => {
             })
         });
         return () => end();
-    }, []);
+    }, [username]);
 
     var offeringTask = false;
     if (post_type === "false") {
@@ -95,7 +99,7 @@ const Page = () => {
     // icon setup to make it responsive
     const icon = isFavourite === false ? 'heart-outline' : 'heart';
     return (
-        <ScrollView style={styles.ScrollView}>
+        <ScrollView style={styles.ScrollView} contentContainerStyle={{ paddingBottom: 150 }}>
             <View style={styles.outerView}>
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -105,6 +109,18 @@ const Page = () => {
                         <Ionicons name={icon} size={24}/>
                     </TouchableOpacity>
                 </View>
+            {(images && images?.length > 0) && (<View style={styles.carousel}>
+                <Carousel
+                    width={350}
+                    height={300}
+                    autoPlay={false}
+                    data={images || []}
+                    loop={true}
+                    renderItem={({ item }) => (
+                        <Image source={{ uri: item }} style={{width: "100%", height: "100%", padding: 5, marginBottom: 10}}/>
+                    )}
+                />
+            </View>)}
             <View style={styles.textHeader}>
                 {offeringTask ? (<TouchableOpacity style={styles.ContactBtn} onPress={() => router.push({pathname: "/comments/commentMain"
                                                                                                          ,params: {id}})}>
@@ -151,7 +167,7 @@ const Page = () => {
                         { taskerCertificates.map((certification, key) => renderCertification(certification, key)) }
                     </View>
 
-                    {loadedPost?.rating && (
+                    {loadedPost?.rating && loadedPost?.ratingCnt && (
                     <View style={styles.offTaskView}>
                         <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View>
                         <View style={styles.postRatingView}>
@@ -218,7 +234,8 @@ const styles = StyleSheet.create({
     },
     ScrollView: {
         marginTop: 70,
-        backgroundColor: "white"
+        backgroundColor: "white",
+        flex: 1
     },
     Location: {
         flexDirection: "row",
@@ -279,6 +296,13 @@ const styles = StyleSheet.create({
         marginLeft: 15,
         marginBottom: 15
     },
+    carousel: {
+        width: "90%",
+        height: "40%",
+        justifyContent: "center",
+        alignContent: "center",
+        marginBottom: 30
+    }
 })
 
 export default Page;

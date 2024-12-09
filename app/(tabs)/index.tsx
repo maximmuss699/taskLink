@@ -37,6 +37,7 @@ export const job_ad = (id: string, username: string,
     location: string, job_name: string,
     date: string, price: string, router: any, images: Array<string>,
     post_type: boolean, description: string) => {
+        console.log(images);
         // to differentiate offered and searched jobs; they have different colors
         const tcolor = post_type === false ? "#717171" : "white";
         const bckgColor = post_type === false ? "#D9D9D9" : "#52812F";
@@ -54,15 +55,18 @@ export const job_ad = (id: string, username: string,
                                                                                 }
                                                                             })}>
         <Text style={styles.JobAdHeader}>{username}</Text>
-        {/* FIXME, displaying images */}
+        <View onStartShouldSetResponder={() => true} style={{ width: "60%", height: "60%", alignItems: "center", justifyContent: "center", margin: 20 }}>
         <Carousel
-            width={300}
-            height={480 * 0.6}
+            width={350}
+            height={300}
             autoPlay={false}
             data={images}
+            loop={true}
             renderItem={({ item }) => (
                 <Image source={{ uri: item }} style={{width: "100%", height: "100%", padding: 5, marginBottom: 10}}/>
-            )}/>
+            )}
+            />
+        </View>
         <Text style={styles.PriceLocText}>{location}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{job_name}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{date}</Text>
@@ -83,7 +87,7 @@ export interface jobPost {
         locality: string;
     }
     price: string;
-    image: Array<string>; // array of image URL
+    images: string[]; // array of image URL
 }
 
 const Page = () => {
@@ -108,6 +112,7 @@ const Page = () => {
         return () => end();
     }, ([]));
 
+    console.log(loadedPosts);
     return (
         <View style={styles.main}>
             <Text style={styles.MainText}>Explore tasks near You</Text>
@@ -132,7 +137,7 @@ const Page = () => {
                                                     item.date.toDate().toLocaleDateString(),
                                                     item.price,
                                                     router,
-                                                    item.image,
+                                                    item.images,
                                                     item.offeringTask,
                                                     item.description,
                                                 )}
@@ -195,7 +200,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         height: 480,
         borderRadius: 5,
-        flex: 1
+        flex: 1,
+        overflow: "hidden",
+        flexDirection: "column"
     },
     JobPanel: {
         height: "100%",

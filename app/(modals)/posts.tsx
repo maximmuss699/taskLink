@@ -242,7 +242,7 @@ const Page = () => {
                                                     item.date.toDate().toLocaleDateString(),
                                                     item.price,
                                                     router,
-                                                    item.image,
+                                                    item.images,
                                                     item.offeringTask,
                                                     item.description)}
                     keyExtractor={(item) => item.id}
