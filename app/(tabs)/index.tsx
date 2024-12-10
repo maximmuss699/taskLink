@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot } from 'firebase/firestore';
 import Carousel from 'react-native-reanimated-carousel';
 import Toast from 'react-native-toast-message';
+import * as Loc from 'expo-location';
 
 // quicksearch filtering
 export function filterQS(postArray: jobPost[], qsResult: string | null) {
@@ -95,6 +96,21 @@ const Page = () => {
     const [loadedPosts, setPosts] = useState<jobPost[]>([]);
     const [quickSearch, setQSval] = useState<string | null>(null);
 
+    const [location, setLocation] = useState<string>("Brno");
+
+    useEffect(() => {
+        const updateLocation = async () => {
+            const permission = await Loc.requestForegroundPermissionsAsync();
+            if (permission.status === 'granted') {
+                // get the location and update it
+                const location = await Loc.getCurrentPositionAsync();
+                const readableLoc = await Loc.reverseGeocodeAsync(location.coords);
+                setLocation(readableLoc[0]?.city || 'Brno'); // Brno here is default
+            }
+        }
+        updateLocation();
+    }, ([]));
+
     useEffect(() => {
         // get the firestore instance
         const dbEngine = getFirestore();
@@ -116,7 +132,7 @@ const Page = () => {
     return (
         <View style={styles.main}>
             <Text style={styles.MainText}>Explore tasks near You</Text>
-            <Text style={styles.LocationText}>Brno</Text>
+            <Text style={styles.LocationText}>{location}</Text>
             <View style={styles.SearchBarCollection}>
                 <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
                 <TextInput
