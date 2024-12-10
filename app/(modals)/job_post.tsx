@@ -99,7 +99,7 @@ const Page = () => {
     // icon setup to make it responsive
     const icon = isFavourite === false ? 'heart-outline' : 'heart';
     return (
-        <ScrollView style={styles.ScrollView} contentContainerStyle={{ paddingBottom: 150 }}>
+        <ScrollView style={styles.ScrollView} contentContainerStyle={{ paddingBottom: 200 }}>
             <View style={styles.outerView}>
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
