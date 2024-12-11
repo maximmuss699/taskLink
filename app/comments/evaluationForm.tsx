@@ -15,7 +15,8 @@ import Toast from 'react-native-toast-message';
 async function updateEval(rating: number, comment: string, id: string, router: any) {
     const collectionRef = collection(FIRESTORE, 'jobEval');
     await addDoc(collectionRef, { comment: comment, rating: rating, postId: id, username: "Michael Scott" });
-    setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}), 300);
+    // setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}), 300);
+    setTimeout(() => router.back(), 300);
 }
 
 function resizeCommWin() {
@@ -32,7 +33,8 @@ const evaluationForm = () => {
     return (
     <SafeAreaView style={styles.mainView}>
         <View style={styles.topScreen}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.push({pathname: "/comments/commentMain", params: {id}})}>
+        {/* <TouchableOpacity style={styles.backBtn} onPress={() => router.push({pathname: "/comments/commentMain", params: {id}})}> */}
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
             <Ionicons name='chevron-back-outline' size={24}/>
         </TouchableOpacity>
         <Text style={styles.mainText}>Evaluate Tasker</Text>

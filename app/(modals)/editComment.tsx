@@ -22,7 +22,8 @@ async function evalToDB(rating: number, comment: string, id: string, router: any
     const docRef = doc(collectionRef, commId);
     if (username === "") username = "Michael Scott";
     await setDoc(docRef, { comment: comment, rating: rating, postId: id, username: username });
-    setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}), 500);
+    // setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}), 500);
+    setTimeout(() => router.back(), 300);
 }
 
 function resizeCommWin() {
@@ -54,7 +55,8 @@ const editCommPage = () => {
     return (
     <SafeAreaView style={styles.mainView}>
         <View style={styles.topScreen}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.push({pathname: "/comments/commentMain", params: {id}})}>
+        {/* <TouchableOpacity style={styles.backBtn} onPress={() => router.push({pathname: "/comments/commentMain", params: {id}})}> */}
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
             <Ionicons name='chevron-back-outline' size={24}/>
         </TouchableOpacity>
         <Text style={styles.mainText}>Modify Evaluation</Text>

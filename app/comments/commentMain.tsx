@@ -4,7 +4,7 @@ import { useLocalSearchParams, router, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
 /* firestore imports */
-import { collection, query, doc, where, onSnapshot, deleteDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, doc, where, onSnapshot, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
 import { FIRESTORE } from '@/firebaseConfig';
 
 // evaluation interface
@@ -14,6 +14,7 @@ export interface evaluation {
     comment: string;
     rating: number;
     username: string;
+    taskerId: string;
 }
 
 // deletes comment with comment id
@@ -36,13 +37,16 @@ const computeWholeEval = (evalArr: Array<evaluation>) => {
 }
 
 // function rendering single comment
-export const renderEval = (id: string, rating: number, comment: string, commId: string, router: any, username: string) => {
+export const renderEval = (id: string, rating: number, comment: string, commId: string, router: any, username: string, taskerId: string | null) => {
     return(
         <View style={{ width: "100%" }}>
         <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
         <View style={styles.singleComm}>
             <View style={styles.signleCommL}>
-                <Text style={[styles.evalText, { marginBottom: 8} ]}>{ username }</Text>
+                {taskerId ? (<TouchableOpacity onPress={() => router.push({pathname: "/profile/[taskerId]", params: {taskerId: taskerId}})}>
+                    <Text style={[styles.evalText, { marginBottom: 8} ]}>{ username }</Text>
+                </TouchableOpacity>) :
+                (<Text style={[styles.evalText, { marginBottom: 8} ]}>{ username }</Text>)}
                 <Text style={styles.text}>{comment}</Text>
             </View>
             <View style={styles.outerSingleCommR}>
@@ -77,20 +81,30 @@ const commentMain = () => {
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "jobEval");
         const queryQ = query(collectionRef, where('postId', '==', id));
-        const end = onSnapshot(queryQ, (sshot) => {
-            const evalArray: any = [];
-            sshot.docs.forEach((data) => {
-                evalArray.push({ commId: data.id, ...data.data() });
-            })
-            setEvals(evalArray);
-            // compute the overall job rating
-            const postEvaluation = computeWholeEval(evalArray);
-            const postDoc = doc(collection(FIRESTORE, "posts"), id);
-            // update the rating in the post collection
-            updateDoc(postDoc, { rating: postEvaluation, ratingCnt: evalArray.length });
-            setPostRating(postEvaluation);
-        });
-        return () => end();
+
+            const end = onSnapshot(queryQ, async (sshot) => {
+                // const evalArray: any = [];
+                const evalArray: any[] = await Promise.all(
+                    sshot.docs.map(async (data) => {
+                        const taskerQ = query(collection(FIRESTORE, "taskers"), where('fullName' , '==', data.data().username)); // fetch the id
+                        const taskerDoc = await getDocs(taskerQ);
+                        let taskerId: string | null = null;
+                        taskerDoc.forEach((tasker) => {
+                            if (tasker.exists()) taskerId = tasker.data().taskerId;
+                        })
+
+                        return { commId: data.id, ...data.data(), taskerId };
+                    })
+                )
+                setEvals(evalArray);
+                // compute the overall job rating
+                const postEvaluation = computeWholeEval(evalArray);
+                const postDoc = doc(collection(FIRESTORE, "posts"), id);
+                // update the rating in the post collection
+                updateDoc(postDoc, { rating: postEvaluation, ratingCnt: evalArray.length });
+                setPostRating(postEvaluation);
+            });
+            return () => end();
     }, ([]));
 
     return (
@@ -115,7 +129,7 @@ const commentMain = () => {
         <View style={styles.commentView}>
             <FlatList
                 data={loadedEvals}
-                renderItem = {({ item }) => renderEval(item.postId, item.rating, item.comment, item.commId, router, item.username)}
+                renderItem = {({ item }) => renderEval(item.postId, item.rating, item.comment, item.commId, router, item.username, item.taskerId)}
                 keyExtractor={(item) => item.commId}
             />
         </View>
