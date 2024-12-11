@@ -98,6 +98,7 @@ const Page = () => {
 
     const [location, setLocation] = useState<string>("Brno");
 
+    /* fetch the user location, if the permission is granted */
     useEffect(() => {
         const updateLocation = async () => {
             const permission = await Loc.requestForegroundPermissionsAsync();

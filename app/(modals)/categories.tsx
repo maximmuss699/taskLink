@@ -73,6 +73,13 @@ const Categories = () => {
                     <Text style={styles.CategBtnText}>Cleaning</Text>
                 </TouchableOpacity>
             </View>
+            <View style={styles.CategView}>
+                <TouchableOpacity style={styles.categoryBtn} onPress={() => router.push({ pathname: '/(modals)/posts', params:{ category: "Liked"}})}>
+                    <Ionicons name="heart" size={40}/>
+                    <Text style={styles.CategBtnText}>Liked</Text>
+                </TouchableOpacity>
+            </View>
+
         </View>
             <Text style={styles.tasklinkLogo}>taskLink</Text>
         </SafeAreaView>
@@ -134,7 +141,7 @@ const styles = StyleSheet.create({
     },
     OuterView: {
         width: "95%",
-        height: 500,
+        height: 590,
         backgroundColor: "#FCFFFB",
         alignSelf: "center",
         alignItems: "center",
