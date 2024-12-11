@@ -4,11 +4,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, query, where, onSnapshot, DocumentData, QuerySnapshot, QueryDocumentSnapshot, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, DocumentData, QuerySnapshot, QueryDocumentSnapshot, doc, getDoc, getDocs, Firestore } from 'firebase/firestore';
 import { job_ad, jobPost, filterQS } from '../(tabs)/index';
 import { filter } from '../filters/filterMain';
 import { parse } from '@babel/core';
 import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
+import { UNSTABLE_UnhandledLinkingContext } from '@react-navigation/native';
 
 interface filt {
     filterCriteria: string;
@@ -128,6 +129,7 @@ const Page = () => {
     const [savedFilter, setSavedFilter] = useState<any | undefined>(null);
 
     const { category } = useLocalSearchParams<{ category: string }>();
+    console.log(category);
     const { filter } = useLocalSearchParams<{ filter?: string | undefined }>();
     const { filterId } = useLocalSearchParams<{ filterId?: string }>();
     const [modalVis, setModalVis] = useState<boolean>(false);
@@ -172,6 +174,42 @@ const Page = () => {
     }, ([filterId]));
 
     useEffect(() => {
+        const collectionRef = collection(FIRESTORE, "posts");
+        let posts_snap: (() => void) | undefined = undefined;
+
+            if (!no_categ && category === "Liked") {
+                /* listen for changes in liked posts */
+                posts_snap = onSnapshot(collection(FIRESTORE, "favJobs"), async (favJob) => {
+                    let fav_posts: string[] = [];
+                    let jobArray: any = [];
+
+                    if (favJob.empty) {
+                        setPosts([]);
+                        return;
+                    }
+
+                    favJob.forEach((data) => fav_posts.push(data.id));
+                    fav_posts = Array.from(new Set(fav_posts)); // remove duplicates
+
+                    const docs = await Promise.all(fav_posts.map((id) => getDoc(doc(collectionRef, id))));
+                    docs.forEach((doc) => {
+                        if (doc.exists()) {
+                            jobArray.push({ id: doc.id , ...doc.data() });
+                        }
+                    })
+                    setPosts(jobArray);
+                });
+
+            }
+        return () => {
+            if (posts_snap !== undefined) posts_snap();
+        };
+    }, ([no_categ, category]));
+
+
+    useEffect(() => {
+        /* to make sure the jobArray would not be overwritten */
+        if (category === "Liked") return;
         var queryQ: any;
         const collectionRef = collection(FIRESTORE, "posts");
         if (!no_categ) {
@@ -179,7 +217,6 @@ const Page = () => {
         } else {
             queryQ = query(collectionRef, where('offeringTask', '==', offeringTask));
         }
-
         /* apply filters, if they are defined... */
         try {
             if (parsed_filter !== null) {
@@ -194,8 +231,6 @@ const Page = () => {
         } catch (error) {
             console.log("filter parsing went wrong: ", error);
         }
-
-        console.log("Query with filters applied:", queryQ);
         const end = onSnapshot(queryQ, (sshot: QuerySnapshot) => {
             const jobArray: any = [];
             sshot.docs.forEach((data: QueryDocumentSnapshot) => {
