@@ -18,7 +18,6 @@ const FinalScreen = () => {
     const onPublish = async () => {
         setLoading(true);
         setError(false);
-        setFormData({ ...formData, username: "Michael Scott" });  // Hardcoded user name demonstration purposes
         try {
             await addDoc(collection(FIRESTORE, 'posts'), formData);
             setSuccess(true);
@@ -41,13 +40,14 @@ const FinalScreen = () => {
 
             <View style={{flex: 1, justifyContent: 'flex-start', marginTop: 15, marginLeft:'5%'}}>
                 <Text style={styles.text}>Title: {formData.title}</Text>
-                <Text style={styles.text}>Price: {formData.price} CZK</Text>
+                <Text style={styles.text}>Price: {formData.price} EUR</Text>
                 <Text style={styles.text}>Category: {formData.category}</Text>
                 <Text style={styles.text}>Description: {formData.description}</Text>
                 <Text style={styles.text}>Date: {formData.date?.toLocaleDateString()}</Text>
                 <Text style={styles.text}>Address: {formData.address?.name}</Text>
                 <Text style={styles.text}>Coordinates: {formData.coordinates?.latitude}, {formData.coordinates?.longitude}</Text>
                 <Text style={styles.text}>Images: {formData.images?.length}</Text>
+                <Text style={styles.text}>Username: {formData.username}</Text>
             </View>
 
 
