@@ -66,7 +66,7 @@ export const job_ad = (id: string, username: string,
             renderItem={({ item }) => (
                 <Image source={{ uri: item }} style={{width: "100%", height: "100%", padding: 5, marginBottom: 10}}/>
             )}
-            />
+        />
         </View>
         <Text style={styles.PriceLocText}>{location}</Text>
         <Text style={[styles.ItemText, {color: tcolor}]}>{job_name}</Text>

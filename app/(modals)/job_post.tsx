@@ -50,6 +50,8 @@ const Page = () => {
     const [taskerId, setTaskerId] = useState<string>("");
     const [taskerCertificates, setTaskerCertificates] = useState<string[]>([]);
 
+    const [loadedEvals, setEvals] = useState<evaluation[]>([]);
+
     /* fetch whether the post is liked or not... */
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "favJobs");
@@ -95,11 +97,33 @@ const Page = () => {
         offeringTask = true;
     }
 
+
+    useEffect(() => {
+        const collectionRef = collection(FIRESTORE, "jobEval");
+        const queryQ = query(collectionRef, where('postId', '==', id));
+            const end = onSnapshot(queryQ, async (sshot) => {
+                const evalArray: any[] = await Promise.all(
+                    sshot.docs.map(async (data) => {
+                        const taskerQ = query(collection(FIRESTORE, "taskers"), where('fullName' , '==', data.data().username)); // fetch the id
+                        const taskerDoc = await getDocs(taskerQ);
+                        let taskerId: string | null = null;
+                        taskerDoc.forEach((tasker) => {
+                            if (tasker.exists()) taskerId = tasker.data().taskerId;
+                        })
+
+                        return { commId: data.id, ...data.data(), taskerId };
+                    })
+                )
+                setEvals(evalArray.slice(0, 4)); // take only the top 5
+            });
+            return () => end();
+    }, ([]));
+
     // console.log(taskerId);
     // icon setup to make it responsive
     const icon = isFavourite === false ? 'heart-outline' : 'heart';
     return (
-        <ScrollView style={styles.ScrollView} contentContainerStyle={{ paddingBottom: 200 }}>
+        <ScrollView style={styles.ScrollView} contentContainerStyle={{ paddingBottom: 200 }} nestedScrollEnabled={true}>
             <View style={styles.outerView}>
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -158,7 +182,7 @@ const Page = () => {
                     <Text style={styles.Text}>Description</Text>
                     <Text style={styles.DescText}>{ description }</Text>
                 </View>
-                <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View>
+                {/* <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View> */}
 
                 {offeringTask && (
                 <View style={styles.offTaskView}>
@@ -169,12 +193,22 @@ const Page = () => {
 
                     {loadedPost?.rating && loadedPost?.ratingCnt && (
                     <View style={styles.offTaskView}>
-                        <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View>
+                        {/* <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View> */}
                         <View style={styles.postRatingView}>
                             <Ionicons name="star" size={25}/>
                             <Text style={[styles.Text, { fontSize: 20 }]}>{ loadedPost?.rating } ({ loadedPost?.ratingCnt })</Text>
                         </View>
                     </View>)}
+
+                    {/* <View style={{height: 2, backgroundColor: "black", width: "100%", marginVertical: 10}}></View> */}
+                    <View style={styles.offTaskView}>
+                        <Text style={styles.Text}>Recent evaluations</Text>
+                        {loadedEvals.map((item, key) => (
+                            <View key={ key }>
+                                {renderEval(item.postId, item.rating, item.comment, item.commId, router, item.username, item.taskerId)}
+                            </View>
+                        ))}
+                    </View>
                 </View>
                 )}
             </View>
@@ -233,7 +267,7 @@ const styles = StyleSheet.create({
         justifyContent: "center"
     },
     ScrollView: {
-        marginTop: 70,
+        marginTop: 50,
         backgroundColor: "white",
         flex: 1
     },
@@ -301,7 +335,7 @@ const styles = StyleSheet.create({
         height: "40%",
         justifyContent: "center",
         alignContent: "center",
-        marginBottom: 30
+        marginBottom: 20
     }
 })
 
