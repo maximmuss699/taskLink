@@ -230,9 +230,11 @@ const filterPage = () => {
                                                                             maxRating: maxRatingSliderVal
                                                                         }
                                                                         setFilter(filter);
-                                                                        router.push({ pathname: "/(modals)/posts",
-                                                                            params: {category: category, filter: JSON.stringify(filter)}});
-                                                                        }}>
+                                                                        router.back();
+                                                                        setTimeout(() =>
+                                                                            router.replace({ pathname: "/(modals)/posts",
+                                                                                params: {category: category, filter: JSON.stringify(filter)}})
+                                                                            , 150);}}>
                         <Text style={styles.fBtnText}>Apply</Text>
                     </TouchableOpacity>
                 </View>

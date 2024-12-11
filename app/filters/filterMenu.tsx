@@ -77,7 +77,7 @@ const renderFilter = (filter: any, router: any, category: string) => {
     return(
         <View style={{ width: "100%" }}>
             <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
-            <TouchableOpacity onPress={() => {router.push({ pathname: "/(modals)/posts" , params: { filterId: filter.item.filterId, category: category }})}}>
+            <TouchableOpacity onPress={() => {router.back(); setTimeout(() => router.replace({ pathname: "/(modals)/posts" , params: { filterId: filter.item.filterId, category: category }}), 150);}}>
 
                 <View style={styles.singleComm}>
                     <View style={styles.signleCommL}>
@@ -105,7 +105,6 @@ const renderFilter = (filter: any, router: any, category: string) => {
                             <TouchableOpacity style={[styles.commentActionBtn, { backgroundColor: "#c00" }]} onPress={() => deleteFilter(filter.item.filterId)}>
                                 <Ionicons name="trash-outline" size={25}/>
                             </TouchableOpacity>
-                            {/* FIXME: display prompt when button is clicked */}
                         </View>
                     </View>
                 </View>

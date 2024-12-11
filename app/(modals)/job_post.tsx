@@ -170,7 +170,7 @@ const Page = () => {
             <View style={styles.datePrice}>
                 <View style={styles.datePriceElem}>
                     <Ionicons name='cash' size={40}/>
-                    <Text style={styles.Text}>{ price }</Text>
+                    <Text style={styles.Text}>{ price } €</Text>
                 </View>
                 <View style={styles.datePriceElem}>
                     <Ionicons name='calendar' size={40}/>
