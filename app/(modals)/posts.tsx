@@ -4,20 +4,19 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, query, where, onSnapshot, DocumentData, QuerySnapshot, QueryDocumentSnapshot, doc, getDoc, getDocs, Firestore } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, DocumentData, QuerySnapshot, QueryDocumentSnapshot, doc, getDoc, getDocs, Timestamp } from 'firebase/firestore';
 import { job_ad, jobPost, filterQS } from '../(tabs)/index';
 import { filter } from '../filters/filterMain';
 import { parse } from '@babel/core';
-import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, RotationGestureHandler, ScrollView } from 'react-native-gesture-handler';
 import { UNSTABLE_UnhandledLinkingContext } from '@react-navigation/native';
+import { geohashForLocation, geohashQueryBounds, Geopoint } from "geofire-common";
 
 interface filt {
     filterCriteria: string;
     value: any;
 }
 
-
-// (NOBRIDGE) LOG  using savedFilter:  {"filterName": "Filter2", "fromDate": {"nanoseconds": 0, "seconds": 1732550133}, "maxPrice": "600", "maxRating": 4, "minPrice": "300", "minRating": 1, "toDate": {"nanoseconds": 0, "seconds": 1734450935}}
 /* parses the filters to a more readable format */
 function parseFilters(filter: filt | undefined) {
     if (filter === undefined) return;
@@ -38,13 +37,20 @@ function parseFilters(filter: filt | undefined) {
             filter.filterCriteria = "to";
         }
     }
+    if (filter?.filterCriteria === "address") filter.filterCriteria = "address";
+    if (filter?.filterCriteria === "locationRadius") filter.filterCriteria = "radius";
 
     return filter
 }
 
 /* visualizes the used Filters */
 function visualizeUsedFilters(filter: filt | undefined, pos: number) {
-    // parseFilters(filter);
+    if (filter?.filterCriteria === "location") return; // do not render location
+    if (filter?.filterCriteria === "locationRadius") {
+        filter.filterCriteria = "location radius";
+        console.log("value");
+        filter.value = "+- " + filter.value + " km";
+    }
     return(
         (filter?.filterCriteria && filter?.value) ? (<View key={ pos } style={{ flexDirection: "column", width: "100%" }}>
             <View style={styles.usedFilterView}>
@@ -81,30 +87,15 @@ export function applyFilter(filter: any, queryQ: any) {
     if (filter.fromDate !== undefined) {
         // convert to date
         const fromDateDate = new Date(filter.fromDate?.seconds * 1000);
-        // console.log("using fromDate: ", filter.fromDate);
-        if (fromDateDate) {
-            queryQ = query(queryQ, where("date", '>=', fromDateDate));
-            // console.log("Updated queryQ: ", queryQ);
-
-        } else {
-            queryQ = query(queryQ, where("date", '>=', filter.fromDate));
-            // console.log("Updated queryQ: ", queryQ);
-
-        }
+        const timestamp = Timestamp.fromDate(fromDateDate);
+        console.log(timestamp);
+        queryQ = query(queryQ, where("date", '>=', timestamp));
     }
 
     if (filter.toDate !== undefined) {
         const toDateDate = new Date(filter.toDate?.seconds * 1000);
-        // console.log("using toDate: ", filter.toDate);
-        if (toDateDate) {
-            queryQ = query(queryQ, where("date", '>=', toDateDate));
-            // console.log("Updated queryQ: ", queryQ);
-
-        } else {
-            queryQ = query(queryQ, where("date", '<=', filter.toDate));
-            // console.log("Updated queryQ: ", queryQ);
-
-        }
+        const timestamp = Timestamp.fromDate(toDateDate);
+        queryQ = query(queryQ, where("date", '<=', timestamp));
     }
 
     if (Number(filter.minPrice) > 0 && filter.minPrice !== undefined) {
@@ -119,7 +110,27 @@ export function applyFilter(filter: any, queryQ: any) {
         // console.log("Updated queryQ: ", queryQ);
     }
 
-    // console.log("Initial queryQ: ", queryQ);
+    /* location */
+    if (filter.location && filter.locationRadius > 0) {
+        const longitude = filter.locationRadius / (111000 * Math.cos(filter.location.longitude * Math.PI / 180));
+        console.log("lat upper: ", filter.location.latitude + (filter.locationRadius / 111000));
+        console.log("lat lower: ", filter.location.latitude - (filter.locationRadius / 111000));
+        console.log("long upper: ", filter.location.longitude + longitude);
+        console.log("long lower: ", filter.location.longitude - longitude);
+
+        const loc: Geopoint = [filter.location.latitude, filter.location.longitude];
+        const areaOfInterest = geohashQueryBounds(loc, filter.locationRadius * 1000);
+
+        
+        queryQ = query(queryQ, where("coordinates.latitude", "<=", filter.location.latitude + (filter.locationRadius / 111000)),
+                               where("coordinates.latitude", ">=", filter.location.latitude - (filter.locationRadius / 111000)),
+                               where("coordinates.longitude", "<=", filter.location.longitude + longitude),
+                               where("coordinates.longitude", ">=", filter.location.longitude - longitude)
+        );
+
+        console.log(queryQ);
+    }
+
     return queryQ;
 }
 
@@ -129,7 +140,7 @@ const Page = () => {
     const [savedFilter, setSavedFilter] = useState<any | undefined>(null);
 
     const { category } = useLocalSearchParams<{ category: string }>();
-    console.log(category);
+    // console.log(category);
     const { filter } = useLocalSearchParams<{ filter?: string | undefined }>();
     const { filterId } = useLocalSearchParams<{ filterId?: string }>();
     const [modalVis, setModalVis] = useState<boolean>(false);
