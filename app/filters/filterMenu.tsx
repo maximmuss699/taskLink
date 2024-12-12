@@ -24,11 +24,12 @@ interface filterInfo {
     rating: string | undefined;
     price: string | undefined;
     date: string | undefined;
+    location: string | undefined;
 };
 
 /* parses the filter information */
 function parse_filter_info(filter: any) {
-    var filterToDisplay: filterInfo = { date: "", price: "", rating: "" };
+    var filterToDisplay: filterInfo = { date: "", price: "", rating: "", location: "" };
 
     var fromDateStr: string | null = null;
     var toDateStr: string | null = null;
@@ -68,6 +69,11 @@ function parse_filter_info(filter: any) {
         filterToDisplay.rating = " <= " + filter.maxRating;
     }
 
+    /* location */
+    if (filter.address !== undefined && filter.locationRadius !== undefined && filter.address !== null && filter.locationRadius !== null) {
+        filterToDisplay.location = filter.address + " +- " + filter.locationRadius + " km";
+    }
+
     return filterToDisplay;
 }
 
@@ -95,7 +101,10 @@ const renderFilter = (filter: any, router: any, category: string) => {
                             <Text style={[styles.text, { fontFamily: "mon-b" }]}>Date: </Text>
                             <Text style={styles.text}>{ parsed_filter_info.date }</Text>
                         </View>)}
-                        {/* <Text style={styles.text}>Category: { filter.category }</Text> */}
+                        {parsed_filter_info.location && (<View style={styles.ratView}>
+                            <Text style={[styles.text, { fontFamily: "mon-b" }]}>Location: </Text>
+                            <Text style={styles.text}>{ parsed_filter_info.location }</Text>
+                        </View>)}
                     </View>
                     <View style={styles.outerSingleCommR}>
                         <View style={ { flexDirection: "row", marginTop: 15 } }>
@@ -160,7 +169,8 @@ const styles = StyleSheet.create({
         marginLeft: 5
     },
     mainView: {
-        flexDirection: "column"
+        flexDirection: "column",
+        flex: 1,
     },
     header: {
         flexDirection: "row",
