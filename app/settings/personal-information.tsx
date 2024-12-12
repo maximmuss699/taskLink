@@ -150,7 +150,6 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
 
     return (
         <SafeAreaView style={styles.container} testID={props.testID ?? "personal-info"}>
-            {/* Custom Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#000" />
@@ -358,18 +357,21 @@ const styles = StyleSheet.create({
     header: {
         paddingTop: 16,
         paddingHorizontal: 16,
+        flexDirection: 'row',
+        fontFamily: 'mon-b',
+        fontSize: 24,
 
     },
     backButton: {
         padding: 8,
         marginRight: 8,
     },
+
     title: {
-        fontSize: 30,
+        fontSize: 24,
         fontWeight: '700',
         color: '#000',
-        textAlign: 'left',
-        fontFamily: 'mon-b',
+        marginLeft: 8,
     },
     content: {
         padding: 16,

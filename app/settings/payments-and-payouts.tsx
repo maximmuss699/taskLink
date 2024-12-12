@@ -291,7 +291,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
 
             <Modal
                 visible={isModalVisible}
-                animationType="slide"
+                animationType="fade"
                 transparent={true}
                 onRequestClose={() => setModalVisible(false)}
             >
@@ -305,7 +305,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                 <View style={styles.modalContent}>
                                     <Text style={styles.modalTitle}>Add Payment Method</Text>
 
-                                    {/* Поле "Имя держателя карты" */}
+
                                     <View style={styles.inputContainer}>
                                         <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
                                         <TextInput
@@ -395,9 +395,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingTop: 16,
         paddingHorizontal: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#EEE',
         paddingBottom: 10,
+        fontSize: 24,
+        fontFamily: 'mon-b',
     },
     backButton: {
         padding: 8,

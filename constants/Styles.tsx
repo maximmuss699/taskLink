@@ -43,3 +43,4 @@ export const defaultStyles = StyleSheet.create({
         borderTopWidth: StyleSheet.hairlineWidth,
     },
 });
+

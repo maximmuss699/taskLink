@@ -142,6 +142,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         fontFamily: 'mon-b',
         fontSize: 24,
+        flexDirection: 'row',
     },
     backButton: {
         padding: 8,

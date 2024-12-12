@@ -6,9 +6,7 @@ import {
     Text,
     StyleSheet,
     SafeAreaView,
-    TextInput,
     TouchableOpacity,
-    Alert,
     ScrollView, Switch,
 } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -71,6 +69,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         fontFamily: 'mon-b',
         fontSize: 24,
+        flexDirection: 'row',
     },
     backButton: {
         padding: 8,
@@ -80,7 +79,7 @@ const styles = StyleSheet.create({
         fontSize: 30,
         fontWeight: '700',
         color: '#000',
-        textAlign: 'left', // Выравнивание заголовка влево
+        textAlign: 'left',
         fontFamily: 'mon-b',
     },
     placeholder: {
