@@ -10,7 +10,7 @@ import Slider from '@react-native-community/slider';
 import { LearnMoreLinks } from 'react-native/Libraries/NewAppScreen';
 
 interface evaluation {
-    id: string; // postId; FIXME: make the variable name unambiguous
+    id: string; // postId;
     commId: string;
     comment: string;
     rating: number;
