@@ -175,12 +175,11 @@ const ProfilePage = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [edit, setEdit] = useState(false);
-    const [loading, setLoading] = useState(true); // Состояние загрузки
+    const [loading, setLoading] = useState(true);
 
-    // Ваш документ ID
-    const userId = "295QvAWplDHFfIrXM5XG"; // Замените на реальный ID пользователя
+    const userId = "295QvAWplDHFfIrXM5XG";
 
-    // Initialize Firebase Storage
+
     const STORAGE = getStorage(FIREBASE_APP);
 
     useEffect(() => {
@@ -269,29 +268,29 @@ const ProfilePage = () => {
                 const selectedImage = result.assets[0];
                 console.log("Selected Image:", selectedImage.uri);
 
-                // Конвертация URI изображения в blob
+                // convert image to blob
                 const response = await fetch(selectedImage.uri);
                 const blob = await response.blob();
 
-                // Создание ссылки в Firebase Storage
+                // Create a storage reference
                 const storageRef = ref(STORAGE, `profilePictures/${userId}`);
 
-                // Загрузка изображения в Firebase Storage
+                // Upload the file and metadata
                 await uploadBytes(storageRef, blob);
                 console.log("Image uploaded to Firebase Storage.");
 
-                // Получение публичного URL изображения
+                // retrieve download URL
                 const downloadURL = await getDownloadURL(storageRef);
                 console.log("Download URL:", downloadURL);
 
-                // Обновление поля profilePicture в Firestore
+                // update Firestore with new profilePicture URL
                 const userDocRef = doc(FIRESTORE, 'users', userId);
                 await updateDoc(userDocRef, {
                     profilePicture: downloadURL,
                 });
                 console.log("Firestore updated with new profilePicture URL.");
 
-                // Обновление локального состояния
+                // update the user state
                 if (user) {
                     setUser({ ...user, profilePicture: downloadURL });
                 }
