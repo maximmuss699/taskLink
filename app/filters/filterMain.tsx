@@ -59,21 +59,18 @@ async function saveFilter(filter: filter) {
 
 const filterPage = () => {
     const router = useRouter();
-    const { category } = useLocalSearchParams<{ category: string }>();;
+    const { category } = useLocalSearchParams<{ category: string }>();
     const [minRatingSliderVal, setMinRatingSliderVal] = useState<number>(0);
     const [maxRatingSliderVal, setMaxRatingSliderVal] = useState<number>(0);
-
     const [fromDate, setFromDate] = useState<Date | undefined>();
     const [toDate, setToDate] = useState<Date | undefined>();
-
     const [fromPrice, setFromPrice] = useState<string>("");
     const [toPrice, setToPrice] = useState<string>("");
-
     const [filter, setFilter] = useState<filter>();
     const [today] = useState(new Date());
-
-    const [modalVis, setModalVis] = useState<boolean>(false);
     const [filterName, setFilterName] = useState<string>("");
+    const [modalVis, setModalVis] = useState<boolean>(false);
+
     const [matchedFilterName, setMatchedFilterName] = useState<string | undefined>("");
 
     const [fNameExists, setFNameExists] = useState<boolean>(false);
@@ -81,7 +78,6 @@ const filterPage = () => {
     const [activeSubScr, setActiveSubScr] = useState<string>("filters"); // "filters" for basic form or "map" for a map view
     const [mapRadius, setMapRadius] = useState<number>(0);
     const [mapLocation, setMapLocation] = useState<GeoPoint | null>(null);
-    const [displayLocation] = useState<location | null>(null);
     const [mapAddr, setMapAddr] = useState<string | null>(null);
 
     /* check for duplicite filter names */
