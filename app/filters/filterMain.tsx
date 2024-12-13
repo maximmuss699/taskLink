@@ -268,6 +268,7 @@ const filterPage = () => {
                                     step={1}
                                     maximumTrackTintColor="#000000"
                                     minimumTrackTintColor="green"
+                                    value={mapRadius}
                                     onValueChange={(value) => setMapRadius(value)} // conversion to meters
                                 />
 
