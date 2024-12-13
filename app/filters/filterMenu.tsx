@@ -70,8 +70,8 @@ function parse_filter_info(filter: any) {
     }
 
     /* location */
-    console.log(filter.address);
-    console.log(filter.locationRadius);
+    // console.log(filter.address);
+    // console.log(filter.locationRadius);
     if (filter.address !== undefined && filter.locationRadius !== undefined) {
         filterToDisplay.location = filter.address + " +- " + filter.locationRadius + " km";
     }
