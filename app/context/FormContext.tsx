@@ -7,12 +7,12 @@ interface FormData {
      * Indicates whether the user is offering a task or seeking a task.
      * True if offering a task, false if seeking a task.
      */
+    offeringTask?: boolean;
     username?: string;
     title?: string;
     price?: number;
     description?: string;
     date?: Date;
-    offeringTask?: boolean;
     coordinates?: { latitude: number; longitude: number, geohash?: Geohash };
     address?: Address;
     category?: Category;

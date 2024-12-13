@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { BottomButton } from './mapScreen';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useForm } from '../context/FormContext';
 import Colors from '@/constants/Colors';
 import { collection, addDoc } from 'firebase/firestore';
 import { FIRESTORE } from '@/firebaseConfig';
 import { FontAwesome5 } from "@expo/vector-icons";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import murmurhash from "murmurhash";
+import lodash from "lodash";
 
 const FinalScreen = () => {
     const navigation = useNavigation();
@@ -14,24 +17,84 @@ const FinalScreen = () => {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(false);
+    const [newImageUrls, setNewImageUrls] = useState<string[]>([]);
+    const [readyToUpload, setReadyToUpload] = useState(false);
+
+    const storage = getStorage();
+
+    const getPermalink = async (fileName : string) => {
+        try {
+            const fileRef = ref(storage, `${fileName}`);
+        
+            const downloadURL = await getDownloadURL(fileRef);
+        
+            return downloadURL;
+        } catch (error) {
+            console.error('Error getting download URL:', error);
+            return null;
+        }
+    };
 
     const onPublish = async () => {
         setLoading(true);
         setError(false);
+
+        const formDataHash = murmurhash.v3(JSON.stringify(formData)).toString();
         try {
-            await addDoc(collection(FIRESTORE, 'posts'), formData);
-            setSuccess(true);
-            setTimeout(() => {      // Navigate back to the new task screen after 1 second and reset the form data
-                setFormData({});
-                navigation.navigate('new' as never);
-            }, 1000);
+            // Upload images to storage
+            const images = formData.images || [];
+            const imageRefs = await Promise.all(images.map(async (image, index) => {
+                const imageRef = ref(storage, `${formData.title}-${formDataHash}-${index}`);
+                const response = await fetch(image);
+                const blob = await response.blob();
+                await uploadBytes(imageRef, blob);
+                return imageRef;
+            }));
+            // Get the image URLs
+            const imageUrls = await Promise.all(imageRefs.map(async (imageRef) => {
+                return await getPermalink(imageRef.name);
+            }));
+            setNewImageUrls(imageUrls.filter((url): url is string => url !== null));
         } catch (error) {
             console.error("Error uploading post: ", error);
             setError(true);
-        } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (newImageUrls.length > 0) {
+            setFormData((prevFormData) => {
+                const updatedFormData = { ...prevFormData, images: newImageUrls };
+                return updatedFormData;
+            });
+            setReadyToUpload(true);
+        }
+    }, [newImageUrls]);
+
+    useEffect(() => {
+        if (readyToUpload && formData.images && lodash.isEqual(formData.images, newImageUrls)) {
+            const uploadPost = async () => {
+                try {
+                    // Upload the post to Firestore
+                    await addDoc(collection(FIRESTORE, 'posts'), formData);
+                    setSuccess(true);
+                    setTimeout(() => {      // Navigate back to the new task screen after 1 second and reset the form data
+                        setFormData({});
+                        navigation.navigate('new' as never);
+                    }, 1000);
+                } catch (error) {
+                    console.error("Error uploading post: ", error);
+                    setError(true);
+                } finally {
+                    setLoading(false);
+                    setReadyToUpload(false);
+                }
+            };
+
+            uploadPost();
+        }
+    }, [readyToUpload, formData]);
 
     return (
         <View style={{ flex: 1 }}>
