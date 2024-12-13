@@ -22,9 +22,7 @@ const Categories = () => {
                     placeholder='What job are you searching for?'
                     placeholderTextColor="black"
                     />
-            <TouchableOpacity style={styles.OtherBtn}>
-                <Ionicons name='options-outline' size={20}/>
-            </TouchableOpacity>
+
             </View>
 
             <Text style={styles.MainText}>Categories</Text>
