@@ -218,10 +218,10 @@ const Page = () => {
 
                 {offeringTask && (
                 <View style={styles.offTaskView}>
-                    <View>
+                    {taskerCertificates.length > 0 && (<View>
                         <Text style={styles.Text}>Certificates</Text>
                         { taskerCertificates.map((certification, key) => renderCertification(certification, key)) }
-                    </View>
+                    </View>)}
 
                     {loadedPost?.rating && loadedPost?.ratingCnt && (
                     <View style={styles.offTaskView}>
@@ -233,14 +233,14 @@ const Page = () => {
                     </View>)}
 
                     {/* <View style={{height: 2, backgroundColor: "black", width: "100%", marginVertical: 10}}></View> */}
-                    <View style={styles.offTaskView}>
+                    {loadedEvals.length > 0 && (<View style={styles.offTaskView}>
                         <Text style={styles.Text}>Recent evaluations</Text>
                         {loadedEvals.map((item, key) => (
                             <View key={ key }>
                                 {renderEval(item.postId, item.rating, item.comment, item.commId, router, item.username, item.taskerId)}
                             </View>
                         ))}
-                    </View>
+                    </View>)}
                 </View>
                 )}
             </View>
@@ -313,7 +313,8 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 10,
         alignItems: "center",
-        width: "100%"
+        width: "100%",
+        paddingVertical: 5
     },
     ContactBtn: {
         width: 100,
