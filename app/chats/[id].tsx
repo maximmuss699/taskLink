@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -13,8 +13,11 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { collection, getDoc, doc, arrayUnion, updateDoc } from 'firebase/firestore';
+import { FIRESTORE } from '@/firebaseConfig';
+import { setUsesNonExemptEncryption } from '@expo/config-plugins/build/ios/UsesNonExemptEncryption';
 
-interface Message {
+export interface Message {
     id: string;
     text: string;
     sender: 'user' | 'other';
@@ -27,13 +30,28 @@ const ChatScreen = () => {
         { id: '1', text: 'Hi, still need help with your garden?', sender: 'other' },
     ]);
     const [inputText, setInputText] = useState('');
+    const [username, setUsername] = useState<string>("");
 
-    const sendMessage = () => {
+    const sendMessage = async () => {
         if (inputText.trim()) {
             setMessages([...messages, { id: Date.now().toString(), text: inputText, sender: 'user' }]);
             setInputText('');
+            const docRef = doc(collection(FIRESTORE, "chats"), id);
+            await updateDoc(docRef, {messages: arrayUnion({ id: Date.now().toString(), text: inputText, sender: 'user' })});
         }
     };
+
+    /* fetch the info from the database */
+    useEffect(() => {
+        const getChat = async () => {
+            const collectionRef = collection(FIRESTORE, "chats");
+            const docRef = doc(collectionRef, id);
+            const chatInfo = await getDoc(docRef);
+            setUsername(chatInfo.data()?.username);
+            setMessages(chatInfo.data()?.messages);
+        }
+        getChat();
+    }, ([]));
 
     const renderItem = ({ item }: { item: Message }) => (
         <View style={[
@@ -82,7 +100,7 @@ const ChatScreen = () => {
                         />
                     </TouchableOpacity>
                     <View style={styles.headerTextContainer}>
-                        <Text style={styles.profileName}>Matty Mazowecki</Text>
+                        <Text style={styles.profileName}>{ username }</Text>
                         <Text style={styles.chatId}>Chat with ID: {id}</Text>
                     </View>
                     <TouchableOpacity style={styles.searchIcon}>

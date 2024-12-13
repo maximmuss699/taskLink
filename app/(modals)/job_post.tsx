@@ -1,13 +1,20 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, FlatList, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, Router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, setDoc, getFirestore, onSnapshot, query, where, deleteDoc, getDoc, getDocs, doc, limit } from 'firebase/firestore';
+import { collection, setDoc, getFirestore, onSnapshot, query, where, deleteDoc, getDoc, getDocs, doc, limit, addDoc } from 'firebase/firestore';
 import { renderEval, evaluation } from '../comments/commentMain';
 import Carousel from 'react-native-reanimated-carousel';
 import { jobPost } from '../(tabs)';
 import filterPage from '../filters/filterMain';
+import { Message } from '../chats/[id]';
+
+/* chat interface */
+export interface chat {
+    username: string;
+    messages: Message[];
+};
 
 /* adds post to favourites if its not already... if it is in favourites, it will remove it from favourites */
 async function addToFavourites(id: string) {
@@ -25,6 +32,29 @@ async function addToFavourites(id: string) {
                 await deleteDoc(ref);
             }
         })
+    }
+}
+
+/* opens chat */
+export async function openChat(username: string, router: Router) {
+    // fetch the id
+    const collectionRef = collection(FIRESTORE, "chats");
+    const queryQ = query(collectionRef, where("username", "==", username));
+    const docRef = await getDocs(queryQ);
+    let chatId: string | null = null;
+    docRef.forEach((singleDoc) => {
+        if (singleDoc.exists()) {
+            chatId = singleDoc.id;
+        }
+    });
+
+    // redirect to chat
+    if (chatId !== null) {
+        router.push({ pathname: '/chats/[id]', params: { id: chatId } });
+    } else { // or create a new one
+        let newChat: chat = { messages: [], username: username };
+        const docRef = await addDoc(collectionRef, newChat);
+        router.push({ pathname: '/chats/[id]', params: { id: docRef.id } });
     }
 }
 
@@ -155,7 +185,7 @@ const Page = () => {
                     <Text style={styles.Username}>{ username }</Text>
                 </TouchableOpacity>
 
-                {username !== "Michael Scott" ? (<TouchableOpacity style={styles.ContactBtn}>
+                {username !== "Michael Scott" ? (<TouchableOpacity style={styles.ContactBtn} onPress={() => openChat(username, router)}>
                     <Text style={styles.contactText}>Contact</Text> </TouchableOpacity>) :
                 (<TouchableOpacity style={[styles.ContactBtn, { backgroundColor: "" }]}>
                     <Text style={{color: "white"}}>A</Text>
