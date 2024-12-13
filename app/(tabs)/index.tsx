@@ -6,10 +6,12 @@ import { SearchBar } from 'react-native-screens';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
 /* firestore imports */
-import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot, where, QueryDocumentSnapshot } from 'firebase/firestore';
 import Carousel from 'react-native-reanimated-carousel';
 import Toast from 'react-native-toast-message';
+import { FIRESTORE } from '@/firebaseConfig';
 import * as Loc from 'expo-location';
+import { setPackageInBuildGradle } from '@expo/config-plugins/build/android/Package';
 
 // quicksearch filtering
 export function filterQS(postArray: jobPost[], qsResult: string | null) {
@@ -33,6 +35,31 @@ export function filterQS(postArray: jobPost[], qsResult: string | null) {
 
     return filteredArray;
 }
+
+/* custom quick search on !BE! */
+export async function QSFilter(keyString: string) {
+    if (keyString === null || keyString === "") return;
+    const collectionRef = collection(FIRESTORE, "posts");
+    let queryQ = query(collectionRef);
+    /* conversion to Camel Case */
+    let keyStringArr = keyString.toLowerCase().split(' '); // all words to lowercase and then divided
+    /* first word is upperCase, the rest of the word is in lowercase */
+    keyString = keyStringArr.map(single_w => single_w.charAt(0)?.toLocaleUpperCase() + single_w.toLowerCase().slice(1)).join(' ');
+
+    const queryArr: any[] = [
+    /* firebase does not natively support query for substrings, in order to interact with the BE as much as possible, this was the alternative... */
+        query(queryQ, where("title", ">=", keyString), where("title", "<=", keyString + '\uf8ff')),
+        query(queryQ, where("address.locality", ">=", keyString), where("address.locality", "<=", keyString + '\uf8ff')),
+        query(queryQ, where("username", ">=", keyString), where("username", "<=", keyString + '\uf8ff'))
+    ];
+
+    const queryDocs = queryArr.map(async (QSquery) => {
+        return await getDocs(QSquery);
+    });
+    const posts = await Promise.all(queryDocs);
+    return posts;
+}
+
 
 export const job_ad = (id: string, username: string,
     location: string, job_name: string,
@@ -106,28 +133,53 @@ const Page = () => {
                 // get the location and update it
                 const location = await Loc.getCurrentPositionAsync();
                 const readableLoc = await Loc.reverseGeocodeAsync(location.coords);
-                setLocation(readableLoc[0]?.city || 'Brno'); // Brno here is default
+                setLocation(readableLoc[0]?.city || 'Brno'); // Brno here is the default location
             }
         }
         updateLocation();
     }, ([]));
 
     useEffect(() => {
-        // get the firestore instance
-        const dbEngine = getFirestore();
-        // get everything from posts
-        const collectionRef = collection(dbEngine, "posts");
-        // listener for changes
-        const end = onSnapshot(collectionRef, (sshot) => {
-            // "snapshot" processing
-            const jobArray: any = [];
-            sshot.docs.forEach((data) => {
-                jobArray.push({ id: data.id , ...data.data() });
-            })
-            setPosts(jobArray); // state set
-        });
+        let end = () => {};
+        const getPosts = async () => {
+            if (quickSearch !== null && quickSearch !== "") { // if Quick search is defined
+                let jobArray: any[] = [];
+                const result = await QSFilter(quickSearch);
+                result?.forEach((document) => {
+                    document.docs.forEach((snap: any) => {
+                        jobArray.push({ id: snap.id, ...snap.data() });
+                    })
+                });
+                // ensure no duplicates are in the array
+                const jobArrayWithoutDuplicates: jobPost[] = [];
+                const jobArrIds: any[] = [];
+                jobArray.forEach((job) => {
+                    if (!jobArrIds.includes(job.id)) {
+                        jobArrayWithoutDuplicates.push(job);
+                        jobArrIds.push(job.id);
+                    }
+                })
+
+                setPosts(jobArrayWithoutDuplicates);
+            } else {
+                // get the firestore instance
+                const dbEngine = getFirestore();
+                // get everything from posts
+                const collectionRef = collection(dbEngine, "posts");
+                // listener for changes
+                end = onSnapshot(collectionRef, (sshot) => {
+                    // "snapshot" processing
+                    const jobArray: any[] = [];
+                    sshot.docs.forEach((data) => {
+                        jobArray.push({ id: data.id , ...data.data() });
+                    })
+                    setPosts(jobArray); // state set
+                });
+            }
+        }
+        getPosts();
         return () => end();
-    }, ([]));
+    }, ([quickSearch]));
 
     console.log(loadedPosts);
     return (
@@ -146,7 +198,7 @@ const Page = () => {
 
             <View style={styles.JobPanel}>
                 <FlatList
-                    data={filterQS(loadedPosts, quickSearch)}
+                    data={loadedPosts}
                     renderItem = {({ item }) => job_ad(item.id,
                                                     item.username,
                                                     item.address.locality,
