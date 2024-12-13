@@ -272,11 +272,13 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
 
     const renderPaymentItem = ({ item }: { item: WaitingPaymentTask }) => (
         <View style={styles.taskItem}>
-            <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            <TouchableOpacity onPress={() => router.push(`/profile/${item.taskerId}`)}>
+                <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            </TouchableOpacity>
             <View style={styles.taskInfo}>
                 <View style={styles.nameAndDescription}>
                     <Text style={styles.userName}>{item.fullName}</Text>
-                    <Text style={styles.description}>{/* Add description if needed */}</Text>
+
                 </View>
                 <Text style={styles.date}>{item.date}</Text>
                 <Text style={styles.price}>€{item.amount}</Text>
@@ -289,7 +291,9 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
 
     const renderTaskItem = ({ item }: { item: Task }) => (
         <View style={styles.taskItem}>
-            <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            <TouchableOpacity onPress={() => router.push(`/profile/${item.taskerId}`)}>
+                <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            </TouchableOpacity>
             <View style={styles.taskInfo}>
                 <View style={styles.nameAndDescription}>
                     <Text style={styles.userName}>{item.fullName}</Text>

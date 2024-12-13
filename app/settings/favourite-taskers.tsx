@@ -25,7 +25,7 @@ type Tasker = {
     name: string;
     avatar: string;
     workArea: string;
-    taskerId?: string;
+    taskerId: string; // делаем taskerId обязательным
 };
 
 const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
@@ -47,18 +47,20 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
                 return;
             }
 
-            const allTaskers: Tasker[] = taskersSnapshot.docs.map(doc => {
-                const data = doc.data();
+            const allTaskers: Tasker[] = taskersSnapshot.docs.map(docSnap => {
+                const data = docSnap.data();
                 const name = data.fullName || 'Unknown Tasker';
                 const avatar = data.profilePicture || 'https://via.placeholder.com/100';
                 const workArea = data.workArea || 'No Work Area';
+                // гарантируем наличие taskerId
+                const taskerId = data.taskerId || docSnap.id;
 
                 return {
-                    id: doc.id,
+                    id: docSnap.id,
                     name,
                     avatar,
                     workArea,
-                    taskerId: data.taskerId || doc.id
+                    taskerId
                 };
             });
 
@@ -68,8 +70,8 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
                 return favData.taskerId;
             }).filter(Boolean);
 
-            const favorites = allTaskers.filter(tasker => favoriteTaskerIds.includes(tasker.taskerId ?? tasker.id));
-            const near = allTaskers.filter(tasker => !favoriteTaskerIds.includes(tasker.taskerId ?? tasker.id));
+            const favorites = allTaskers.filter(tasker => favoriteTaskerIds.includes(tasker.taskerId));
+            const near = allTaskers.filter(tasker => !favoriteTaskerIds.includes(tasker.taskerId));
 
             setFavoriteTaskers(favorites);
             setNearTaskers(near);
@@ -84,11 +86,11 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
 
     const addTaskerToFavorites = async (tasker: Tasker) => {
         try {
-            await setDoc(doc(FIRESTORE, 'favourites', tasker.id), {
-                taskerId: tasker.taskerId || tasker.id
+            await setDoc(doc(FIRESTORE, 'favourites', tasker.taskerId), {
+                taskerId: tasker.taskerId
             });
             setFavoriteTaskers((prev) => [...prev, tasker]);
-            setNearTaskers((prev) => prev.filter((t) => t.id !== tasker.id));
+            setNearTaskers((prev) => prev.filter((t) => t.taskerId !== tasker.taskerId));
         } catch (error) {
             console.error('Error adding to favorites:', error);
             Alert.alert('Error', 'Unable to add tasker to favourites.');
@@ -97,9 +99,9 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
 
     const removeTaskerFromFavorites = async (tasker: Tasker) => {
         try {
-            await deleteDoc(doc(FIRESTORE, 'favourites', tasker.id));
+            await deleteDoc(doc(FIRESTORE, 'favourites', tasker.taskerId));
             setNearTaskers((prev) => [...prev, tasker]);
-            setFavoriteTaskers((prev) => prev.filter((t) => t.id !== tasker.id));
+            setFavoriteTaskers((prev) => prev.filter((t) => t.taskerId !== tasker.taskerId));
         } catch (error) {
             console.error('Error removing from favorites:', error);
             Alert.alert('Error', 'Unable to remove tasker from favourites.');
@@ -108,7 +110,8 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
 
     const renderTaskerItem = ({ item, isFavorite }: { item: Tasker; isFavorite: boolean }) => (
         <View style={styles.taskerItem}>
-            <TouchableOpacity onPress={() => router.push(`/profile/${item.id}`)}>
+            {/* Переходим на профиль по taskerId */}
+            <TouchableOpacity onPress={() => router.push(`/profile/${item.taskerId}`)}>
                 <Image source={{ uri: item.avatar }} style={styles.avatar} />
             </TouchableOpacity>
             <View style={styles.taskerInfo}>
@@ -152,7 +155,7 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
                         <FlatList
                             data={favoriteTaskers}
                             renderItem={({ item }) => renderTaskerItem({ item, isFavorite: true })}
-                            keyExtractor={(item) => item.id}
+                            keyExtractor={(item) => item.taskerId}
                             contentContainerStyle={styles.taskerList}
                             scrollEnabled={false}
                         />
@@ -169,7 +172,7 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
                         <FlatList
                             data={nearTaskers}
                             renderItem={({ item }) => renderTaskerItem({ item, isFavorite: false })}
-                            keyExtractor={(item) => item.id}
+                            keyExtractor={(item) => item.taskerId}
                             contentContainerStyle={[styles.taskerList, styles.lastList]}
                             scrollEnabled={false}
                         />
