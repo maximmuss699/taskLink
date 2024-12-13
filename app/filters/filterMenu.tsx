@@ -24,11 +24,12 @@ interface filterInfo {
     rating: string | undefined;
     price: string | undefined;
     date: string | undefined;
+    location: string | undefined;
 };
 
 /* parses the filter information */
 function parse_filter_info(filter: any) {
-    var filterToDisplay: filterInfo = { date: "", price: "", rating: "" };
+    var filterToDisplay: filterInfo = { date: "", price: "", rating: "", location: "" };
 
     var fromDateStr: string | null = null;
     var toDateStr: string | null = null;
@@ -68,6 +69,11 @@ function parse_filter_info(filter: any) {
         filterToDisplay.rating = " <= " + filter.maxRating;
     }
 
+    /* location */
+    if (filter.address !== undefined && filter.locationRadius !== undefined && filter.address !== null && filter.locationRadius !== null) {
+        filterToDisplay.location = filter.address + " +- " + filter.locationRadius + " km";
+    }
+
     return filterToDisplay;
 }
 
@@ -77,7 +83,7 @@ const renderFilter = (filter: any, router: any, category: string) => {
     return(
         <View style={{ width: "100%" }}>
             <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
-            <TouchableOpacity onPress={() => {router.push({ pathname: "/(modals)/posts" , params: { filterId: filter.item.filterId, category: category }})}}>
+            <TouchableOpacity onPress={() => {router.back(); setTimeout(() => router.replace({ pathname: "/(modals)/posts" , params: { filterId: filter.item.filterId, category: category }}), 150);}}>
 
                 <View style={styles.singleComm}>
                     <View style={styles.signleCommL}>
@@ -95,7 +101,10 @@ const renderFilter = (filter: any, router: any, category: string) => {
                             <Text style={[styles.text, { fontFamily: "mon-b" }]}>Date: </Text>
                             <Text style={styles.text}>{ parsed_filter_info.date }</Text>
                         </View>)}
-                        {/* <Text style={styles.text}>Category: { filter.category }</Text> */}
+                        {parsed_filter_info.location && (<View style={styles.ratView}>
+                            <Text style={[styles.text, { fontFamily: "mon-b" }]}>Location: </Text>
+                            <Text style={styles.text}>{ parsed_filter_info.location }</Text>
+                        </View>)}
                     </View>
                     <View style={styles.outerSingleCommR}>
                         <View style={ { flexDirection: "row", marginTop: 15 } }>
@@ -105,7 +114,6 @@ const renderFilter = (filter: any, router: any, category: string) => {
                             <TouchableOpacity style={[styles.commentActionBtn, { backgroundColor: "#c00" }]} onPress={() => deleteFilter(filter.item.filterId)}>
                                 <Ionicons name="trash-outline" size={25}/>
                             </TouchableOpacity>
-                            {/* FIXME: display prompt when button is clicked */}
                         </View>
                     </View>
                 </View>
@@ -161,7 +169,8 @@ const styles = StyleSheet.create({
         marginLeft: 5
     },
     mainView: {
-        flexDirection: "column"
+        flexDirection: "column",
+        flex: 1,
     },
     header: {
         flexDirection: "row",

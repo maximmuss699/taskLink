@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, setDoc, getFirestore, onSnapshot, query, where, deleteDoc, getDoc, getDocs, doc } from 'firebase/firestore';
+import { collection, setDoc, getFirestore, onSnapshot, query, where, deleteDoc, getDoc, getDocs, doc, limit } from 'firebase/firestore';
 import { renderEval, evaluation } from '../comments/commentMain';
 import Carousel from 'react-native-reanimated-carousel';
 import { jobPost } from '../(tabs)';
@@ -97,14 +97,14 @@ const Page = () => {
         offeringTask = true;
     }
 
-
+    /* fetch the evaluations */
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "jobEval");
         const queryQ = query(collectionRef, where('postId', '==', id));
             const end = onSnapshot(queryQ, async (sshot) => {
                 const evalArray: any[] = await Promise.all(
                     sshot.docs.map(async (data) => {
-                        const taskerQ = query(collection(FIRESTORE, "taskers"), where('fullName' , '==', data.data().username)); // fetch the id
+                        const taskerQ = query(collection(FIRESTORE, "taskers"), where('fullName' , '==', data.data().username), limit(5)); // fetch the id and take only the top 5
                         const taskerDoc = await getDocs(taskerQ);
                         let taskerId: string | null = null;
                         taskerDoc.forEach((tasker) => {
@@ -114,7 +114,7 @@ const Page = () => {
                         return { commId: data.id, ...data.data(), taskerId };
                     })
                 )
-                setEvals(evalArray.slice(0, 4)); // take only the top 5
+                setEvals(evalArray);
             });
             return () => end();
     }, ([]));
@@ -170,7 +170,7 @@ const Page = () => {
             <View style={styles.datePrice}>
                 <View style={styles.datePriceElem}>
                     <Ionicons name='cash' size={40}/>
-                    <Text style={styles.Text}>{ price }</Text>
+                    <Text style={styles.Text}>{ price } €</Text>
                 </View>
                 <View style={styles.datePriceElem}>
                     <Ionicons name='calendar' size={40}/>

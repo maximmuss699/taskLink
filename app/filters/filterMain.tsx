@@ -1,14 +1,15 @@
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Modal } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { act, useEffect, useState } from 'react';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Colors from "@/constants/Colors";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, addDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, where, GeoPoint } from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { jobPost } from '../(tabs)';
 import { parse } from '@babel/core';
+import MapView, { MapPressEvent, Marker, Circle } from 'react-native-maps';
 
 /* Filter interface definition */
 /* all of them are optional... */
@@ -20,6 +21,14 @@ export interface filter {
     minRating?: number;
     maxRating?: number;
     filterName?: string;
+    location?: GeoPoint | null;
+    locationRadius?: number;
+    address?: string | null;
+}
+
+interface location {
+    longitude: number;
+    latitude: number;
 }
 
 /* TODO: wrap other functions inside try-catch */
@@ -38,6 +47,9 @@ async function saveFilter(filter: filter) {
 
         if (filter.fromDate !== undefined) parsedFilter.fromDate = filter.fromDate;
         if (filter.toDate !== undefined) parsedFilter.toDate = filter.toDate;
+        if (filter.location !== undefined && filter.location !== null) parsedFilter.location = filter.location;
+        if (filter.location !== null && filter.locationRadius !== undefined && filter.locationRadius > 0) parsedFilter.locationRadius = filter.locationRadius;
+        if (filter.address !== null && filter.address !== "") parsedFilter.address = filter.address;
 
         await addDoc(collectionRef, parsedFilter);
     } catch(error){
@@ -66,6 +78,12 @@ const filterPage = () => {
 
     const [fNameExists, setFNameExists] = useState<boolean>(false);
 
+    const [activeSubScr, setActiveSubScr] = useState<string>("filters"); // "filters" for basic form or "map" for a map view
+    const [mapRadius, setMapRadius] = useState<number>(0);
+    const [mapLocation, setMapLocation] = useState<GeoPoint | null>(null);
+    const [displayLocation] = useState<location | null>(null);
+    const [mapAddr, setMapAddr] = useState<string | null>(null);
+
     /* check for duplicite filter names */
     useEffect(() => {
         // fetch the filters from the database
@@ -82,6 +100,21 @@ const filterPage = () => {
         });
         return () => end();
     }, ([filterName]));
+
+    const mapBtncolor = activeSubScr === "map" ? "#52812F" : "#D9D9D9";
+    const filterBtncolor = activeSubScr === "filters" ? "#52812F" : "#D9D9D9";
+
+    const mapRef = React.useRef<MapView>(null);
+
+    const updateLocation = async (location: MapPressEvent) => {
+        location.persist(); // to handle 'nativeEvent' error
+        if (mapRef.current) {
+            const {latitude, longitude} = location.nativeEvent.coordinate;
+            const address = await mapRef.current.addressForCoordinate({ longitude, latitude });
+            setMapLocation(new GeoPoint(location.nativeEvent.coordinate.latitude, location.nativeEvent.coordinate.longitude))
+            setMapAddr(address.locality + ", " + address.countryCode);
+        }
+    }
 
     return (
         <SafeAreaView>
@@ -122,7 +155,10 @@ const filterPage = () => {
                         maxPrice: toPrice,
                         minRating: minRatingSliderVal,
                         maxRating: maxRatingSliderVal,
-                        filterName: filterName
+                        filterName: filterName,
+                        locationRadius: mapRadius,
+                        location: mapLocation,
+                        address: mapAddr
                     }
                     saveFilter(filter);
                     setModalVis(false);
@@ -136,6 +172,17 @@ const filterPage = () => {
 
                 <View style={styles.OuterView}>
 
+                    <View style={styles.contextChangeView}>
+                        <TouchableOpacity style={[styles.contextChangeBtn, { backgroundColor: filterBtncolor }]} onPress={() => setActiveSubScr("filters")}>
+                            <Text style={styles.contextChanheBtnText}>Form</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={[styles.contextChangeBtn, { backgroundColor: mapBtncolor }]} onPress={() => setActiveSubScr("map")}>
+                            <Text style={styles.contextChanheBtnText}>Map</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {activeSubScr === "filters" ? (<View>
                     <Text style={styles.MainText}>Filters</Text>
 
                     <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
@@ -213,6 +260,46 @@ const filterPage = () => {
                     minimumTrackTintColor="green"
                     onValueChange={(value) => {setMaxRatingSliderVal(value)}}
                     />
+                    </View>): (
+                        <View style={{ flex: 1 }}>
+                            {/* Implement searchbar */}
+                            <Text style={[styles.MainText, {marginVertical: 20}]}>Map</Text>
+                                <Text style={[styles.ratingText, {alignSelf: "center", marginVertical: 15}]}>Radius: { mapRadius } km</Text>
+                                <Slider
+                                    style={styles.evalSlider}
+                                    minimumValue={0}
+                                    maximumValue={300}
+                                    step={1}
+                                    maximumTrackTintColor="#000000"
+                                    minimumTrackTintColor="green"
+                                    onValueChange={(value) => setMapRadius(value)} // conversion to meters
+                                />
+                            <View style={styles.mapView}>
+                                <MapView
+                                ref={mapRef}
+                                onPress={(location) => {updateLocation(location)}}
+                                style={styles.map}
+                                >
+                                    {mapLocation && (
+                                        <>
+                                        <Marker
+                                            coordinate={{ latitude: mapLocation.latitude, longitude: mapLocation.longitude }}
+                                            pinColor='green'
+                                            />
+                                        <Circle
+                                            center={{ latitude: mapLocation.latitude, longitude: mapLocation.longitude }}
+                                            radius={mapRadius * 1000}
+                                            strokeColor='#52812F'
+                                            fillColor='rgba(118, 185, 67, 0.25)'
+                                            />
+                                        </>
+                                    )}
+                                </MapView>
+                            </View>
+
+                        </View>
+                    )}
+
                 </View>
 
                 <View style={styles.buttonRow}>
@@ -227,12 +314,17 @@ const filterPage = () => {
                                                                             minPrice: fromPrice,
                                                                             maxPrice: toPrice,
                                                                             minRating: minRatingSliderVal,
-                                                                            maxRating: maxRatingSliderVal
+                                                                            maxRating: maxRatingSliderVal,
+                                                                            locationRadius: mapRadius,
+                                                                            location: mapLocation,
+                                                                            address: mapAddr
                                                                         }
                                                                         setFilter(filter);
-                                                                        router.push({ pathname: "/(modals)/posts",
-                                                                            params: {category: category, filter: JSON.stringify(filter)}});
-                                                                        }}>
+                                                                        router.back();
+                                                                        setTimeout(() =>
+                                                                            router.replace({ pathname: "/(modals)/posts",
+                                                                                params: {category: category, filter: JSON.stringify(filter)}})
+                                                                            , 150);}}>
                         <Text style={styles.fBtnText}>Apply</Text>
                     </TouchableOpacity>
                 </View>
@@ -299,13 +391,14 @@ export const styles = StyleSheet.create({
     evalSlider: {
         marginTop: 10,
         marginBottom: 30,
-        width: 250,
+        width: 290,
+        alignSelf: "center"
     },
     rating: {
         marginTop: 20,
         flexDirection: "row",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
     },
     ratingText: {
         marginTop: 2,
@@ -415,6 +508,33 @@ export const styles = StyleSheet.create({
         borderRadius: 30,
         borderColor: "gray",
         borderWidth: 2
+    },
+    contextChangeView: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center"
+    },
+    contextChangeBtn: {
+        width: 100,
+        height: 30,
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    contextChanheBtnText: {
+        fontFamily: 'mon-b',
+    },
+    mapView: {
+        flex: 1,
+        height: 400,
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    map: {
+        width: '120%',
+        height: '88%',
+        borderBlockColor: 'black',
+        borderWidth: 1,
+        borderRadius: 5,
     }
 })
 

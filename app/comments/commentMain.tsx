@@ -25,7 +25,7 @@ async function deleteComment(commId: string) {
 
 // computes the average rating
 const computeWholeEval = (evalArr: Array<evaluation>) => {
-    var ratingSum = 0;
+    var ratingSum: number = 0;
     if (evalArr.length === 0) return 0.0 // avoid division by zero
     // get the sum
     evalArr.forEach((arrElem) => {
@@ -33,7 +33,7 @@ const computeWholeEval = (evalArr: Array<evaluation>) => {
     })
     // divide the sum by the number of the elements in the array
     ratingSum = ratingSum / evalArr.length;
-    return ratingSum.toFixed(1);
+    return Math.ceil(ratingSum * 10) / 10;
 }
 
 // function rendering single comment
@@ -76,7 +76,7 @@ const commentMain = () => {
 
     // get the post evaluations
     const [loadedEvals, setEvals] = useState<evaluation[]>([]);
-    const [postRating, setPostRating] = useState<string | 0>();
+    const [postRating, setPostRating] = useState<number>();
 
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "jobEval");
