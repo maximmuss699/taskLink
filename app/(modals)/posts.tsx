@@ -5,7 +5,7 @@ import Colors from "@/constants/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FIRESTORE } from '@/firebaseConfig';
 import { collection, query, where, onSnapshot, DocumentData, QuerySnapshot, QueryDocumentSnapshot, doc, getDoc, getDocs, Timestamp } from 'firebase/firestore';
-import { job_ad, jobPost, filterQS } from '../(tabs)/index';
+import { job_ad, jobPost, filterQS, QSFilter } from '../(tabs)/index';
 import { filter } from '../filters/filterMain';
 import { parse } from '@babel/core';
 import { GestureHandlerRootView, RotationGestureHandler, ScrollView } from 'react-native-gesture-handler';
@@ -62,7 +62,7 @@ function visualizeUsedFilters(filter: filt | undefined, pos: number) {
 }
 
 /* Parses the filter and constructs a chained firebase query */
-export function applyFilter(filter: any, queryQ: any) {
+export function applyFilter(filter: any, queryQ: any, setLocArr: any) {
     console.log("applyFilter: ", filter);
     if (filter === undefined) return queryQ;
     if (filter === "") return queryQ;
@@ -112,21 +112,23 @@ export function applyFilter(filter: any, queryQ: any) {
 
     /* location */
     if (filter.location && filter.locationRadius > 0) {
-        const longitude = filter.locationRadius / (111000 * Math.cos(filter.location.longitude * Math.PI / 180));
-        console.log("lat upper: ", filter.location.latitude + (filter.locationRadius / 111000));
-        console.log("lat lower: ", filter.location.latitude - (filter.locationRadius / 111000));
-        console.log("long upper: ", filter.location.longitude + longitude);
-        console.log("long lower: ", filter.location.longitude - longitude);
-
-        const loc: Geopoint = [filter.location.latitude, filter.location.longitude];
+        const locationPosts: any[] = [];
+        const IdArr: any[] = [];
+        const loc: [number, number] = [filter.location.latitude, filter.location.longitude];
         const areaOfInterest = geohashQueryBounds(loc, filter.locationRadius * 1000);
-
-        
-        queryQ = query(queryQ, where("coordinates.latitude", "<=", filter.location.latitude + (filter.locationRadius / 111000)),
-                               where("coordinates.latitude", ">=", filter.location.latitude - (filter.locationRadius / 111000)),
-                               where("coordinates.longitude", "<=", filter.location.longitude + longitude),
-                               where("coordinates.longitude", ">=", filter.location.longitude - longitude)
-        );
+        console.log(areaOfInterest);
+        areaOfInterest.forEach(async ([min, max]) => {
+            const range = query(queryQ, where("geohash", ">=", min), where("geohash", "<=", max));
+            const resultDocs = await getDocs(range);
+            resultDocs.forEach((singleDoc: any) => {
+                if (!IdArr.includes(singleDoc.id)) {
+                    locationPosts.push({ id: singleDoc.id, ...singleDoc.data() });
+                    IdArr.push(singleDoc.id);
+                }
+            });
+            setLocArr(locationPosts);
+        });
+        // queryQ = query(queryQ, where("geohash", ">=", "u2g8"), where("geohash", "<=", "u2gh"));
 
         console.log(queryQ);
     }
@@ -146,7 +148,10 @@ const Page = () => {
     const [modalVis, setModalVis] = useState<boolean>(false);
     const [nonSavedFilter, setNonSavedFilter] = useState<string | undefined>(filter);
 
-    // console.log(filterId);
+    const [QsjobArr, setQsJobArr] = useState<jobPost[]>([]);
+    const [locArr, setLocArr] = useState<jobPost[]>([]);
+
+    console.log(filterId);
     // console.log(filter);
 
     var parsed_filter: any = null;
@@ -220,38 +225,96 @@ const Page = () => {
 
     useEffect(() => {
         /* to make sure the jobArray would not be overwritten */
-        if (category === "Liked") return;
-        var queryQ: any;
-        const collectionRef = collection(FIRESTORE, "posts");
-        if (!no_categ) {
-            queryQ = query(collectionRef, where('category', '==', category));
-        } else {
-            queryQ = query(collectionRef, where('offeringTask', '==', offeringTask));
-        }
-        /* apply filters, if they are defined... */
-        try {
-            if (parsed_filter !== null) {
-                var filterQuery = applyFilter(parsed_filter, queryQ);
-                console.log("aplikace filtru 138: ", filterQuery);
-                queryQ = filterQuery;
-            }
-            if (savedFilter !== null) {
-                console.log("using savedFilter: ", savedFilter);
-                queryQ = applyFilter(savedFilter, queryQ);
-            }
-        } catch (error) {
-            console.log("filter parsing went wrong: ", error);
-        }
-        const end = onSnapshot(queryQ, (sshot: QuerySnapshot) => {
+        const getPosts = async () => {
+
+            if (category === "Liked") return;
+            let end = () => {};
             const jobArray: any = [];
-            sshot.docs.forEach((data: QueryDocumentSnapshot) => {
-                jobArray.push({ id: data.id , ...data.data() });
-            })
-            // console.log(jobArray);
-            setPosts(jobArray);
-        });
-        return () => end();
+            var queryQ: any;
+            const collectionRef = collection(FIRESTORE, "posts");
+            if (!no_categ) {
+                queryQ = query(collectionRef, where('category', '==', category));
+            } else {
+                queryQ = query(collectionRef, where('offeringTask', '==', offeringTask));
+            }
+            /* apply filters, if they are defined... */
+            try {
+                if (parsed_filter !== null) {
+                    var filterQuery = applyFilter(parsed_filter, queryQ, setLocArr);
+                    console.log("aplikace filtru 138: ", filterQuery);
+                    queryQ = filterQuery;
+                }
+                if (savedFilter !== null) {
+                    console.log("using savedFilter: ", savedFilter);
+                    queryQ = applyFilter(savedFilter, queryQ, setLocArr);
+                }
+            } catch (error) {
+                console.log("filter parsing went wrong: ", error);
+            }
+            console.log("LOCATION ARRAY: ", locArr);
+            end = onSnapshot(queryQ, (sshot: QuerySnapshot) => {
+                sshot.docs.forEach((data: QueryDocumentSnapshot) => {
+                    jobArray.push({ id: data.id , ...data.data() });
+                })
+                // console.log(jobArray);
+                setPosts(jobArray);
+            });
+
+            const QSRawArr: any[] = [];
+            const QsjobArr: jobPost[] = [];
+            /* get the QS result */
+            if (quickSearch !== null && quickSearch !== "") {
+                const getQS = async () => {
+                    const QSresult = await QSFilter(quickSearch);
+                    QSresult?.forEach((document) => {
+                        document.docs.forEach((snap: any) => {
+                            QSRawArr.push({ id: snap.id, ...snap.data() });
+                        })
+                    });
+                    // ensure no duplicates are in the array
+                    const jobArrIds: any[] = [];
+                    QSRawArr.forEach((job) => {
+                        if (!jobArrIds.includes(job.id)) {
+                            QsjobArr.push(job);
+                            jobArrIds.push(job.id);
+                        }
+                    })
+                    setQsJobArr(QsjobArr);
+                }
+                await getQS();
+            }
+
+            return () => end();
+        };
+
+        getPosts();
     }, ([savedFilter, parsed_filter, nonSavedFilter]));
+
+
+    useEffect(() => {
+        // location merging logic...
+        if (locArr.length > 0 || QsjobArr.length > 0) {
+            const IdList: any = [];
+
+            locArr.forEach((job) => {
+                if (!IdList.includes(job.id)) {
+                    IdList.push(job.id);
+                }
+            });
+
+            QsjobArr.forEach((job) => {
+                if (!IdList.includes(job.id)) {
+                    IdList.push(job.id);
+                }
+            });
+
+            const filteredPosts = loadedPosts.filter((job: any) => IdList.includes(job.id));
+            console.log("Populated QsjobArr: ", QsjobArr);
+            setPosts(filteredPosts);
+        } else if (locArr.length == 0) {
+            setPosts([]);
+        }
+    } ,([locArr, QsjobArr]));
 
     return (
         <SafeAreaView style={styles.mainView}>
@@ -280,7 +343,7 @@ const Page = () => {
             </View>
             <View style={styles.JobPanel}>
                 <FlatList
-                    data={filterQS(loadedPosts, quickSearch)}
+                    data={loadedPosts}
                     renderItem = {({ item }) => job_ad(item.id,
                                                     item.username,
                                                     item.address.locality,
