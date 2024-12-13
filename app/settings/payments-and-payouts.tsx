@@ -58,14 +58,17 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
     const [payouts, setPayouts] = useState<PaymentItem[]>([]);
     const [loading, setLoading] = useState(true);
 
+
+
+
     useEffect(() => {
         const fetchTransactions = async () => {
             try {
                 const paymentsSnapshot = await getDocs(collection(FIRESTORE, 'payments'));
                 const payoutsSnapshot = await getDocs(collection(FIRESTORE, 'payouts'));
                 // Get data from snapshots and add id field
-                const paymentsData = paymentsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                const payoutsData = payoutsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                const paymentsData = paymentsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, taskerId: doc.data().taskerId }));
+                const payoutsData = payoutsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, taskerId: doc.data().taskerId }));
 
                 // Concatenate payments and payouts data
                 const allTransactions = [...paymentsData, ...payoutsData];
@@ -94,6 +97,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     ...item,
                     fullName: taskersData[item.taskerId]?.fullName || 'Unknown Tasker',
                     profilePicture: taskersData[item.taskerId]?.profilePicture || 'https://via.placeholder.com/100',
+
                 }));
                 // Add tasker info to payouts
                 const payoutsWithTaskerInfo = payoutsData.map(item => ({
@@ -162,6 +166,8 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
             Alert.alert('Please, complete all fields');
         }
     };
+
+
 
     const handleDeleteCard = (id: string) => {
         Alert.alert(
@@ -291,6 +297,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     />
                 </View>
                 <Text style={styles.footerText}>taskLink</Text>
+
             </ScrollView>
 
 
