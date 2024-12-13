@@ -89,7 +89,7 @@ const filterPage = () => {
         const end = onSnapshot(queryQ, (sshot) => {
             sshot.docs.forEach((data) => {
                 if(data.data()?.filterName === filterName) {
-                    console.log(data.data()?.filterName);
+                    // console.log(data.data()?.filterName);
                     setFNameExists(true);
                 }
             })

@@ -28,6 +28,10 @@ async function saveFilter(filter: filter, filterId: string) {
 
         if (filter.fromDate !== undefined) parsedFilter.fromDate = filter.fromDate;
         if (filter.toDate !== undefined) parsedFilter.toDate = filter.toDate;
+        if (filter.location !== undefined && filter.location !== null) parsedFilter.location = filter.location;
+        if (filter.location !== null && filter.locationRadius !== undefined && filter.locationRadius > 0) parsedFilter.locationRadius = filter.locationRadius;
+        console.log(filter.address);
+        if (filter.address !== null && filter.address !== "") parsedFilter.address = filter.address;
 
         const docRef = doc(collection(FIRESTORE, "presetFilter"), filterId);
         await setDoc(docRef, parsedFilter);
@@ -60,7 +64,7 @@ const filterPage = () => {
     const [mapRadius, setMapRadius] = useState<number>(0);
     const [mapLocation, setMapLocation] = useState<GeoPoint | null>(null);
     const [mapAddr, setMapAddr] = useState<string | null>(null);
-    console.log(mapLocation);
+    // console.log(mapLocation);
 
     useEffect(() => {
         // fetch the filters from firebase and let the user modify it
@@ -73,8 +77,8 @@ const filterPage = () => {
             setFromPrice(loadedData.data()?.minPrice || "");
             setToPrice(loadedData.data()?.maxPrice || "");
 
-            setFromDate(loadedData.data()?.fromDate?.toDate() || today);
-            setToDate(loadedData.data()?.toDate?.toDate() || today);
+            setFromDate(loadedData.data()?.fromDate?.toDate() || undefined);
+            setToDate(loadedData.data()?.toDate?.toDate() || undefined);
             setMinRatingSliderVal(loadedData.data()?.minRating || 0);
             setMaxRatingSliderVal(loadedData.data()?.maxRating || 0);
             setFilterName(loadedData.data()?.filterName || "");
@@ -93,7 +97,7 @@ const filterPage = () => {
         const end = onSnapshot(queryQ, (sshot) => {
             sshot.docs.forEach((data) => {
                 if(data.data()?.filterName === filterName && data.id !== filterId) {
-                    console.log(data.data()?.filterName);
+                    // console.log(data.data()?.filterName);
                     setFNameExists(true);
                 }
             })
@@ -115,7 +119,7 @@ const filterPage = () => {
             setMapAddr(address.locality + ", " + address.countryCode);
         }
     }
-
+    console.log(mapAddr);
     return (
         <SafeAreaView>
             <TouchableOpacity style={[styles.OtherBtn, {marginLeft: 10}]} onPress={() => router.back()}>

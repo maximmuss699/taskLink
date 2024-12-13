@@ -70,10 +70,13 @@ function parse_filter_info(filter: any) {
     }
 
     /* location */
-    if (filter.address !== undefined && filter.locationRadius !== undefined && filter.address !== null && filter.locationRadius !== null) {
+    console.log(filter.address);
+    console.log(filter.locationRadius);
+    if (filter.address !== undefined && filter.locationRadius !== undefined) {
         filterToDisplay.location = filter.address + " +- " + filter.locationRadius + " km";
     }
 
+    // console.log(filterToDisplay);
     return filterToDisplay;
 }
 
