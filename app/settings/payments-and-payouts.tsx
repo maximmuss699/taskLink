@@ -408,10 +408,11 @@ const styles = StyleSheet.create({
         padding: 8,
     },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: '700',
-        color: '#000',
-        marginLeft: 16,
+        color: '#333333',
+        textAlign: 'left',
+        fontFamily: 'mon-b',
     },
     scrollContent: {
         paddingBottom: 40,

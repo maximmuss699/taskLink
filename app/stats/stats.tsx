@@ -19,7 +19,7 @@ const screenWidth = Dimensions.get('window').width;
 
 // Income Data
 const incomeData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], // English abbreviations
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [
         {
             data: [150, 200, 100, 250, 300, 180, 220],
@@ -29,7 +29,7 @@ const incomeData = {
 
 // Expenses Data
 const expensesData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], // English abbreviations
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [
         {
             data: [120, 180, 90, 200, 250, 150, 200],
@@ -106,16 +106,15 @@ const MyBarChart = () => {
                     >
                         <BarChart
                             data={incomeData}
-                            width={screenWidth * 2} // Increased width for wider bars
+                            width={screenWidth * 2}
                             height={220}
-                            yAxisLabel="$"
+                            yAxisLabel="€"
+                            yAxisSuffix=""
                             chartConfig={incomeChartConfig}
                             verticalLabelRotation={0}
                             fromZero={true}
                             showValuesOnTopOfBars={true}
                             style={styles.chart}
-                            accessible={true}
-                            accessibilityLabel="Bar chart showing your weekly income from Monday to Sunday"
                         />
                     </ScrollView>
                 </View>
@@ -133,16 +132,16 @@ const MyBarChart = () => {
                     >
                         <BarChart
                             data={expensesData}
-                            width={screenWidth * 2} // Same width as income chart
+                            width={screenWidth * 2}
                             height={220}
-                            yAxisLabel="$"
+                            yAxisLabel="€"
+                            yAxisSuffix=""
                             chartConfig={expensesChartConfig}
                             verticalLabelRotation={0}
                             fromZero={true}
                             showValuesOnTopOfBars={true}
                             style={styles.chart}
-                            accessible={true}
-                            accessibilityLabel="Bar chart showing your weekly expenses from Monday to Sunday"
+
                         />
                     </ScrollView>
                 </View>
@@ -168,12 +167,16 @@ const MyBarChart = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F7FA', // Slightly off-white for a modern look
+        backgroundColor: '#FFFFFF',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        paddingTop: 16,
+        paddingHorizontal: 16,
+        paddingBottom: 10,
+        fontSize: 24,
+        fontFamily: 'mon-b',
     },
     backButton: {
         padding: 8,
