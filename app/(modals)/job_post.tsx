@@ -153,7 +153,7 @@ const Page = () => {
     // icon setup to make it responsive
     const icon = isFavourite === false ? 'heart-outline' : 'heart';
     return (
-        <ScrollView style={styles.ScrollView} contentContainerStyle={{ paddingBottom: 200 }} nestedScrollEnabled={true}>
+        <ScrollView style={styles.ScrollView} contentContainerStyle={{ paddingBottom: 200 }}>
             <View style={styles.outerView}>
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -179,15 +179,17 @@ const Page = () => {
                 {offeringTask ? (<TouchableOpacity style={styles.ContactBtn} onPress={() => router.push({pathname: "/comments/commentMain"
                                                                                                          ,params: {id}})}>
                     <Text style={styles.contactText}>Evaluate</Text>
-                </TouchableOpacity>): <View style={[styles.ContactBtn, { backgroundColor: "none" }]}></View>}
+                </TouchableOpacity>): (<View style={[styles.ContactBtn, { backgroundColor: "transparent" }]}></View>)}
 
                 <TouchableOpacity onPress={() => router.push({pathname: "/profile/[taskerId]", params: {taskerId: taskerId}})}>
                     <Text style={styles.Username}>{ username }</Text>
                 </TouchableOpacity>
 
-                {username !== "Jan Schwarz" ? (<TouchableOpacity style={styles.ContactBtn} onPress={() => openChat(username, router)}>
-                    <Text style={styles.contactText}>Contact</Text> </TouchableOpacity>) :
-                (<TouchableOpacity style={[styles.ContactBtn, { backgroundColor: "" }]}>
+                {username !== "Jan Schwarz" ? (
+                    <TouchableOpacity style={styles.ContactBtn} onPress={() => openChat(username, router)}>
+                        <Text style={styles.contactText}>Contact</Text>
+                    </TouchableOpacity>) :
+                (<TouchableOpacity style={[styles.ContactBtn, { backgroundColor: "transparent" }]}>
                     <Text style={{color: "white"}}>A</Text>
                 </TouchableOpacity>)}
             </View>
