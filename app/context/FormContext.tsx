@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext } from 'react';
 import MapView, { Address } from 'react-native-maps';
+import { Geohash } from 'geofire-common';
 
 interface FormData {
     /**
@@ -12,7 +13,7 @@ interface FormData {
     description?: string;
     date?: Date;
     offeringTask?: boolean;
-    coordinates?: { latitude: number; longitude: number };
+    coordinates?: { latitude: number; longitude: number, geohash?: Geohash };
     address?: Address;
     category?: Category;
     images?: string[];

@@ -4,6 +4,7 @@ import Colors from "@/constants/Colors";
 import MapView, { PROVIDER_GOOGLE, MapPressEvent, Marker } from 'react-native-maps';
 import { useNavigation } from '@react-navigation/native';
 import { useForm } from '../context/FormContext';
+import { geohashForLocation } from 'geofire-common';
 
 /**
  * Initial region for Brno, Czech Republic.
@@ -44,14 +45,14 @@ const MapScreen = () => {
                 setFormData({ 
                     ...formData,
                     address: addressResult,
-                    coordinates: { latitude, longitude }
+                    coordinates: { latitude, longitude, geohash: geohashForLocation([latitude, longitude]) }
                 });
             } catch (error) {
                 console.error('Error fetching address:', error);
                 setFormData({ 
                     ...formData,
                     address: undefined,
-                    coordinates: { latitude, longitude }
+                    coordinates: { latitude, longitude, geohash: geohashForLocation([latitude, longitude]) }
                 });
             }
         }
