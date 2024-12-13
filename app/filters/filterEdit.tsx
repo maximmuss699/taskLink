@@ -5,14 +5,15 @@ import Colors from "@/constants/Colors";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, setDoc, doc, getDoc, addDoc, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, setDoc, doc, getDoc, addDoc, query, where, onSnapshot, GeoPoint } from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles, filter } from '../filters/filterMain';
+import MapView, { MapPressEvent, Marker, Circle } from 'react-native-maps';
+
 
 /* Filter interface definition */
 /* all of them are optional... */
 
-/* TODO: wrap other functions inside try-catch */
 async function saveFilter(filter: filter, filterId: string) {
 
     try {
@@ -55,6 +56,11 @@ const filterPage = () => {
     const [filterName, setFilterName] = useState<string>("");
 
     const [fNameExists, setFNameExists] = useState<boolean>(false);
+    const [activeSubScr, setActiveSubScr] = useState<string>("filters"); // "filters" for basic form or "map" for a map view
+    const [mapRadius, setMapRadius] = useState<number>(0);
+    const [mapLocation, setMapLocation] = useState<GeoPoint | null>(null);
+    const [mapAddr, setMapAddr] = useState<string | null>(null);
+    console.log(mapLocation);
 
     useEffect(() => {
         // fetch the filters from firebase and let the user modify it
@@ -72,6 +78,8 @@ const filterPage = () => {
             setMinRatingSliderVal(loadedData.data()?.minRating || 0);
             setMaxRatingSliderVal(loadedData.data()?.maxRating || 0);
             setFilterName(loadedData.data()?.filterName || "");
+            setMapRadius(loadedData.data()?.locationRadius || 0);
+            setMapLocation(loadedData.data()?.location || null);
         }
         func();
     }, ([]));
@@ -92,6 +100,21 @@ const filterPage = () => {
         });
         return () => end();
     }, ([filterName]));
+
+    const mapBtncolor = activeSubScr === "map" ? "#52812F" : "#D9D9D9";
+    const filterBtncolor = activeSubScr === "filters" ? "#52812F" : "#D9D9D9";
+
+    const mapRef = React.useRef<MapView>(null);
+
+    const updateLocation = async (location: MapPressEvent) => {
+        location.persist(); // to handle 'nativeEvent' error
+        if (mapRef.current) {
+            const {latitude, longitude} = location.nativeEvent.coordinate;
+            const address = await mapRef.current.addressForCoordinate({ longitude, latitude });
+            setMapLocation(new GeoPoint(location.nativeEvent.coordinate.latitude, location.nativeEvent.coordinate.longitude))
+            setMapAddr(address.locality + ", " + address.countryCode);
+        }
+    }
 
     return (
         <SafeAreaView>
@@ -125,7 +148,10 @@ const filterPage = () => {
                         maxPrice: toPrice,
                         minRating: minRatingSliderVal,
                         maxRating: maxRatingSliderVal,
-                        filterName: filterName
+                        filterName: filterName,
+                        locationRadius: mapRadius,
+                        location: mapLocation,
+                        address: mapAddr
                     }
                     setModalVis(false);
                     router.back();}}>
@@ -138,7 +164,19 @@ const filterPage = () => {
 
                 <View style={styles.OuterView}>
 
-                    <Text style={styles.MainText}>Edit Filter</Text>
+                    <View style={styles.contextChangeView}>
+                        <TouchableOpacity style={[styles.contextChangeBtn, { backgroundColor: filterBtncolor }]} onPress={() => setActiveSubScr("filters")}>
+                            <Text style={styles.contextChanheBtnText}>Form</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={[styles.contextChangeBtn, { backgroundColor: mapBtncolor }]} onPress={() => setActiveSubScr("map")}>
+                            <Text style={styles.contextChanheBtnText}>Map</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {activeSubScr === "filters" ? (
+                    <View>
+                        <Text style={styles.MainText}>Edit Filter</Text>
 
                     <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
                     <View style={[styles.subView, { flexDirection: "column" }]}>
@@ -236,6 +274,44 @@ const filterPage = () => {
                     value={maxRatingSliderVal}
                     onValueChange={(value) => {setMaxRatingSliderVal(value)}}
                     />
+                </View>): (
+                    <View style={{ flex: 1 }}>
+                        {/* Implement searchbar */}
+                        <Text style={[styles.MainText, {marginVertical: 20}]}>Map</Text>
+                            <Text style={[styles.ratingText, {alignSelf: "center", marginVertical: 15}]}>Radius: { mapRadius } km</Text>
+                            <Slider
+                                style={styles.evalSlider}
+                                minimumValue={0}
+                                maximumValue={300}
+                                step={1}
+                                maximumTrackTintColor="#000000"
+                                minimumTrackTintColor="green"
+                                onValueChange={(value) => setMapRadius(value)} // conversion to meters
+                            />
+                        <View style={styles.mapView}>
+                            <MapView
+                            ref={mapRef}
+                            onPress={(location) => {updateLocation(location)}}
+                            style={styles.map}
+                            >
+                                {mapLocation && (
+                                    <>
+                                    <Marker
+                                        coordinate={{ latitude: mapLocation.latitude, longitude: mapLocation.longitude }}
+                                        pinColor='green'
+                                        />
+                                    <Circle
+                                        center={{ latitude: mapLocation.latitude, longitude: mapLocation.longitude }}
+                                        radius={mapRadius * 1000}
+                                        strokeColor='#52812F'
+                                        fillColor='rgba(118, 185, 67, 0.25)'
+                                        />
+                                    </>
+                                )}
+                            </MapView>
+                        </View>
+                    </View>
+                    )}
                 </View>
 
                 <View style={styles.buttonRow}>
@@ -248,7 +324,10 @@ const filterPage = () => {
                                                                             maxPrice: toPrice,
                                                                             minRating: minRatingSliderVal,
                                                                             maxRating: maxRatingSliderVal,
-                                                                            filterName: filterName
+                                                                            filterName: filterName,
+                                                                            locationRadius: mapRadius,
+                                                                            location: mapLocation,
+                                                                            address: mapAddr
                                                                         }
                                                                         setFilter(filter);
                                                                         saveFilter(filter, filterId);
