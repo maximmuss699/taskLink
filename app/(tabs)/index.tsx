@@ -48,14 +48,17 @@ export async function QSFilter(keyString: string) {
 
     const queryArr: any[] = [
     /* firebase does not natively support query for substrings, in order to interact with the BE as much as possible, this was the alternative... */
+    /* this only searches prefixes */
         query(queryQ, where("title", ">=", keyString), where("title", "<=", keyString + '\uf8ff')),
         query(queryQ, where("address.locality", ">=", keyString), where("address.locality", "<=", keyString + '\uf8ff')),
         query(queryQ, where("username", ">=", keyString), where("username", "<=", keyString + '\uf8ff'))
     ];
 
+    /* get all the postDocs which fall within the bounds */
     const queryDocs = queryArr.map(async (QSquery) => {
         return await getDocs(QSquery);
     });
+    /* promise here, so that the posts are stored propely */
     const posts = await Promise.all(queryDocs);
     return posts;
 }
