@@ -319,6 +319,9 @@ const filterPage = () => {
                 </View>
 
                 <View style={styles.buttonRow}>
+                    {mapLocation && (<TouchableOpacity style={[styles.fButton, { backgroundColor: "gray" }]} onPress={() => { setMapAddr(null); setMapLocation(null); setMapRadius(0); }}>
+                                    <Text style={styles.fBtnText}>Reset Map</Text>
+                    </TouchableOpacity>)}
 
                     {!fNameExists && (<TouchableOpacity style={styles.fButton} onPress={() => {
                                                                         const filter = {

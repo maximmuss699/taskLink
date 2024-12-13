@@ -270,6 +270,7 @@ const filterPage = () => {
                                     minimumTrackTintColor="green"
                                     onValueChange={(value) => setMapRadius(value)} // conversion to meters
                                 />
+
                             <View style={styles.mapView}>
                                 <MapView
                                 ref={mapRef}
@@ -299,11 +300,15 @@ const filterPage = () => {
                 </View>
 
                 <View style={styles.buttonRow}>
-                    <TouchableOpacity style={styles.fButton} onPress={() => setModalVis(true)}>
+                    <TouchableOpacity style={[styles.fButton, { marginLeft: 15 }]} onPress={() => setModalVis(true)}>
                         <Text style={styles.fBtnText}>Save</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.fButton} onPress={() => {
+                    {mapLocation !== null && (<TouchableOpacity style={[styles.fButton, { backgroundColor: "gray" }]} onPress={() => { setMapAddr(null); setMapRadius(0); setMapLocation(null);}}>
+                                    <Text style={styles.fBtnText}>Reset Map</Text>
+                    </TouchableOpacity>)}
+
+                    <TouchableOpacity style={[styles.fButton, { marginRight: 15 }]} onPress={() => {
                                                                         const filter = {
                                                                             fromDate: fromDate,
                                                                             toDate: toDate,
@@ -448,13 +453,13 @@ export const styles = StyleSheet.create({
         backgroundColor: "white"
     },
     fButton: {
-        width: 100,
+        width: 85,
         height: 40,
         backgroundColor: "green",
         borderRadius: 10,
         alignItems: "center",
         justifyContent: "center",
-        margin: 30
+        margin: 1
     },
     fBtnText: {
         fontFamily: 'mon-b',
