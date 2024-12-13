@@ -254,9 +254,14 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     </TouchableOpacity>
                 ))}
 
-                <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)} testID="add-payment-button">
-                    <Text style={styles.addButtonText}>Add Payment Method</Text>
-                </TouchableOpacity>
+                <View style={styles.buttonRow}>
+                    <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)} testID="add-payment-button">
+                        <Text style={styles.addButtonText}>Add Payment Method</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.statisticsButton} onPress={() => router.push('../stats/stats')}>
+                        <Text style={styles.statisticsButtonText}>Statistics</Text>
+                    </TouchableOpacity>
+                </View>
 
 
                 <View style={styles.content}>
@@ -463,22 +468,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#E0E0E0',
     },
-    addButton: {
-        width: 203,
-        height: 42,
-        borderRadius: 10,
-        backgroundColor: '#000',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 20,
-        marginLeft: 16,
-    },
-    addButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '300',
-        fontFamily: 'mon-sb',
-    },
     footerText: {
         fontSize: 18,
         fontFamily: 'modernaRegular',
@@ -619,6 +608,46 @@ const styles = StyleSheet.create({
     extraSpace: {
         height: 20,
     },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 16,
+    },
+    statisticsButton: {
+        width: 170,
+        height: 42,
+        borderRadius: 10,
+        backgroundColor: '#000',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 20,
+        marginRight: 16,
+    },
+    statisticsButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '300',
+        fontFamily: 'mon-sb',
+    },
+
+    addButton: {
+        width: 170,
+        height: 42,
+        borderRadius: 10,
+        backgroundColor: '#000',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 20,
+        marginLeft: 16,
+    },
+    addButtonText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '300',
+        fontFamily: 'mon-sb',
+    },
+
 });
 
 export default Payments;
