@@ -14,7 +14,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from 'expo-router';
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, getDocs, doc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 export interface PersonalInfoProps {
     testID?: string;
@@ -24,11 +24,11 @@ type Tasker = {
     id: string;
     name: string;
     avatar: string;
-    date: string;
-    taskerId?: string; // Если нужно, можно хранить taskerId внутри документа
+    workArea: string;
+    taskerId?: string;
 };
 
-const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
+const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
     const router = useRouter();
     const [nearTaskers, setNearTaskers] = useState<Tasker[]>([]);
     const [favoriteTaskers, setFavoriteTaskers] = useState<Tasker[]>([]);
@@ -40,7 +40,6 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
 
     const loadTaskersFromDB = async () => {
         try {
-            // Загружаем все таскеры
             const taskersSnapshot = await getDocs(collection(FIRESTORE, 'taskers'));
             if (taskersSnapshot.empty) {
                 Alert.alert('Info', 'No taskers available.');
@@ -52,27 +51,23 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
                 const data = doc.data();
                 const name = data.fullName || 'Unknown Tasker';
                 const avatar = data.profilePicture || 'https://via.placeholder.com/100';
-                let date = 'Unknown Date';
-                if (data.joinedDate && data.joinedDate.seconds) {
-                    date = new Date(data.joinedDate.seconds * 1000).toLocaleDateString();
-                }
+                const workArea = data.workArea || 'No Work Area';
+
                 return {
                     id: doc.id,
                     name,
                     avatar,
-                    date,
-                    taskerId: data.taskerId || doc.id // Предполагается, что в data есть taskerId
+                    workArea,
+                    taskerId: data.taskerId || doc.id
                 };
             });
 
-            // Загружаем избранных таскеров
             const favouritesSnapshot = await getDocs(collection(FIRESTORE, 'favourites'));
             const favoriteTaskerIds = favouritesSnapshot.docs.map(doc => {
                 const favData = doc.data();
                 return favData.taskerId;
             }).filter(Boolean);
 
-            // Разделяем на избранных и остальных
             const favorites = allTaskers.filter(tasker => favoriteTaskerIds.includes(tasker.taskerId ?? tasker.id));
             const near = allTaskers.filter(tasker => !favoriteTaskerIds.includes(tasker.taskerId ?? tasker.id));
 
@@ -89,7 +84,6 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
 
     const addTaskerToFavorites = async (tasker: Tasker) => {
         try {
-            // Добавляем документ в favourites
             await setDoc(doc(FIRESTORE, 'favourites', tasker.id), {
                 taskerId: tasker.taskerId || tasker.id
             });
@@ -103,7 +97,6 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
 
     const removeTaskerFromFavorites = async (tasker: Tasker) => {
         try {
-            // Удаляем документ из favourites
             await deleteDoc(doc(FIRESTORE, 'favourites', tasker.id));
             setNearTaskers((prev) => [...prev, tasker]);
             setFavoriteTaskers((prev) => prev.filter((t) => t.id !== tasker.id));
@@ -120,7 +113,7 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
             </TouchableOpacity>
             <View style={styles.taskerInfo}>
                 <Text style={styles.userName}>{item.name}</Text>
-                <Text style={styles.date}>{item.date}</Text>
+                <Text style={styles.workArea}>{item.workArea}</Text>
             </View>
             <TouchableOpacity
                 style={isFavorite ? styles.removeButton : styles.addButton}
@@ -149,7 +142,6 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                {/* Favorite Taskers */}
                 <View style={styles.content}>
                     <View style={styles.infoRow}>
                         <Text style={styles.label}>Your List</Text>
@@ -167,7 +159,6 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
                     )}
                 </View>
 
-                {/* Near Taskers */}
                 <View style={styles.content}>
                     <View style={styles.infoRow}>
                         <Text style={styles.label}>Taskers Near You</Text>
@@ -264,7 +255,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#333',
     },
-    date: {
+    workArea: {
         fontSize: 14,
         color: '#666',
     },
@@ -289,6 +280,7 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontSize: 18,
+        fontFamily: 'modernaRegular',
         color: '#888888',
         fontWeight: 'bold',
         textAlign: 'center',
@@ -304,4 +296,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default PersonalInformation;
+export default FavouriteTaskers;
