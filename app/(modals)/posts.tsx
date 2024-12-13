@@ -48,7 +48,7 @@ function visualizeUsedFilters(filter: filt | undefined, pos: number) {
     if (filter?.filterCriteria === "location") return; // do not render location
     if (filter?.filterCriteria === "locationRadius") {
         filter.filterCriteria = "location radius";
-        console.log("value");
+        // console.log("value");
         filter.value = "+- " + filter.value + " km";
     }
     return(
@@ -63,7 +63,7 @@ function visualizeUsedFilters(filter: filt | undefined, pos: number) {
 
 /* Parses the filter and constructs a chained firebase query */
 export function applyFilter(filter: any, queryQ: any, setLocArr: any) {
-    console.log("applyFilter: ", filter);
+    // console.log("applyFilter: ", filter);
     if (filter === undefined) return queryQ;
     if (filter === "") return queryQ;
     const collectionRef = collection(FIRESTORE, "posts");
@@ -88,7 +88,7 @@ export function applyFilter(filter: any, queryQ: any, setLocArr: any) {
         // convert to date
         const fromDateDate = new Date(filter.fromDate?.seconds * 1000);
         const timestamp = Timestamp.fromDate(fromDateDate);
-        console.log(timestamp);
+        // console.log(timestamp);
         queryQ = query(queryQ, where("date", '>=', timestamp));
     }
 
@@ -154,7 +154,7 @@ const Page = () => {
     const [QsjobArr, setQsJobArr] = useState<jobPost[]>([]);
     const [locArr, setLocArr] = useState<jobPost[]>([]);
 
-    console.log(filterId);
+    // console.log(filterId);
     // console.log(filter);
 
     var parsed_filter: any = null;
@@ -184,7 +184,7 @@ const Page = () => {
                 const filterObj = await getDoc(docRef);
                 if (filterObj.exists()) {
                     setSavedFilter(filterObj.data());
-                    console.log("saved filter fetched from the firebase based on filterID: ", savedFilter);
+                    // console.log("saved filter fetched from the firebase based on filterID: ", savedFilter);
                 }
             }
             fetchFilter();
@@ -244,17 +244,17 @@ const Page = () => {
             try {
                 if (parsed_filter !== null) {
                     var filterQuery = applyFilter(parsed_filter, queryQ, setLocArr);
-                    console.log("aplikace filtru 138: ", filterQuery);
+                    // console.log("aplikace filtru 138: ", filterQuery);
                     queryQ = filterQuery;
                 }
                 if (savedFilter !== null) {
-                    console.log("using savedFilter: ", savedFilter);
+                    // console.log("using savedFilter: ", savedFilter);
                     queryQ = applyFilter(savedFilter, queryQ, setLocArr);
                 }
             } catch (error) {
                 console.log("filter parsing went wrong: ", error);
             }
-            console.log("LOCATION ARRAY: ", locArr);
+            // console.log("LOCATION ARRAY: ", locArr);
             end = onSnapshot(queryQ, (sshot: QuerySnapshot) => {
                 sshot.docs.forEach((data: QueryDocumentSnapshot) => {
                     jobArray.push({ id: data.id , ...data.data() });
@@ -262,38 +262,40 @@ const Page = () => {
                 // console.log(jobArray);
                 setPosts(jobArray);
             });
-
-            const QSRawArr: any[] = [];
-            const QsjobArr: jobPost[] = [];
-            /* get the QS result */
-            if (quickSearch !== null && quickSearch !== "") {
-                const getQS = async () => {
-                    console.log("!!! Searching !!!");
-                    const QSresult = await QSFilter(quickSearch);
-                    QSresult?.forEach((document) => {
-                        document.docs.forEach((snap: any) => {
-                            QSRawArr.push({ id: snap.id, ...snap.data() });
-                        })
-                    });
-                    // ensure no duplicates are in the array
-                    const jobArrIds: any[] = [];
-                    QSRawArr.forEach((job) => {
-                        if (!jobArrIds.includes(job.id)) {
-                            QsjobArr.push(job);
-                            jobArrIds.push(job.id);
-                        }
-                    })
-                    setQsJobArr(QsjobArr);
-                }
-                await getQS();
-            }
-
             return () => end();
         };
 
         getPosts();
-    }, ([savedFilter, parsed_filter, nonSavedFilter]));
+    }, ([savedFilter, nonSavedFilter]));
 
+    useEffect(() => {
+        const QSRawArr: any[] = [];
+        const QsjobArr: jobPost[] = [];
+        /* get the QS result */
+        if (quickSearch !== null && quickSearch !== "") {
+            const getQS = async () => {
+                console.log("!!! Searching !!!");
+                const QSresult = await QSFilter(quickSearch);
+                QSresult?.forEach((document) => {
+                    document.docs.forEach((snap: any) => {
+                        QSRawArr.push({ id: snap.id, ...snap.data() });
+                    })
+                });
+                // ensure no duplicates are in the array
+                const jobArrIds: any[] = [];
+                QSRawArr.forEach((job) => {
+                    if (!jobArrIds.includes(job.id)) {
+                        QsjobArr.push(job);
+                        jobArrIds.push(job.id);
+                    }
+                })
+                setQsJobArr(QsjobArr);
+            }
+            getQS();
+        } else if (quickSearch == "") {
+            setQsJobArr([]);
+        }
+    }, ([quickSearch]));
 
     useEffect(() => {
         // location merging logic...
@@ -313,7 +315,7 @@ const Page = () => {
             });
 
             const filteredPosts = loadedPosts.filter((job: any) => IdList.includes(job.id));
-            console.log("Populated QsjobArr: ", QsjobArr);
+            // console.log("Populated QsjobArr: ", QsjobArr);
             setPosts(filteredPosts);
         } else if (locArr.length == 0) {
             setPosts([]);
