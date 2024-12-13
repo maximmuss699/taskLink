@@ -20,7 +20,7 @@ interface evaluation {
 async function evalToDB(rating: number, comment: string, id: string, router: any, commId: string, username: string) {
     const collectionRef = collection(FIRESTORE, 'jobEval');
     const docRef = doc(collectionRef, commId);
-    if (username === "") username = "Michael Scott";
+    if (username === "") username = "Jan Schwarz";
     await setDoc(docRef, { comment: comment, rating: rating, postId: id, username: username });
     // setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}), 500);
     setTimeout(() => router.back(), 300);

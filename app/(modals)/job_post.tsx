@@ -185,7 +185,7 @@ const Page = () => {
                     <Text style={styles.Username}>{ username }</Text>
                 </TouchableOpacity>
 
-                {username !== "Michael Scott" ? (<TouchableOpacity style={styles.ContactBtn} onPress={() => openChat(username, router)}>
+                {username !== "Jan Schwarz" ? (<TouchableOpacity style={styles.ContactBtn} onPress={() => openChat(username, router)}>
                     <Text style={styles.contactText}>Contact</Text> </TouchableOpacity>) :
                 (<TouchableOpacity style={[styles.ContactBtn, { backgroundColor: "" }]}>
                     <Text style={{color: "white"}}>A</Text>

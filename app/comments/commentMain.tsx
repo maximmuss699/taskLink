@@ -54,8 +54,8 @@ export const renderEval = (id: string, rating: number, comment: string, commId: 
                     <Ionicons name='star' size={15}/>
                     <Text style={styles.evalText}>{rating}/5</Text>
                 </View>
-                {/* Michael Scott is the logged in user */}
-                {username === "Michael Scott" && (<View style={ { flexDirection: "row", marginTop: 15 } }>
+                {/* Jan Schwarz is the logged in user */}
+                {username === "Jan Schwarz" && (<View style={ { flexDirection: "row", marginTop: 15 } }>
                     <TouchableOpacity style={styles.commentActionBtn} onPress={() => {router.push({pathname: '/(modals)/editComment', params: { id, commId }})}}>
                         <Ionicons name="pencil-outline" size={25}/>
                     </TouchableOpacity>

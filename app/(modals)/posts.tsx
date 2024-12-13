@@ -114,11 +114,15 @@ export function applyFilter(filter: any, queryQ: any, setLocArr: any) {
     if (filter.location && filter.locationRadius > 0) {
         const locationPosts: any[] = [];
         const IdArr: any[] = [];
+        /* get the geohash bounds for query */
         const loc: [number, number] = [filter.location.latitude, filter.location.longitude];
         const areaOfInterest = geohashQueryBounds(loc, filter.locationRadius * 1000);
-        console.log(areaOfInterest);
+        // console.log(areaOfInterest);
+
+        /* here the queries are performed separately, due to the fact that the post only falls within one of those bounds */
+        /* if the queries were chained, it would only fetch posts, which are within ALL of the bounds, and no such post exists */
         areaOfInterest.forEach(async ([min, max]) => {
-            const range = query(queryQ, where("geohash", ">=", min), where("geohash", "<=", max));
+            const range = query(queryQ, where("coordinates.geohash", ">=", min), where("coordinates.geohash", "<=", max));
             const resultDocs = await getDocs(range);
             resultDocs.forEach((singleDoc: any) => {
                 if (!IdArr.includes(singleDoc.id)) {
@@ -126,11 +130,10 @@ export function applyFilter(filter: any, queryQ: any, setLocArr: any) {
                     IdArr.push(singleDoc.id);
                 }
             });
+
             setLocArr(locationPosts);
         });
-        // queryQ = query(queryQ, where("geohash", ">=", "u2g8"), where("geohash", "<=", "u2gh"));
-
-        console.log(queryQ);
+        // console.log(queryQ);
     }
 
     return queryQ;
@@ -265,6 +268,7 @@ const Page = () => {
             /* get the QS result */
             if (quickSearch !== null && quickSearch !== "") {
                 const getQS = async () => {
+                    console.log("!!! Searching !!!");
                     const QSresult = await QSFilter(quickSearch);
                     QSresult?.forEach((document) => {
                         document.docs.forEach((snap: any) => {

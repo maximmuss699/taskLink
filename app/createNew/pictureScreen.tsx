@@ -38,7 +38,7 @@ const PictureScreen = () => {
     };
 
     const onNext = () => {
-        setFormData({ ...formData, username: "Michael Scott" });  // Hardcoded user name demonstration purposes
+        setFormData({ ...formData, username: "Jan Schwarz" });  // Hardcoded user name demonstration purposes
         navigation.navigate('finalScreen' as never);
     };
 
@@ -51,7 +51,7 @@ const PictureScreen = () => {
                 <View style={styles.imageRow}>
                     <FlatList
                         data={[...(formData.images || []), 'plus-button']}
-                        renderItem={({ item }) => 
+                        renderItem={({ item }) =>
                             item === 'plus-button' ? (
                                 <TouchableOpacity onPress={onCaptureImage} style={{marginLeft: 7, marginRight: 7}}>
                                     <FontAwesome5 name="plus-square" size={110} color={Colors.dark}/>

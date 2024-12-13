@@ -14,7 +14,7 @@ import Toast from 'react-native-toast-message';
 // sends the evaluation collected from the user to the firebase
 async function updateEval(rating: number, comment: string, id: string, router: any) {
     const collectionRef = collection(FIRESTORE, 'jobEval');
-    await addDoc(collectionRef, { comment: comment, rating: rating, postId: id, username: "Michael Scott" });
+    await addDoc(collectionRef, { comment: comment, rating: rating, postId: id, username: "Jan Schwarz" });
     // setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}), 300);
     setTimeout(() => router.back(), 300);
 }
