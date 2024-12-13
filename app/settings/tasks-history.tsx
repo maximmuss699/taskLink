@@ -310,7 +310,9 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontSize: 18,
+        fontFamily: 'modernaRegular',
         color: '#888888',
+        fontWeight: 'bold',
         textAlign: 'center',
         marginTop: 20,
         paddingBottom: 40,
