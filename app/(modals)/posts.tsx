@@ -153,6 +153,7 @@ const Page = () => {
 
     const [QsjobArr, setQsJobArr] = useState<jobPost[]>([]);
     const [locArr, setLocArr] = useState<jobPost[]>([]);
+    const [quickSearch, setQSval] = useState<string | null>(null);
 
     // console.log(filterId);
     // console.log(filter);
@@ -160,15 +161,19 @@ const Page = () => {
     var parsed_filter: any = null;
     if (nonSavedFilter !== undefined && nonSavedFilter !== "") {
         parsed_filter = nonSavedFilter ? JSON.parse(nonSavedFilter): null; // checks useStatefor undefined values
-        // console.log(parsed_filter);
-        // console.log("Applying filters:", {
-        //     minPrice: parsed_filter.minPrice,
-        //     maxPrice: parsed_filter.maxPrice,
-        //     fromDate: parsed_filter.fromDate,
-        //     toDate: parsed_filter.toDate,
-        // });
+        console.log(parsed_filter);
+        console.log("Applying filters:", {
+            minPrice: parsed_filter.minPrice,
+            maxPrice: parsed_filter.maxPrice,
+            fromDate: parsed_filter.fromDate,
+            toDate: parsed_filter.toDate,
+            minRating: parsed_filter.minRating,
+            maxRating: parsed_filter.maxRating,
+            locationRadius: parsed_filter.locationRadius,
+            location: parsed_filter.location,
+            address: parsed_filter.address
+        });
     }
-    const [quickSearch, setQSval] = useState<string | null>(null);
 
     var no_categ = false;
     var offeringTask = false;
@@ -254,7 +259,7 @@ const Page = () => {
             } catch (error) {
                 console.log("filter parsing went wrong: ", error);
             }
-            // console.log("LOCATION ARRAY: ", locArr);
+            console.log("LOCATION ARRAY: ", locArr);
             end = onSnapshot(queryQ, (sshot: QuerySnapshot) => {
                 sshot.docs.forEach((data: QueryDocumentSnapshot) => {
                     jobArray.push({ id: data.id , ...data.data() });
@@ -266,7 +271,7 @@ const Page = () => {
         };
 
         getPosts();
-    }, ([savedFilter, nonSavedFilter]));
+    }, ([savedFilter, nonSavedFilter, quickSearch])); // add locArr
 
     useEffect(() => {
         const QSRawArr: any[] = [];
@@ -274,7 +279,7 @@ const Page = () => {
         /* get the QS result */
         if (quickSearch !== null && quickSearch !== "") {
             const getQS = async () => {
-                console.log("!!! Searching !!!");
+                console.log("!!! Searching !!!", quickSearch);
                 const QSresult = await QSFilter(quickSearch);
                 QSresult?.forEach((document) => {
                     document.docs.forEach((snap: any) => {
@@ -292,14 +297,16 @@ const Page = () => {
                 setQsJobArr(QsjobArr);
             }
             getQS();
-        } else if (quickSearch == "") {
-            setQsJobArr([]);
         }
+        // else if (quickSearch == "") {
+            // setQsJobArr([]);
+        // }
     }, ([quickSearch]));
 
     useEffect(() => {
         // location merging logic...
         if (locArr.length > 0 || QsjobArr.length > 0) {
+            console.log("!!! MERGING !!!");
             const IdList: any = [];
 
             locArr.forEach((job) => {
@@ -315,9 +322,10 @@ const Page = () => {
             });
 
             const filteredPosts = loadedPosts.filter((job: any) => IdList.includes(job.id));
-            // console.log("Populated QsjobArr: ", QsjobArr);
+            console.log("Populated QsjobArr: ", QsjobArr);
+            console.log("Loaded Posts: ", loadedPosts);
             setPosts(filteredPosts);
-        } else if (locArr.length == 0) {
+        } else if (QsjobArr.length == 0) {
             setPosts([]);
         }
     } ,([locArr, QsjobArr]));
