@@ -9,13 +9,16 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { configureReanimatedLogger } from 'react-native-reanimated';
 
 export {
     // Catch any errors thrown by the Layout component.
     ErrorBoundary,
 } from 'expo-router';
 
-
+configureReanimatedLogger({
+    strict: false,
+})
 
 export const unstable_settings = {
     // Ensure that reloading on `/modal` keeps a back button present.
