@@ -74,6 +74,7 @@ const Page = () => {
     const { post_type } = useLocalSearchParams<{ post_type: string }>();
 
     const [images, setImages] = useState<string[] | undefined>();
+    const [currentUser, setCurrentUser] = useState<string>("");
 
     const [isFavourite, setIsFavourite] = useState<boolean>(false);
     const [loadedPost, setLoadedPost] = useState<any | undefined>();
@@ -81,6 +82,19 @@ const Page = () => {
     const [taskerCertificates, setTaskerCertificates] = useState<string[]>([]);
 
     const [loadedEvals, setEvals] = useState<evaluation[]>([]);
+
+
+    /* get the username */
+    useEffect(() => {
+        const get_username = async () => {
+            const collectionRef = collection(FIRESTORE, "users");
+            const docs = await getDocs(collectionRef);
+            if (!docs.empty) {
+                setCurrentUser(docs.docs[0].data().firstName + " " + docs.docs[0].data().lastName);
+            }
+        }
+        get_username();
+    }, []);
 
     /* fetch whether the post is liked or not... */
     useEffect(() => {
@@ -188,7 +202,7 @@ const Page = () => {
                                                                                                              ,params: {id}})}>
                         <Text style={styles.contactText}>Evaluate</Text>
                     </TouchableOpacity>): (<View style={[styles.ContactBtn, { backgroundColor: "transparent" }]}></View>)}
-                    {username !== "Jan Schwarz" ? (
+                    {username !== currentUser ? (
                         <TouchableOpacity style={styles.ContactBtn} onPress={() => openChat(username, router)}>
                             <Text style={styles.contactText}>Contact</Text>
                         </TouchableOpacity>) :
@@ -240,7 +254,7 @@ const Page = () => {
                         <Text style={styles.Text}>Recent evaluations</Text>
                         {loadedEvals.map((item, key) => (
                             <View key={ key }>
-                                {renderEval(item.postId, item.rating, item.comment, item.commId, router, item.username, item.taskerId)}
+                                {renderEval(item.postId, item.rating, item.comment, item.commId, router, item.username, item.taskerId, currentUser)}
                             </View>
                         ))}
                     </View>)}
