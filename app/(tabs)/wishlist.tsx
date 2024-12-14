@@ -23,11 +23,11 @@ const NewStack = () => {
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName="new">
                         <Stack.Screen name="new" component={New} options={{ headerShown: false }} />
-                        <Stack.Screen name="categoryScreen" component={CategoryScreen} options={{ title: "Category"}} />
-                        <Stack.Screen name="mapScreen" component={MapScreen} />
-                        <Stack.Screen name="formScreen" component={FormScreen} />
-                        <Stack.Screen name="pictureScreen" component={PictureScreen} />
-                        <Stack.Screen name="finalScreen" component={FinalScreen} />
+                        <Stack.Screen name="categoryScreen" component={CategoryScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="mapScreen" component={MapScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="formScreen" component={FormScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="pictureScreen" component={PictureScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="finalScreen" component={FinalScreen} options={{ headerShown: false }} />
                     </Stack.Navigator>
                 </NavigationContainer>
             </NavigationIndependentTree>

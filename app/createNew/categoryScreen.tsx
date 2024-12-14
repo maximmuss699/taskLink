@@ -8,14 +8,21 @@ import { useNavigation } from '@react-navigation/native';
 import { useForm } from '../context/FormContext';
 import { Category } from '../context/FormContext';
 import MapScreen from './mapScreen';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const CategoryScreen = () => {
     const navigation = useNavigation();
     const { formData, setFormData } = useForm();
 
     return (
-        <View>
-            <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
+        <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Ionicons name="arrow-back" size={30} color="#000" />
+                </TouchableOpacity>
+                <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
+            </View>
             <Text style={styles.upperText}>Please choose a category</Text>
 
             <View style={{flexDirection: 'row', justifyContent: 'center', marginTop:20}}>
@@ -61,17 +68,15 @@ const CategoryScreen = () => {
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     upperText: {
-        // alignSelf: 'flex-start',
         marginLeft: '5%',
         fontFamily: 'Montserrat-Bold',
         fontSize: 20,
-        marginTop: 10,
     },
     categoryButton: {
         height: 130,
@@ -107,6 +112,18 @@ const styles = StyleSheet.create({
         height: "100%",
         width: "100%",
         position: "absolute",
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingTop: 16,
+        paddingHorizontal: 16,
+        paddingBottom: 10,
+        fontSize: 24,
+        fontFamily: 'mon-b',
+    },
+    backButton: {
+        padding: 8,
     },
 });
 

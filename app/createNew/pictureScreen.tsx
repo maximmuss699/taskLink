@@ -5,7 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useForm } from '../context/FormContext';
 import Colors from '@/constants/Colors';
 import * as ImagePicker from 'expo-image-picker';
-import { FontAwesome5 } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const PictureScreen = () => {
     const navigation = useNavigation();
@@ -43,8 +44,13 @@ const PictureScreen = () => {
     };
 
     return (
-        <View style={{ flex: 1 }}>
-            <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
+        <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Ionicons name="arrow-back" size={30} color="#000" />
+                </TouchableOpacity>
+                <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
+            </View>
             <Text style={styles.upperText}>{'Please choose relevant pictures\n(Long press a picture to remove it)'}</Text>
 
             <View style={{flex: 1, alignItems: 'center', justifyContent: 'flex-start', marginTop: 15}}>
@@ -69,13 +75,14 @@ const PictureScreen = () => {
                     />
                 </View>
             </View>
-
-            <BottomButton
-                title="Next"
-                onPress={onNext}
-                disabled={false}
-            />
-        </View>
+            <View style={styles.bottomButtonContainer}>
+                <BottomButton
+                    title="Next"
+                    onPress={onNext}
+                    disabled={false}
+                />
+            </View>
+        </SafeAreaView>
     )
 };
 
@@ -106,6 +113,25 @@ const styles = StyleSheet.create({
     flatListContent: {
         alignItems: 'flex-start',
         paddingLeft: 10,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingTop: 16,
+        paddingHorizontal: 16,
+        paddingBottom: 10,
+        fontSize: 24,
+        fontFamily: 'mon-b',
+    },
+    backButton: {
+        padding: 8,
+    },
+    bottomButtonContainer: {
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        alignItems: 'center',
+        paddingBottom: 10,
     },
 });
 

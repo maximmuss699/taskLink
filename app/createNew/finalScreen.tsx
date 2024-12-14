@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { BottomButton } from './mapScreen';
 import { useNavigation } from '@react-navigation/native';
 import { useForm } from '../context/FormContext';
 import Colors from '@/constants/Colors';
 import { collection, addDoc } from 'firebase/firestore';
 import { FIRESTORE } from '@/firebaseConfig';
-import { FontAwesome5 } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import murmurhash from "murmurhash";
 import lodash from "lodash";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const FinalScreen = () => {
     const navigation = useNavigation();
@@ -97,22 +98,25 @@ const FinalScreen = () => {
     }, [readyToUpload, formData]);
 
     return (
-        <View style={{ flex: 1 }}>
-            <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
+        <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Ionicons name="arrow-back" size={30} color="#000" />
+                </TouchableOpacity>
+                <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
+            </View>
             <Text style={styles.upperText}>Please review the details</Text>
 
             <View style={{flex: 1, justifyContent: 'flex-start', marginTop: 15, marginLeft:'5%'}}>
+                <Text style={styles.text}>Username: {formData.username}</Text>
                 <Text style={styles.text}>Title: {formData.title}</Text>
                 <Text style={styles.text}>Price: {formData.price} EUR</Text>
                 <Text style={styles.text}>Category: {formData.category}</Text>
                 <Text style={styles.text}>Description: {formData.description}</Text>
                 <Text style={styles.text}>Date: {formData.date?.toLocaleDateString()}</Text>
                 <Text style={styles.text}>Address: {formData.address?.name}</Text>
-                <Text style={styles.text}>Coordinates: {formData.coordinates?.latitude}, {formData.coordinates?.longitude}</Text>
-                <Text style={styles.text}>Images: {formData.images?.length}</Text>
-                <Text style={styles.text}>Username: {formData.username}</Text>
+                <Text style={styles.text}>Number of images: {formData.images?.length || 0}</Text>
             </View>
-
 
             <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 15}}>
                 {loading && <ActivityIndicator size='large' color={Colors.dark} />}
@@ -124,13 +128,14 @@ const FinalScreen = () => {
                 )}
                 {error && <Text style={styles.errorText}>{'Failed to upload post.\nPlease try again.'}</Text>}
             </View>
-
-            <BottomButton
-                title="Publish"
-                onPress={onPublish}
-                disabled={loading || success}
-            />
-        </View>
+            <View style={styles.bottomButtonContainer}>
+                <BottomButton
+                    title="Publish"
+                    onPress={onPublish}
+                    disabled={loading || success}
+                />
+            </View>
+        </SafeAreaView>
     );
 }
 
@@ -153,6 +158,25 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat-Bold',
         fontSize: 20,
         margin: 10,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingTop: 16,
+        paddingHorizontal: 16,
+        paddingBottom: 10,
+        fontSize: 24,
+        fontFamily: 'mon-b',
+    },
+    backButton: {
+        padding: 8,
+    },
+    bottomButtonContainer: {
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        alignItems: 'center',
+        paddingBottom: 10,
     },
 });
 

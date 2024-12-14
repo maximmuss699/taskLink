@@ -5,6 +5,8 @@ import MapView, { PROVIDER_GOOGLE, MapPressEvent, Marker } from 'react-native-ma
 import { useNavigation } from '@react-navigation/native';
 import { useForm } from '../context/FormContext';
 import { geohashForLocation } from 'geofire-common';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 /**
  * Initial region for Brno, Czech Republic.
@@ -59,9 +61,14 @@ const MapScreen = () => {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }}>
             <View>
-                <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Ionicons name="arrow-back" size={30} color="#000" />
+                    </TouchableOpacity>
+                    <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
+                </View>
                 <Text style={styles.upperText}>Address:</Text>
                 <ScrollView horizontal={true} style={styles.addressContainer}>
                     {formData.address ? (
@@ -85,27 +92,28 @@ const MapScreen = () => {
                         <Marker coordinate={formData.coordinates} />
                     )}
                 </MapView>
+            </View>
+            <View style={styles.bottomButtonContainer}>
                 <BottomButton
                     title="Next"
                     disabled={!formData.coordinates}
                     onPress={() => navigation.navigate('formScreen' as never)}  // The 'as never' is a slight workaround
                 />
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     map: {
         width: '90%',
-        height: '88%',
+        height: '94%',
         borderBlockColor: 'black',
         borderWidth: 1,
         borderRadius: 5,
     },
     container: {
         flex: 1,
-        justifyContent: 'flex-end',
         alignItems: 'center',
     },
     addressContainer: {
@@ -125,18 +133,14 @@ const styles = StyleSheet.create({
         marginRight: 20,
     },
     upperText: {
-        // alignSelf: 'flex-start',
         marginLeft: '5%',
         fontFamily: 'Montserrat-Bold',
         fontSize: 20,
-        marginTop: 10,
     },
     button: {
         backgroundColor: Colors.primary,
         padding: 10,
         borderRadius: 10,
-        marginBottom: 10,
-        marginTop: 10,
         marginRight: '5%',
         alignItems: 'center',
         alignSelf: 'flex-end',
@@ -148,6 +152,25 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 20,
         fontFamily: 'Montserrat-Bold',
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingTop: 16,
+        paddingHorizontal: 16,
+        paddingBottom: 10,
+        fontSize: 24,
+        fontFamily: 'mon-b',
+    },
+    backButton: {
+        padding: 8,
+    },
+    bottomButtonContainer: {
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        alignItems: 'center',
+        paddingBottom: 10,
     },
 });
 

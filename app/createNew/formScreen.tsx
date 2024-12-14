@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, Button } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Button, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { BottomButton } from './mapScreen';
 import { useNavigation } from '@react-navigation/native';
 import { useForm } from '../context/FormContext';
 import Colors from '@/constants/Colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const FormScreen = () => {
     const navigation = useNavigation();
@@ -31,8 +33,13 @@ const FormScreen = () => {
     };
 
     return (
-        <View style={{ flex: 1 }}>
-            <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
+        <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <Ionicons name="arrow-back" size={30} color="#000" />
+                    </TouchableOpacity>
+                    <Text style={[styles.upperText, {fontSize: 30}]}>Create new task</Text>
+                </View>
             <Text style={styles.upperText}>Please fill in the details</Text>
 
             <View style={{flex: 1, alignItems: 'center', justifyContent: 'flex-start', marginTop: 15}}>
@@ -77,13 +84,14 @@ const FormScreen = () => {
                 />
 
             </View>
-
-            <BottomButton
-                title="Next"
-                onPress={() => navigation.navigate('pictureScreen' as never)}
-                disabled={!formData.title || !formData.price || !formData.description || !formData.date}
-            />
-        </View>
+            <View style={styles.bottomButtonContainer}>
+                <BottomButton
+                    title="Next"
+                    onPress={() => navigation.navigate('pictureScreen' as never)}
+                    disabled={!formData.title || !formData.price || !formData.description || !formData.date}
+                />
+            </View>
+        </SafeAreaView>
     );
 };
 
@@ -103,11 +111,29 @@ const styles = StyleSheet.create({
         fontFamily: 'Montserrat-Regular',
         fontSize: 16,
         marginBottom: 15,
-        
     },
     descriptionField: {
         height: 80,
         textAlignVertical: 'top',
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingTop: 16,
+        paddingHorizontal: 16,
+        paddingBottom: 10,
+        fontSize: 24,
+        fontFamily: 'mon-b',
+    },
+    backButton: {
+        padding: 8,
+    },
+    bottomButtonContainer: {
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        alignItems: 'center',
+        paddingBottom: 10,
     },
 });
 
