@@ -154,7 +154,7 @@ const Page = () => {
     const icon = isFavourite === false ? 'heart-outline' : 'heart';
     // console.log(offeringTask);
     return (
-        <ScrollView style={styles.ScrollView} contentContainerStyle={{ paddingBottom: 200 }}>
+        <ScrollView style={styles.ScrollView}>
             <View style={styles.outerView}>
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -167,7 +167,7 @@ const Page = () => {
             {(images && images?.length > 0) && (<View style={styles.carousel}>
                 <Carousel
                     width={350}
-                    height={300}
+                    height={350}
                     autoPlay={false}
                     data={images || []}
                     loop={true}
@@ -370,7 +370,6 @@ const styles = StyleSheet.create({
     },
     carousel: {
         width: "90%",
-        height: "40%",
         justifyContent: "center",
         alignContent: "center",
         marginBottom: 20

@@ -62,7 +62,6 @@ export const renderEval = (id: string, rating: number, comment: string, commId: 
                     <TouchableOpacity style={[styles.commentActionBtn, { backgroundColor: "#c00" }]} onPress={() => deleteComment(commId)}>
                         <Ionicons name="trash-outline" size={25}/>
                     </TouchableOpacity>
-                    {/* FIXME: display prompt when the button is clicked */}
                 </View>)}
             </View>
         </View>
@@ -73,7 +72,7 @@ export const renderEval = (id: string, rating: number, comment: string, commId: 
 const commentMain = () => {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
-
+    console.log(id);
     // get the post evaluations
     const [loadedEvals, setEvals] = useState<evaluation[]>([]);
     const [postRating, setPostRating] = useState<number>();
@@ -191,6 +190,7 @@ const styles = StyleSheet.create({
     signleCommL: {
         flexDirection: "column",
         marginLeft: 30,
+        width: "65%"
     },
     singleCommR: {
         flexDirection: "row",
