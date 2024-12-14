@@ -150,7 +150,6 @@ const Page = () => {
     const router = useRouter();
     const [loadedPosts, setPosts] = useState<jobPost[]>([]);
     const [quickSearch, setQSval] = useState<string | null>(null);
-
     const [location, setLocation] = useState<string>("Brno");
 
     /* fetch the user location, if the permission is granted */
@@ -217,7 +216,7 @@ const Page = () => {
                 <Text style={styles.MainText}>Explore tasks near You</Text>
                 <Text style={styles.LocationText}>{location}</Text>
                 <View style={styles.SearchBarCollection}>
-                    <Ionicons style={styles.SearchIcon} name="search-outline" size={24} />
+                    <Ionicons style={styles.SearchIcon} name="search-outline" size={24} color="black" />
                     <TextInput
                         style={styles.SearchBar}
                         placeholder="What job are you searching for?"
@@ -228,10 +227,10 @@ const Page = () => {
             </View>
 
             {/* FlatList */}
-            <FlatList
-                data={loadedPosts}
-                renderItem={({ item }) =>
-                    job_ad(
+            <View style={styles.jobPanel}>
+                <FlatList
+                    data={loadedPosts}
+                    renderItem={({ item }) => job_ad(
                         item.id,
                         item.username,
                         item.address.locality,
@@ -242,12 +241,10 @@ const Page = () => {
                         item.images,
                         item.offeringTask,
                         item.description
-                    )
-                }
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContentContainer}
-                style={styles.flatList}
-            />
+                    )}
+                    keyExtractor={(item) => item.id}
+                />
+            </View>
 
         </SafeAreaView>
     );
@@ -263,10 +260,7 @@ const styles = StyleSheet.create({
     header: {
         paddingHorizontal: 16,
         paddingTop: 16,
-        paddingBottom: 8,
         backgroundColor: "white",
-        borderBottomWidth: 1,
-        borderBottomColor: "#ccc",
     },
     MainText: {
         fontSize: 28,
@@ -292,7 +286,7 @@ const styles = StyleSheet.create({
     },
     SearchBar: {
         flex: 1,
-        paddingLeft: 40, // Отступ для иконки поиска
+        paddingLeft: 40,
         paddingVertical: 10,
         paddingHorizontal: 15,
         borderWidth: 1,
@@ -313,10 +307,7 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         paddingBottom: 20,
     },
-    flatList: {
-        flex: 1,
-        backgroundColor: "white"
-    },
+
     JobAdvertisement: {
         marginBottom: 20,
         backgroundColor: "#FFFFFF",
@@ -330,7 +321,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 10,
         shadowOffset: { width: 0, height: 5 },
-        elevation: 5, // Для Android
+        elevation: 5,
     },
     carouselContainer: {
         width: '100%',
@@ -370,6 +361,10 @@ const styles = StyleSheet.create({
         fontFamily: 'mon-b',
         color: "#52812F",
     },
+    jobPanel: {
+        flex: 1,
+        marginTop: 20
+    }
 });
 
 
