@@ -122,9 +122,9 @@ const Page = () => {
         return () => end();
     }, [username]);
 
-    var offeringTask = false;
+    var offeringTask = true;
     if (post_type === "false") {
-        offeringTask = true;
+        offeringTask = false;
     }
 
     /* fetch the evaluations */
@@ -152,6 +152,7 @@ const Page = () => {
     // console.log(taskerId);
     // icon setup to make it responsive
     const icon = isFavourite === false ? 'heart-outline' : 'heart';
+    // console.log(offeringTask);
     return (
         <ScrollView style={styles.ScrollView} contentContainerStyle={{ paddingBottom: 200 }}>
             <View style={styles.outerView}>
@@ -176,23 +177,25 @@ const Page = () => {
                 />
             </View>)}
             <View style={styles.textHeader}>
-                {offeringTask ? (<TouchableOpacity style={styles.ContactBtn} onPress={() => router.push({pathname: "/comments/commentMain"
-                                                                                                         ,params: {id}})}>
-                    <Text style={styles.contactText}>Evaluate</Text>
-                </TouchableOpacity>): (<View style={[styles.ContactBtn, { backgroundColor: "transparent" }]}></View>)}
 
-                <TouchableOpacity onPress={() => router.push({pathname: "/profile/[taskerId]", params: {taskerId: taskerId}})}>
+                <TouchableOpacity style={{ alignContent: "center", justifyContent: "center" }} onPress={() => router.push({pathname: "/profile/[taskerId]", params: {taskerId: taskerId}})}>
                     <Text style={styles.Username}>{ username }</Text>
                 </TouchableOpacity>
-
-                {username !== "Jan Schwarz" ? (
-                    <TouchableOpacity style={styles.ContactBtn} onPress={() => openChat(username, router)}>
-                        <Text style={styles.contactText}>Contact</Text>
-                    </TouchableOpacity>) :
-                (<TouchableOpacity style={[styles.ContactBtn, { backgroundColor: "transparent" }]}>
-                    <Text style={{color: "white"}}>A</Text>
-                </TouchableOpacity>)}
             </View>
+
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    {offeringTask ? (<TouchableOpacity style={styles.ContactBtn} onPress={() => router.push({pathname: "/comments/commentMain"
+                                                                                                             ,params: {id}})}>
+                        <Text style={styles.contactText}>Evaluate</Text>
+                    </TouchableOpacity>): (<View style={[styles.ContactBtn, { backgroundColor: "transparent" }]}></View>)}
+                    {username !== "Jan Schwarz" ? (
+                        <TouchableOpacity style={styles.ContactBtn} onPress={() => openChat(username, router)}>
+                            <Text style={styles.contactText}>Contact</Text>
+                        </TouchableOpacity>) :
+                    (<TouchableOpacity style={[styles.ContactBtn, { backgroundColor: "transparent" }]}>
+                        <Text style={{color: "white"}}>A</Text>
+                    </TouchableOpacity>)}
+                </View>
             <View style={{height: 2, backgroundColor: "black", width: "100%", margin: 5, marginTop: 8}}></View>
             <View style={styles.Location}>
                     <Ionicons name="location" size={30}/>
@@ -310,7 +313,7 @@ const styles = StyleSheet.create({
     },
     textHeader: {
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "center",
         paddingHorizontal: 10,
         alignItems: "center",
         width: "100%",
@@ -323,6 +326,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         alignItems: "center",
         justifyContent: "center",
+        marginHorizontal: 60,
+        marginTop: 10
     },
     contactText: {
         color: "white",
