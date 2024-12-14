@@ -70,8 +70,8 @@ export const job_ad = (id: string, username: string,
     post_type: boolean, description: string) => {
         // console.log(images);
         // to differentiate offered and searched jobs; they have different colors
-        const tcolor = post_type === false ? "#717171" : "white";
-        const bckgColor = post_type === false ? "#D9D9D9" : "#52812F";
+        const tcolor = post_type === false ? "white" : "#717171";
+        const bckgColor = post_type === false ? "#52812F" : "#D9D9D9";
         return (<TouchableOpacity style={[styles.JobAdvertisement, {backgroundColor: bckgColor}]} onPress={() => router.push({
                                                                                 pathname: '/(modals)/job_post',
                                                                                 params: { id,

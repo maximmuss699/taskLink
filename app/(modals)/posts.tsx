@@ -117,7 +117,7 @@ export async function applyFilter(filter: any, queryQ: any, setLocArr: any) {
         /* get the geohash bounds for query */
         const loc: [number, number] = [filter.location.latitude, filter.location.longitude];
         const areaOfInterest = geohashQueryBounds(loc, filter.locationRadius * 1000);
-        console.log(areaOfInterest);
+        // console.log(areaOfInterest);
 
         /* here the queries are performed separately, due to the fact that the post only falls within one of those bounds */
         /* if the queries were chained, it would only fetch posts, which are within ALL of the bounds, and no such post exists */
@@ -132,7 +132,7 @@ export async function applyFilter(filter: any, queryQ: any, setLocArr: any) {
             });
         });
         await Promise.all(postsInRadius);
-        console.log("populating the location array: ", locationPosts);
+        // console.log("populating the location array: ", locationPosts);
         setLocArr(locationPosts);
         // console.log(queryQ);
     }
@@ -275,16 +275,21 @@ const Page = () => {
                     // console.log("using savedFilter: ", savedFilter);
                     queryQ = await applyFilter(savedFilter, queryQ, setLocArr);
                 }
-                if (savedFilter !== null || parsed_filter !== null) {
-                    if ((savedFilter.location && savedFilter.locationRadius > 0) || (parsed_filter.location && parsed_filter.loacationRadius > 0)) {
-                        console.log("SETTING TO TRUE");
+                if (savedFilter !== null) {
+                    if (savedFilter.location !== undefined && savedFilter.locationRadius > 0) {
+                        // console.log("SETTING TO TRUE");
+                        setIsLocationFilter(true);
+                    }
+                }
+                if (parsed_filter !== null) {
+                    if (parsed_filter.location !== undefined && parsed_filter.loacationRadius > 0) {
                         setIsLocationFilter(true);
                     }
                 }
             } catch (error) {
                 console.log("filter parsing went wrong: ", error);
             }
-            console.log("LOCATION ARRAY: ", locArr);
+            // console.log("LOCATION ARRAY: ", locArr);
             end = onSnapshot(queryQ, (sshot: QuerySnapshot) => {
                 sshot.docs.forEach((data: QueryDocumentSnapshot) => {
                     jobArray.push({ id: data.id , ...data.data() });
@@ -292,7 +297,7 @@ const Page = () => {
                 // console.log(jobArray);
                 // setPosts(jobArray);
                 setNonMergePosts(jobArray)
-                console.log(nonMergePosts);
+                // console.log(nonMergePosts);
             });
             return () => end();
         };
@@ -307,7 +312,7 @@ const Page = () => {
         /* get the QS result */
         if (quickSearch !== null && quickSearch !== "") {
             const getQS = async () => {
-                console.log("!!! Searching !!!", quickSearch);
+                // console.log("!!! Searching !!!", quickSearch);
                 const QSresult = await QSFilter(quickSearch);
                 QSresult?.forEach((document) => {
                     document.docs.forEach((snap: any) => {
@@ -336,7 +341,7 @@ const Page = () => {
         // console.log("Populated QsjobArr: ", QsjobArr);
         // console.log("Populated: ", quickSearch);
         if (locArr.length > 0 || QsjobArr.length > 0) {
-            console.log("!!! MERGING !!!");
+            // console.log("!!! MERGING !!!");
             const IdList: any = [];
 
             locArr.forEach((job) => {
@@ -352,13 +357,13 @@ const Page = () => {
             });
 
             const filteredPosts = nonMergePosts.filter((job: any) => IdList.includes(job.id));
-            console.log("Loaded Posts: ", nonMergePosts);
-            console.log("Location Array: ", locArr);
+            // console.log("Loaded Posts: ", nonMergePosts);
+            // console.log("Location Array: ", locArr);
             setPosts(filteredPosts);
         } else if (QsjobArr.length == 0 && quickSearch && quickSearch !== "") {
             setPosts([]);
         } else if (nonMergePosts.length > 0 && !IslocationFilter) {
-            console.log("HERE");
+            // console.log("HERE");
             setPosts(nonMergePosts);
         } else {
             setPosts([]);
