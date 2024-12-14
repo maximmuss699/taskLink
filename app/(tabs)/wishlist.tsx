@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { NavigationContainer, NavigationIndependentTree } from '@react-navigation/native';
@@ -13,6 +13,9 @@ import PictureScreen from '../createNew/pictureScreen';
 import FinalScreen from '../createNew/finalScreen';
 import { FormProvider } from '../context/FormContext';
 import { useForm } from '../context/FormContext';
+import { FIRESTORE } from '@/firebaseConfig';
+import { userId } from '../settings/personal-information';
+import { doc, getDoc } from 'firebase/firestore';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +40,32 @@ const NewStack = () => {
 
 const New = ({ navigation }: { navigation: NativeStackNavigationProp<any> }) => {
     const { formData, setFormData } = useForm();
+
+    useEffect(() => {
+        const fetchUsername = async () => {
+            try {
+                // Fetch user name
+                const userDocRef = doc(FIRESTORE, 'users', userId);
+                const userDoc = await getDoc(userDocRef);
+
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    if (data) {
+                        setFormData({ ...formData, username: data.firstName + ' ' + data.lastName });
+                        console.log('Fetched username from NewScreen:',data.firstName + ' ' + data.lastName);
+                    } else {
+                        console.log('Error', 'User data is empty');
+                    }
+                } else {
+                    console.log('Error', 'User not found');
+                }
+            } catch (error) {
+                console.log('Error', error);
+            }
+        }
+
+        fetchUsername();
+    }, [userId]);
 
     return (
         <SafeAreaView style={styles.container}>

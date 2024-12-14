@@ -23,6 +23,9 @@ export interface PersonalInfoProps {
     testID?: string,
 }
 
+// Your document ID
+export const userId = "295QvAWplDHFfIrXM5XG"; // Replace with the actual user ID
+
 const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
     const router = useRouter();
     const [loading, setLoading] = useState(true); // Loading state
@@ -42,9 +45,6 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         address: false,
         email: false,
     });
-
-    // Your document ID
-    const userId = "295QvAWplDHFfIrXM5XG"; // Replace with the actual user ID
 
     useEffect(() => {
         const fetchUserData = async () => {

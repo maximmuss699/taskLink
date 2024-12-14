@@ -39,7 +39,6 @@ const PictureScreen = () => {
     };
 
     const onNext = () => {
-        setFormData({ ...formData, username: "Jan Schwarz" });  // Hardcoded user name demonstration purposes
         navigation.navigate('finalScreen' as never);
     };
 
