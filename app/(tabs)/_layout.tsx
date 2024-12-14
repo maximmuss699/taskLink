@@ -20,10 +20,11 @@ const Layout = () => {
     }}>
         <Tabs.Screen name="index" options={{
             tabBarLabel: 'Home',
+            headerShown: false,
             tabBarIcon: ({color}) => <Entypo name="home" size={24} color={color} />
         }}/>
         <Tabs.Screen name="explore" options={{
-        tabBarLabel: 'Explore',
+        tabBarLabel: 'Explore', headerShown: false,
         tabBarIcon: ({color}) => <Entypo name="globe" size={24} color={color} />
     }}/>
         <Tabs.Screen name="wishlist" options={{
