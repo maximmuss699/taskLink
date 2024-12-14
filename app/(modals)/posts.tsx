@@ -62,7 +62,7 @@ function visualizeUsedFilters(filter: filt | undefined, pos: number) {
 }
 
 /* Parses the filter and constructs a chained firebase query */
-export function applyFilter(filter: any, queryQ: any, setLocArr: any) {
+export async function applyFilter(filter: any, queryQ: any, setLocArr: any) {
     // console.log("applyFilter: ", filter);
     if (filter === undefined) return queryQ;
     if (filter === "") return queryQ;
@@ -121,7 +121,7 @@ export function applyFilter(filter: any, queryQ: any, setLocArr: any) {
 
         /* here the queries are performed separately, due to the fact that the post only falls within one of those bounds */
         /* if the queries were chained, it would only fetch posts, which are within ALL of the bounds, and no such post exists */
-        areaOfInterest.forEach(async ([min, max]) => {
+        const postsInRadius = areaOfInterest.map(async ([min, max]) => {
             const range = query(queryQ, where("coordinates.geohash", ">=", min), where("coordinates.geohash", "<=", max));
             const resultDocs = await getDocs(range);
             resultDocs.forEach((singleDoc: any) => {
@@ -130,9 +130,10 @@ export function applyFilter(filter: any, queryQ: any, setLocArr: any) {
                     IdArr.push(singleDoc.id);
                 }
             });
-
-            setLocArr(locationPosts);
         });
+        await Promise.all(postsInRadius);
+        console.log("populating the location array: ", locationPosts);
+        setLocArr(locationPosts);
         // console.log(queryQ);
     }
 
@@ -154,6 +155,7 @@ const Page = () => {
     const [QsjobArr, setQsJobArr] = useState<jobPost[]>([]);
     const [locArr, setLocArr] = useState<jobPost[]>([]);
     const [quickSearch, setQSval] = useState<string | null>(null);
+    const [nonMergePosts, setNonMergePosts] = useState<jobPost[]>([]);
 
     // console.log(filterId);
     // console.log(filter);
@@ -248,13 +250,13 @@ const Page = () => {
             /* apply filters, if they are defined... */
             try {
                 if (parsed_filter !== null) {
-                    var filterQuery = applyFilter(parsed_filter, queryQ, setLocArr);
+                    var filterQuery = await applyFilter(parsed_filter, queryQ, setLocArr);
                     // console.log("aplikace filtru 138: ", filterQuery);
                     queryQ = filterQuery;
                 }
                 if (savedFilter !== null) {
                     // console.log("using savedFilter: ", savedFilter);
-                    queryQ = applyFilter(savedFilter, queryQ, setLocArr);
+                    queryQ = await applyFilter(savedFilter, queryQ, setLocArr);
                 }
             } catch (error) {
                 console.log("filter parsing went wrong: ", error);
@@ -265,7 +267,9 @@ const Page = () => {
                     jobArray.push({ id: data.id , ...data.data() });
                 })
                 // console.log(jobArray);
-                setPosts(jobArray);
+                // setPosts(jobArray);
+                setNonMergePosts(jobArray)
+                console.log(nonMergePosts);
             });
             return () => end();
         };
@@ -297,10 +301,9 @@ const Page = () => {
                 setQsJobArr(QsjobArr);
             }
             getQS();
+        } else if (quickSearch === "") {
+            setQsJobArr([]);
         }
-        // else if (quickSearch == "") {
-            // setQsJobArr([]);
-        // }
     }, ([quickSearch]));
 
     useEffect(() => {
@@ -321,14 +324,18 @@ const Page = () => {
                 }
             });
 
-            const filteredPosts = loadedPosts.filter((job: any) => IdList.includes(job.id));
+            const filteredPosts = nonMergePosts.filter((job: any) => IdList.includes(job.id));
             console.log("Populated QsjobArr: ", QsjobArr);
-            console.log("Loaded Posts: ", loadedPosts);
+            console.log("Populated: ", quickSearch);
+            console.log("Loaded Posts: ", nonMergePosts);
+            console.log("Location Array: ", locArr);
             setPosts(filteredPosts);
-        } else if (QsjobArr.length == 0) {
+        } else if (nonMergePosts.length > 0) {
+            setPosts(nonMergePosts);
+        } else {
             setPosts([]);
         }
-    } ,([locArr, QsjobArr]));
+    } ,([locArr, QsjobArr, nonMergePosts]));
 
     return (
         <SafeAreaView style={styles.mainView}>
@@ -379,6 +386,7 @@ const Page = () => {
                 <TouchableOpacity style={[styles.showFilterBtn, { backgroundColor: "#D2122E" }]} onPress={() => {
                                                                                                                 if (savedFilter !== undefined) setSavedFilter(undefined);
                                                                                                                 if (nonSavedFilter !== undefined) setNonSavedFilter(undefined);
+                                                                                                                if (locArr.length > 0) setLocArr([]);
                                                                                                                 }}>
                     <Text style={styles.showFilterBtnText}>Remove</Text>
                 </TouchableOpacity>
