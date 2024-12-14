@@ -121,7 +121,7 @@ export const job_ad = (
                 <Text style={styles.LocationText}>{location}</Text>
                 <Text style={styles.DescriptionText}>{description}</Text>
                 <View style={styles.jobDetails}>
-                    <Text style={[styles.ItemText, { color: tcolor }]}>{date}</Text>
+                    <Text style={[styles.ItemText, { color: 'black' }]}>{date}</Text>
                     <Text style={styles.PriceLocText}>{price} €</Text>
                 </View>
             </View>
