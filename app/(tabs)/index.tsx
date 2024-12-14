@@ -68,7 +68,7 @@ export const job_ad = (id: string, username: string,
     location: string, job_name: string,
     date: string, price: string, router: any, images: Array<string>,
     post_type: boolean, description: string) => {
-        console.log(images);
+        // console.log(images);
         // to differentiate offered and searched jobs; they have different colors
         const tcolor = post_type === false ? "#717171" : "white";
         const bckgColor = post_type === false ? "#D9D9D9" : "#52812F";
@@ -184,7 +184,7 @@ const Page = () => {
         return () => end();
     }, ([quickSearch]));
 
-    console.log(loadedPosts);
+    // console.log(loadedPosts);
     return (
         <View style={styles.main}>
             <Text style={styles.MainText}>Explore tasks near You</Text>
