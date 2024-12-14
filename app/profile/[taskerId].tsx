@@ -18,6 +18,7 @@ import {
     query,
     where,
 } from 'firebase/firestore';
+import { openChat } from '../(modals)/job_post';
 
 const TaskerProfile = () => {
     const router = useRouter();
@@ -30,7 +31,7 @@ const TaskerProfile = () => {
         const afun = async () => {
             setIsLoaded(false);
             const collectionRef = collection(FIRESTORE, "taskers");
-            console.log("looking for: ", taskerId);
+            // console.log("looking for: ", taskerId);
             const queryQ: any = query(collectionRef, where("taskerId", "==", taskerId));
             const docRef = await getDocs(queryQ);
             docRef.forEach((data) => {
@@ -41,8 +42,8 @@ const TaskerProfile = () => {
         afun();
     }, []);
 
-    console.log("taskerId in: ", taskerId);
-    console.log(tasker);
+    // console.log("taskerId in: ", taskerId);
+    // console.log(tasker);
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -111,7 +112,7 @@ const TaskerProfile = () => {
 
                 {/* Action Buttons */}
                 <View style={styles.actionButtons}>
-                    <TouchableOpacity style={styles.contactButton}>
+                    <TouchableOpacity style={styles.contactButton} onPress={() => openChat(tasker.fullName, router)}>
                         <Text style={styles.contactButtonText}>Contact Tasker</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.favouriteButton}>
