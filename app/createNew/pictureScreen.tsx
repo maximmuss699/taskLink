@@ -90,7 +90,6 @@ const styles = StyleSheet.create({
         marginLeft: '5%',
         fontFamily: 'Montserrat-Bold',
         fontSize: 20,
-        marginTop: 10,
     },
     imageRow: {
         flexDirection: 'row',
