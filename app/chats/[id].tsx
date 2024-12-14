@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
     View,
     Text,
@@ -10,59 +10,121 @@ import {
     KeyboardAvoidingView,
     Platform,
     Image,
+    ActivityIndicator,
+    Alert,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { collection, getDoc, doc, arrayUnion, updateDoc } from 'firebase/firestore';
+import {useRouter, useLocalSearchParams, useFocusEffect} from 'expo-router';
+import { collection, getDoc, doc, arrayUnion, updateDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { FIRESTORE } from '@/firebaseConfig';
-import { setUsesNonExemptEncryption } from '@expo/config-plugins/build/ios/UsesNonExemptEncryption';
+import { openChat } from '../(modals)/job_post';
+import Colors from "@/constants/Colors";
 
 export interface Message {
     id: string;
     text: string;
     sender: 'user' | 'other';
+    timestamp: Timestamp;
 }
 
 const ChatScreen = () => {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
-    const [messages, setMessages] = useState<Message[]>([
-        { id: '1', text: 'Hi, still need help with your garden?', sender: 'other' },
-    ]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
-    const [username, setUsername] = useState<string>("");
+    const [username, setUsername] = useState<string>('');
+    const [tasker, setTasker] = useState<any>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [imageLoading, setImageLoading] = useState<boolean>(true);
 
+    // Send message
     const sendMessage = async () => {
         if (inputText.trim()) {
-            setMessages([...messages, { id: Date.now().toString(), text: inputText, sender: 'user' }]);
+            const newMessage: Message = {
+                id: Date.now().toString(),
+                text: inputText.trim(),
+                sender: 'user',
+                timestamp: Timestamp.now(),
+            };
+            setMessages(prevMessages => [...prevMessages, newMessage]);
             setInputText('');
-            const docRef = doc(collection(FIRESTORE, "chats"), id);
-            await updateDoc(docRef, {messages: arrayUnion({ id: Date.now().toString(), text: inputText, sender: 'user' })});
+
+            try {
+                const docRef = doc(FIRESTORE, "chats", id);
+                await updateDoc(docRef, {
+                    messages: arrayUnion({
+                        id: newMessage.id,
+                        text: newMessage.text,
+                        sender: newMessage.sender,
+                        timestamp: newMessage.timestamp,
+                    })
+                });
+            } catch (error) {
+                console.error('Error sending message:', error);
+                Alert.alert('Error', 'Failed to send message.');
+            }
         }
     };
 
-    /* fetch the info from the database */
-    useEffect(() => {
-        const getChat = async () => {
-            const collectionRef = collection(FIRESTORE, "chats");
-            const docRef = doc(collectionRef, id);
-            const chatInfo = await getDoc(docRef);
-            setUsername(chatInfo.data()?.username);
-            setMessages(chatInfo.data()?.messages);
-        }
-        getChat();
-    }, ([]));
+    // Fetch chat data
+    const fetchChatData = useCallback(async () => {
+        try {
+            const chatDocRef = doc(FIRESTORE, "chats", id);
+            const chatDocSnap = await getDoc(chatDocRef);
 
+            if (!chatDocSnap.exists()) {
+                Alert.alert('Error', 'Chat not found.');
+                setLoading(false);
+                return;
+            }
+
+            const chatData = chatDocSnap.data() as { username: string; messages: Message[] };
+            setUsername(chatData.username);
+
+            // Filter out messages without timestamp
+            const validMessages = (chatData.messages || []).filter(msg => msg.timestamp && msg.timestamp.seconds);
+            setMessages(validMessages);
+
+            // Fetch tasker data
+            const taskersCollection = collection(FIRESTORE, "taskers");
+            const taskerQuery = query(taskersCollection, where("fullName", "==", chatData.username));
+            const taskerSnapshot = await getDocs(taskerQuery);
+
+            if (!taskerSnapshot.empty) {
+                const taskerData = taskerSnapshot.docs[0].data();
+                setTasker(taskerData);
+            } else {
+                Alert.alert('Error', 'Tasker not found.');
+            }
+
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching chat data:", error);
+            Alert.alert('Error', 'Failed to load chat data.');
+            setLoading(false);
+        }
+    }, [id]);
+
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchChatData();
+        }, [fetchChatData])
+    );
+
+    // Render chat messages
     const renderItem = ({ item }: { item: Message }) => (
         <View style={[
             styles.messageRow,
             item.sender === 'user' ? styles.messageRowUser : styles.messageRowOther
         ]}>
-            {item.sender === 'other' && (
-                <TouchableOpacity onPress={() => router.push(`/profile/${item.sender}`)}>
+            {item.sender === 'other' && tasker && (
+                <TouchableOpacity onPress={() => router.push(`/profile/${tasker.taskerId}`)}>
                     <Image
-                        source={{ uri: 'https://via.placeholder.com/50' }}
+                        source={{ uri: tasker.profilePicture || 'https://via.placeholder.com/50' }}
                         style={styles.messageAvatar}
+                        onLoadEnd={() => {}}
+                        onError={() => console.log('Error loading avatar')}
                     />
                 </TouchableOpacity>
             )}
@@ -74,18 +136,26 @@ const ChatScreen = () => {
                     styles.messageText,
                     item.sender === 'user' ? styles.userText : styles.otherText
                 ]}>{item.text}</Text>
+
             </View>
-            {item.sender === 'user' && (
-                <Text style={styles.messageTime}>16:30</Text>
+            {item.sender === 'user' && tasker && (
+                <Text style={styles.messageTime}>{item.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
             )}
         </View>
     );
 
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.loading}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+            </SafeAreaView>
+        );
+    }
     return (
         <KeyboardAvoidingView
             style={styles.container}
             behavior={Platform.OS === "ios" ? "padding" : undefined}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 48.5 : 0}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
         >
             <SafeAreaView style={styles.container}>
                 {/* Header */}
@@ -93,15 +163,29 @@ const ChatScreen = () => {
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color="#000" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push(`/profile/${id}`)}>
-                        <Image
-                            source={{ uri: 'https://via.placeholder.com/50' }}
-                            style={styles.profileImage}
-                        />
-                    </TouchableOpacity>
-                    <View style={styles.headerTextContainer}>
-                        <Text style={styles.profileName}>{ username }</Text>
-                        <Text style={styles.chatId}>Chat with ID: {id}</Text>
+                    <View style={styles.headerInfo}>
+                        <TouchableOpacity onPress={() => router.push(`/profile/${tasker?.taskerId}`)}>
+                            <Image
+                                source={{ uri: tasker?.profilePicture || 'https://via.placeholder.com/50' }}
+                                style={styles.profileImage}
+                                onLoadEnd={() => setImageLoading(false)}
+                                onError={() => {
+                                    setImageLoading(false);
+                                    Alert.alert('Error', 'Failed to load profile image.');
+                                }}
+                            />
+                            {imageLoading && (
+                                <ActivityIndicator
+                                    style={styles.imageLoader}
+                                    size="small"
+                                    color="#0000ff"
+                                />
+                            )}
+                        </TouchableOpacity>
+                        <View style={styles.headerTextContainer}>
+                            <Text style={styles.profileName}>{username}</Text>
+                            <Text style={styles.chatId}>Chat ID: {id}</Text>
+                        </View>
                     </View>
                     <TouchableOpacity style={styles.searchIcon}>
                         <Ionicons name="search-outline" size={24} color="#000" />
@@ -110,10 +194,11 @@ const ChatScreen = () => {
 
                 {/* Chat Messages */}
                 <FlatList
-                    data={messages}
+                    data={messages.sort((a, b) => a.timestamp.seconds - b.timestamp.seconds)}
                     renderItem={renderItem}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.chatContainer}
+
                 />
 
                 {/* Input Box */}
@@ -124,6 +209,7 @@ const ChatScreen = () => {
                         placeholderTextColor="#888"
                         value={inputText}
                         onChangeText={setInputText}
+                        multiline
                     />
                     <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
                         <Ionicons name="send" size={20} color="#fff" />
@@ -132,6 +218,7 @@ const ChatScreen = () => {
             </SafeAreaView>
         </KeyboardAvoidingView>
     );
+
 };
 
 const styles = StyleSheet.create({
@@ -142,30 +229,42 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#ddd',
     },
     backButton: {
         padding: 8,
-        marginRight: 10,
+    },
+    headerInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
     },
     profileImage: {
         width: 40,
         height: 40,
         borderRadius: 20,
     },
+    imageLoader: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        marginLeft: -10,
+        marginTop: -10,
+    },
     headerTextContainer: {
-        flex: 1,
-        alignItems: 'center',
+        marginLeft: 12,
     },
     profileName: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
+        color: '#333',
     },
     chatId: {
         fontSize: 12,
-        color: '#555',
+        color: '#666',
     },
     searchIcon: {
         padding: 8,
@@ -173,6 +272,7 @@ const styles = StyleSheet.create({
     chatContainer: {
         flexGrow: 1,
         padding: 16,
+        justifyContent: 'flex-end',
     },
     messageRow: {
         flexDirection: 'row',
@@ -221,7 +321,7 @@ const styles = StyleSheet.create({
     },
     inputContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-end',
         paddingHorizontal: 16,
         paddingVertical: 10,
         backgroundColor: '#fff',
@@ -235,11 +335,20 @@ const styles = StyleSheet.create({
         backgroundColor: '#f0f0f0',
         marginRight: 10,
         fontSize: 16,
+        maxHeight: 100,
     },
     sendButton: {
         backgroundColor: 'green',
         padding: 10,
         borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loading: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
     },
 });
 

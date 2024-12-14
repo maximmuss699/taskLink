@@ -64,18 +64,27 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
             try {
                 const paymentsSnapshot = await getDocs(collection(FIRESTORE, 'payments'));
                 const payoutsSnapshot = await getDocs(collection(FIRESTORE, 'payouts'));
-                // Get data from snapshots and add id field
-                const paymentsData = paymentsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, taskerId: doc.data().taskerId }));
-                const payoutsData = payoutsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, taskerId: doc.data().taskerId }));
 
-                // Concatenate payments and payouts data
-                const allTransactions = [...paymentsData, ...payoutsData];
-                const taskerIds = Array.from(new Set(allTransactions.map(item => item.taskerId)));
+                // Extract data from snapshots
+                const paymentsData = paymentsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    taskerId: doc.data().taskerId || '',
+                    date: doc.data().date || { seconds: 0, nanoseconds: 0 },
+                    amount: doc.data().amount || '0',
+                }));
 
-                // Receive tasker data
+                const payoutsData = payoutsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    taskerId: doc.data().taskerId || '',
+                    date: doc.data().date || { seconds: 0, nanoseconds: 0 },
+                    amount: doc.data().amount || '0',
+                }));
+
+                // Array of unique tasker IDs
+                const taskerIds = Array.from(new Set([...paymentsData, ...payoutsData].map(item => item.taskerId)));
+
+                // Retrieve tasker data
                 const taskersData: { [key: string]: { fullName: string; profilePicture: string } } = {};
-
-                // Fetch tasker data in batches of 10
                 for (let i = 0; i < taskerIds.length; i += 10) {
                     const batch = taskerIds.slice(i, i + 10);
                     const q = query(collection(FIRESTORE, 'taskers'), where('taskerId', 'in', batch));
@@ -89,20 +98,20 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     });
                 }
 
-                // Add tasker info to payments
+                // New datas
                 const paymentsWithTaskerInfo = paymentsData.map(item => ({
                     ...item,
                     fullName: taskersData[item.taskerId]?.fullName || 'Unknown Tasker',
                     profilePicture: taskersData[item.taskerId]?.profilePicture || 'https://via.placeholder.com/100',
                 }));
-                // Add tasker info to payouts
+
                 const payoutsWithTaskerInfo = payoutsData.map(item => ({
                     ...item,
                     fullName: taskersData[item.taskerId]?.fullName || 'Unknown Tasker',
                     profilePicture: taskersData[item.taskerId]?.profilePicture || 'https://via.placeholder.com/100',
                 }));
 
-                // Update state
+                // Update statistics
                 setPayments(paymentsWithTaskerInfo);
                 setPayouts(payoutsWithTaskerInfo);
             } catch (error) {
@@ -113,21 +122,9 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
             }
         };
 
-        const fetchSavedCards = async () => {
-            try {
-                // Fetch saved cards from Firestore
-                const cardsSnapshot = await getDocs(collection(FIRESTORE, 'cards'));
-                const cardsData = cardsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Card[];
-                setSavedCards(cardsData);
-            } catch (error) {
-                console.error('Error fetching saved cards:', error);
-                Alert.alert('Error', 'Cant fetch cards');
-            }
-        };
-        // Fetch transactions and saved cards
         fetchTransactions();
-        fetchSavedCards();
     }, []);
+
 
     const handleAddPayment = async () => {
         if (cardName && cardNumber && expiryDate && cvv) {
@@ -514,10 +511,10 @@ const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-end', // Key change: align content at bottom
+        justifyContent: 'flex-end',
     },
     modalContainer: {
-        width: '100%', // Full width for bottom sheet
+        width: '100%',
         backgroundColor: '#fff',
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,

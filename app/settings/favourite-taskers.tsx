@@ -25,7 +25,7 @@ type Tasker = {
     name: string;
     avatar: string;
     workArea: string;
-    taskerId: string; // делаем taskerId обязательным
+    taskerId: string;
 };
 
 const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
@@ -38,6 +38,7 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
         loadTaskersFromDB();
     }, []);
 
+    // Load taskers from Firestore
     const loadTaskersFromDB = async () => {
         try {
             const taskersSnapshot = await getDocs(collection(FIRESTORE, 'taskers'));
@@ -47,12 +48,12 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
                 return;
             }
 
+            // Map taskers data to Tasker type
             const allTaskers: Tasker[] = taskersSnapshot.docs.map(docSnap => {
                 const data = docSnap.data();
                 const name = data.fullName || 'Unknown Tasker';
                 const avatar = data.profilePicture || 'https://via.placeholder.com/100';
                 const workArea = data.workArea || 'No Work Area';
-                // гарантируем наличие taskerId
                 const taskerId = data.taskerId || docSnap.id;
 
                 return {
@@ -64,6 +65,7 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
                 };
             });
 
+            // Get favorite taskers from Firestore
             const favouritesSnapshot = await getDocs(collection(FIRESTORE, 'favourites'));
             const favoriteTaskerIds = favouritesSnapshot.docs.map(doc => {
                 const favData = doc.data();
@@ -84,6 +86,8 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
+
+    // Add tasker to favorites
     const addTaskerToFavorites = async (tasker: Tasker) => {
         try {
             await setDoc(doc(FIRESTORE, 'favourites', tasker.taskerId), {
@@ -97,6 +101,7 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
+    // Remove tasker from favorites
     const removeTaskerFromFavorites = async (tasker: Tasker) => {
         try {
             await deleteDoc(doc(FIRESTORE, 'favourites', tasker.taskerId));
@@ -108,9 +113,11 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
+
+    // Render taskers
     const renderTaskerItem = ({ item, isFavorite }: { item: Tasker; isFavorite: boolean }) => (
         <View style={styles.taskerItem}>
-            {/* Переходим на профиль по taskerId */}
+
             <TouchableOpacity onPress={() => router.push(`/profile/${item.taskerId}`)}>
                 <Image source={{ uri: item.avatar }} style={styles.avatar} />
             </TouchableOpacity>
@@ -127,6 +134,8 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
         </View>
     );
 
+
+    // green loading screen
     if (loading) {
         return (
             <SafeAreaView style={styles.loading}>
