@@ -12,10 +12,9 @@ import Slider from '@react-native-community/slider';
 import Toast from 'react-native-toast-message';
 
 // sends the evaluation collected from the user to the firebase
-async function updateEval(rating: number, comment: string, id: string, router: any) {
+async function updateEval(rating: number, comment: string, id: string, router: any, username: string) {
     const collectionRef = collection(FIRESTORE, 'jobEval');
-    await addDoc(collectionRef, { comment: comment, rating: rating, postId: id, username: "Jan Schwarz" });
-    // setTimeout(() => router.push({pathname: "/comments/commentMain", params: {id}}), 300);
+    await addDoc(collectionRef, { comment: comment, rating: rating, postId: id, username: username });
     setTimeout(() => router.back(), 300);
 }
 
@@ -23,12 +22,25 @@ function resizeCommWin() {
     return styles.Comment.height * 1.5;
 }
 
+
 const evaluationForm = () => {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
 
     const [sliderVal, setSliderVal] = useState<number>(0);
     const [comment, setComment] = useState<string>("");
+    const [currentUser, setCurrentUser] = useState<string>("");
+
+    useEffect(() => {
+        const get_username = async () => {
+            const collectionRef = collection(FIRESTORE, "users");
+            const docs = await getDocs(collectionRef);
+            if (!docs.empty) {
+                setCurrentUser(docs.docs[0].data().firstName + " " + docs.docs[0].data().lastName);
+            }
+        }
+        get_username();
+    }, []);
 
     return (
     <SafeAreaView style={styles.mainView}>
@@ -68,7 +80,7 @@ const evaluationForm = () => {
         </View>
         </TouchableWithoutFeedback>
 
-        <TouchableOpacity style={styles.button} onPress={() => updateEval(sliderVal, comment, id, router)}>
+        <TouchableOpacity style={styles.button} onPress={() => updateEval(sliderVal, comment, id, router, currentUser)}>
             <Text style={styles.buttonText}>Add evaluation</Text>
         </TouchableOpacity>
     </SafeAreaView>

@@ -37,7 +37,7 @@ const computeWholeEval = (evalArr: Array<evaluation>) => {
 }
 
 // function rendering single comment
-export const renderEval = (id: string, rating: number, comment: string, commId: string, router: any, username: string, taskerId: string | null) => {
+export const renderEval = (id: string, rating: number, comment: string, commId: string, router: any, username: string, taskerId: string | null, current_user: string) => {
     return(
         <View style={{ width: "100%" }}>
         <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
@@ -55,7 +55,7 @@ export const renderEval = (id: string, rating: number, comment: string, commId: 
                     <Text style={styles.evalText}>{rating}/5</Text>
                 </View>
                 {/* Jan Schwarz is the logged in user */}
-                {username === "Jan Schwarz" && (<View style={ { flexDirection: "row", marginTop: 15 } }>
+                {username === current_user && (<View style={ { flexDirection: "row", marginTop: 15 } }>
                     <TouchableOpacity style={styles.commentActionBtn} onPress={() => {router.push({pathname: '/(modals)/editComment', params: { id, commId }})}}>
                         <Ionicons name="pencil-outline" size={25}/>
                     </TouchableOpacity>
@@ -76,6 +76,19 @@ const commentMain = () => {
     // get the post evaluations
     const [loadedEvals, setEvals] = useState<evaluation[]>([]);
     const [postRating, setPostRating] = useState<number>();
+    const [currentUser, setCurrentUser] = useState<string>("");
+
+
+    useEffect(() => {
+        const get_username = async () => {
+            const collectionRef = collection(FIRESTORE, "users");
+            const docs = await getDocs(collectionRef);
+            if (!docs.empty) {
+                setCurrentUser(docs.docs[0].data().firstName + " " + docs.docs[0].data().lastName);
+            }
+        }
+        get_username();
+    }, []);
 
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "jobEval");
@@ -128,7 +141,7 @@ const commentMain = () => {
         <View style={styles.commentView}>
             <FlatList
                 data={loadedEvals}
-                renderItem = {({ item }) => renderEval(item.postId, item.rating, item.comment, item.commId, router, item.username, item.taskerId)}
+                renderItem = {({ item }) => renderEval(item.postId, item.rating, item.comment, item.commId, router, item.username, item.taskerId, currentUser)}
                 keyExtractor={(item) => item.commId}
             />
         </View>
