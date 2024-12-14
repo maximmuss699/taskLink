@@ -117,7 +117,7 @@ export async function applyFilter(filter: any, queryQ: any, setLocArr: any) {
         /* get the geohash bounds for query */
         const loc: [number, number] = [filter.location.latitude, filter.location.longitude];
         const areaOfInterest = geohashQueryBounds(loc, filter.locationRadius * 1000);
-        // console.log(areaOfInterest);
+        console.log(areaOfInterest);
 
         /* here the queries are performed separately, due to the fact that the post only falls within one of those bounds */
         /* if the queries were chained, it would only fetch posts, which are within ALL of the bounds, and no such post exists */
@@ -149,11 +149,14 @@ const Page = () => {
     // console.log(category);
     const { filter } = useLocalSearchParams<{ filter?: string | undefined }>();
     const { filterId } = useLocalSearchParams<{ filterId?: string }>();
+    const { tempFilterId } = useLocalSearchParams<{ tempFilterId?: string }>();
+
     const [modalVis, setModalVis] = useState<boolean>(false);
     const [nonSavedFilter, setNonSavedFilter] = useState<string | undefined>(filter);
 
     const [QsjobArr, setQsJobArr] = useState<jobPost[]>([]);
     const [locArr, setLocArr] = useState<jobPost[]>([]);
+    const [IslocationFilter, setIsLocationFilter] = useState<boolean>(false);
     const [quickSearch, setQSval] = useState<string | null>(null);
     const [nonMergePosts, setNonMergePosts] = useState<jobPost[]>([]);
 
@@ -184,6 +187,7 @@ const Page = () => {
         offeringTask = category === "Taskers" ? true : false;
     }
 
+    /* fetch the filter */
     useEffect(() => {
         if (filterId !== undefined) {
             const fetchFilter = async () => {
@@ -195,10 +199,20 @@ const Page = () => {
                 }
             }
             fetchFilter();
+        } else if (tempFilterId !== undefined) {
+            const fetchTempFilter = async () => {
+                const docRef = doc(FIRESTORE, "tempFilter", tempFilterId);
+                const tempFilterObj = await getDoc(docRef);
+                if (tempFilterObj.exists()) {
+                    setSavedFilter(tempFilterObj.data());
+                }
+            }
+            fetchTempFilter();
         }
         return () => {};
-    }, ([filterId]));
+    }, ([filterId, tempFilterId]));
 
+    /* fetch liked posts */
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "posts");
         let posts_snap: (() => void) | undefined = undefined;
@@ -215,7 +229,8 @@ const Page = () => {
                     }
 
                     favJob.forEach((data) => fav_posts.push(data.id));
-                    fav_posts = Array.from(new Set(fav_posts)); // remove duplicates
+                    /* prevention from duplicates */
+                    fav_posts = Array.from(new Set(fav_posts));
 
                     const docs = await Promise.all(fav_posts.map((id) => getDoc(doc(collectionRef, id))));
                     docs.forEach((doc) => {
@@ -223,7 +238,8 @@ const Page = () => {
                             jobArray.push({ id: doc.id , ...doc.data() });
                         }
                     })
-                    setPosts(jobArray);
+                    // setPosts(jobArray);
+                    setNonMergePosts(jobArray);
                 });
 
             }
@@ -233,6 +249,7 @@ const Page = () => {
     }, ([no_categ, category]));
 
 
+    /* get the posts with optional filters */
     useEffect(() => {
         /* to make sure the jobArray would not be overwritten */
         const getPosts = async () => {
@@ -258,6 +275,12 @@ const Page = () => {
                     // console.log("using savedFilter: ", savedFilter);
                     queryQ = await applyFilter(savedFilter, queryQ, setLocArr);
                 }
+                if (savedFilter !== null || parsed_filter !== null) {
+                    if ((savedFilter.location && savedFilter.locationRadius > 0) || (parsed_filter.location && parsed_filter.loacationRadius > 0)) {
+                        console.log("SETTING TO TRUE");
+                        setIsLocationFilter(true);
+                    }
+                }
             } catch (error) {
                 console.log("filter parsing went wrong: ", error);
             }
@@ -275,8 +298,9 @@ const Page = () => {
         };
 
         getPosts();
-    }, ([savedFilter, nonSavedFilter, quickSearch])); // add locArr
+    }, ([savedFilter, nonSavedFilter, quickSearch]));
 
+    /* for managing quickSearch results */
     useEffect(() => {
         const QSRawArr: any[] = [];
         const QsjobArr: jobPost[] = [];
@@ -306,8 +330,11 @@ const Page = () => {
         }
     }, ([quickSearch]));
 
+    /* for merging all the filters... this is a workaround due to the firestore limitations */
     useEffect(() => {
         // location merging logic...
+        // console.log("Populated QsjobArr: ", QsjobArr);
+        // console.log("Populated: ", quickSearch);
         if (locArr.length > 0 || QsjobArr.length > 0) {
             console.log("!!! MERGING !!!");
             const IdList: any = [];
@@ -325,12 +352,13 @@ const Page = () => {
             });
 
             const filteredPosts = nonMergePosts.filter((job: any) => IdList.includes(job.id));
-            console.log("Populated QsjobArr: ", QsjobArr);
-            console.log("Populated: ", quickSearch);
             console.log("Loaded Posts: ", nonMergePosts);
             console.log("Location Array: ", locArr);
             setPosts(filteredPosts);
-        } else if (nonMergePosts.length > 0) {
+        } else if (QsjobArr.length == 0 && quickSearch && quickSearch !== "") {
+            setPosts([]);
+        } else if (nonMergePosts.length > 0 && !IslocationFilter) {
+            console.log("HERE");
             setPosts(nonMergePosts);
         } else {
             setPosts([]);
@@ -387,6 +415,7 @@ const Page = () => {
                                                                                                                 if (savedFilter !== undefined) setSavedFilter(undefined);
                                                                                                                 if (nonSavedFilter !== undefined) setNonSavedFilter(undefined);
                                                                                                                 if (locArr.length > 0) setLocArr([]);
+                                                                                                                if (IslocationFilter) setIsLocationFilter(false);
                                                                                                                 }}>
                     <Text style={styles.showFilterBtnText}>Remove</Text>
                 </TouchableOpacity>

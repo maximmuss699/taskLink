@@ -31,7 +31,33 @@ interface location {
     latitude: number;
 }
 
-/* TODO: wrap other functions inside try-catch */
+/* stores temporary filter on firebase  */
+async function saveTempFilter(filter: filter) {
+    try {
+        const collectionRef = collection(FIRESTORE, "tempFilter");
+
+        /* To dynamically store only defined values */
+        const parsedFilter: any = {};
+
+        if (filter.minRating !== undefined && filter.minRating > 0) parsedFilter.minRating = filter.minRating;
+        if (filter.maxRating !== undefined && filter.maxRating > 0) parsedFilter.maxRating = filter.maxRating;
+
+        if (filter.minPrice !== undefined && filter.minPrice !== "") parsedFilter.minPrice = filter.minPrice;
+        if (filter.maxPrice !== undefined && filter.maxPrice !== "") parsedFilter.maxPrice = filter.maxPrice;
+
+        if (filter.fromDate !== undefined) parsedFilter.fromDate = filter.fromDate;
+        if (filter.toDate !== undefined) parsedFilter.toDate = filter.toDate;
+        if (filter.location !== undefined && filter.location !== null) parsedFilter.location = filter.location;
+        if (filter.location !== null && filter.locationRadius !== undefined && filter.locationRadius > 0) parsedFilter.locationRadius = filter.locationRadius;
+        if (filter.address !== null && filter.address !== "") parsedFilter.address = filter.address;
+
+        const docRef = await addDoc(collectionRef, parsedFilter);
+        return docRef.id;
+    } catch(error) {
+        console.log("error while saving TEMP filter: ", error);
+    }
+}
+
 async function saveFilter(filter: filter) {
     try {
         const collectionRef = collection(FIRESTORE, "presetFilter");
@@ -309,7 +335,7 @@ const filterPage = () => {
                                     <Text style={styles.fBtnText}>Reset Map</Text>
                     </TouchableOpacity>)}
 
-                    <TouchableOpacity style={[styles.fButton, { marginRight: 15 }]} onPress={() => {
+                    <TouchableOpacity style={[styles.fButton, { marginRight: 15 }]} onPress={async () => {
                                                                         const filter = {
                                                                             fromDate: fromDate,
                                                                             toDate: toDate,
@@ -322,10 +348,11 @@ const filterPage = () => {
                                                                             address: mapAddr
                                                                         }
                                                                         setFilter(filter);
+                                                                        const id = await saveTempFilter(filter);
                                                                         router.back();
                                                                         setTimeout(() =>
                                                                             router.replace({ pathname: "/(modals)/posts",
-                                                                                params: {category: category, filter: JSON.stringify(filter)}})
+                                                                                params: {category: category, tempFilterId: id}})
                                                                             , 150);}}>
                         <Text style={styles.fBtnText}>Apply</Text>
                     </TouchableOpacity>
