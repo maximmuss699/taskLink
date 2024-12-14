@@ -58,7 +58,7 @@ const TaskerProfile = () => {
                 {/* Profile Card */}
                 {tasker && (<View style={styles.card}>
                     <Image
-                        source={{ uri: 'https://via.placeholder.com/100' }}
+                        source={{ uri: tasker.profilePicture || 'https://via.placeholder.com/100' }}
                         style={styles.profileImage}
                     />
                     <Text style={styles.name}>{ tasker.fullName }</Text>

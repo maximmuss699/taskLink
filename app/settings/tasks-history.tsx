@@ -16,7 +16,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from 'expo-router';
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, getDocs, doc, setDoc, deleteDoc, query, where } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, deleteDoc, query, where, addDoc } from "firebase/firestore";
 
 export interface PersonalInfoProps {
     testID?: string,
@@ -256,14 +256,20 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
                 date: new Date(),
             });
 
+            await addDoc(collection(FIRESTORE, 'completed_tasks'), {
+                taskerId: task.taskerId,
+            });
+
             // Удаляем документ из waiting_for_payment
             await deleteDoc(doc(FIRESTORE, 'waiting_for_payment', task.id));
 
             // Обновляем интерфейс
             setWaitingForPayment(prev => prev.filter(t => t.id !== task.id));
 
-            Alert.alert('Success', `Payment of €${task.amount} for ${task.fullName} completed.`);
+           // Alert.alert('Success', `Payment of €${task.amount} for ${task.fullName} completed.`);
             setModalVisible(false);
+
+            await loadAllData();
         } catch (error) {
             console.error('Error processing payment:', error);
             Alert.alert('Error', 'Payment failed.');
@@ -544,11 +550,11 @@ const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: 'flex-end',
+
     },
     modalContainer: {
-        width: '90%',
+        width: '100%',
         backgroundColor: '#fff',
         borderRadius: 15,
         padding: 25,
@@ -578,7 +584,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     savedCardContainer: {
-        width: 300,
+        width: 340,
         height: 110,
         padding: 15,
         marginVertical: 10,

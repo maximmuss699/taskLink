@@ -18,6 +18,7 @@ import {
     Platform,
     KeyboardAvoidingView,
     ActivityIndicator,
+    Dimensions,
 } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from 'expo-router';
@@ -58,9 +59,6 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
     const [payouts, setPayouts] = useState<PaymentItem[]>([]);
     const [loading, setLoading] = useState(true);
 
-
-
-
     useEffect(() => {
         const fetchTransactions = async () => {
             try {
@@ -76,7 +74,6 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
 
                 // Receive tasker data
                 const taskersData: { [key: string]: { fullName: string; profilePicture: string } } = {};
-
 
                 // Fetch tasker data in batches of 10
                 for (let i = 0; i < taskerIds.length; i += 10) {
@@ -97,7 +94,6 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     ...item,
                     fullName: taskersData[item.taskerId]?.fullName || 'Unknown Tasker',
                     profilePicture: taskersData[item.taskerId]?.profilePicture || 'https://via.placeholder.com/100',
-
                 }));
                 // Add tasker info to payouts
                 const payoutsWithTaskerInfo = payoutsData.map(item => ({
@@ -166,8 +162,6 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
             Alert.alert('Please, complete all fields');
         }
     };
-
-
 
     const handleDeleteCard = (id: string) => {
         Alert.alert(
@@ -317,7 +311,6 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                 <View style={styles.modalContent}>
                                     <Text style={styles.modalTitle}>Add Payment Method</Text>
 
-
                                     <View style={styles.inputContainer}>
                                         <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
                                         <TextInput
@@ -328,7 +321,6 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                             style={styles.input}
                                         />
                                     </View>
-
 
                                     <View style={styles.inputContainer}>
                                         <Ionicons name="card-outline" size={20} color="#666" style={styles.inputIcon} />
@@ -343,7 +335,6 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                         />
                                     </View>
 
-
                                     <View style={styles.inputContainer}>
                                         <Ionicons name="calendar-outline" size={20} color="#666" style={styles.inputIcon} />
                                         <TextInput
@@ -356,7 +347,6 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                             maxLength={5}
                                         />
                                     </View>
-
 
                                     <View style={styles.inputContainer}>
                                         <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
@@ -524,13 +514,13 @@ const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: 'flex-end', // Key change: align content at bottom
     },
     modalContainer: {
-        width: '90%',
+        width: '100%', // Full width for bottom sheet
         backgroundColor: '#fff',
-        borderRadius: 20,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
         padding: 20,
         elevation: 10,
     },
@@ -638,7 +628,6 @@ const styles = StyleSheet.create({
         fontWeight: '300',
         fontFamily: 'mon-sb',
     },
-
     addButton: {
         width: 170,
         height: 42,
@@ -655,7 +644,6 @@ const styles = StyleSheet.create({
         fontWeight: '300',
         fontFamily: 'mon-sb',
     },
-
 });
 
 export default Payments;
