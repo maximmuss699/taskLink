@@ -1,4 +1,8 @@
-// ProfilePage.tsx
+/**
+ * @file Profile.tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @description Profile screen
+ */
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -17,118 +21,13 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { FIREBASE_APP, FIRESTORE } from '@/firebaseConfig'; // Ensure the path is correct
-import { getStorage } from 'firebase/storage'; // Import getStorage from Firebase
-import Colors from "../../constants/Colors"; // Import colors if available
+import { FIREBASE_APP, FIRESTORE } from '@/firebaseConfig';
+import { getStorage } from 'firebase/storage';
+import Colors from "../../constants/Colors";
 import { defaultStyles } from '../../constants/Styles';
 import { Href, useRouter } from 'expo-router';
 
-
-const styles = StyleSheet.create({
-    scrollContainer: {
-        paddingBottom: 60, 
-    },
-    loading: {
-        flex: 1,
-        justifyContent: 'center', 
-        alignItems: 'center',   
-        backgroundColor: '#fff',  
-    },
-    headerContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 24,
-    },
-    header: {
-        fontFamily: 'mon-b',
-        fontSize: 30,
-    },
-    card: {
-        backgroundColor: '#fff',
-        padding: 24,
-        borderRadius: 16,
-        marginHorizontal: 24,
-        marginTop: 16,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-        shadowOffset: { width: 1, height: 2 },
-        alignItems: 'center',
-        gap: 14,
-        marginBottom: 24,
-    },
-    avatar: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: Colors.grey,
-    },
-    profileInfo: {
-        width: '100%',
-        alignItems: 'center',
-    },
-    editRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        width: '100%',
-    },
-    userName: {
-        fontSize: 22,
-        fontWeight: '600',
-        color: Colors.dark,
-    },
-    email: {
-        fontSize: 16,
-        color: Colors.dark,
-        marginTop: 8,
-    },
-    since: {
-        fontSize: 14,
-        color: Colors.dark,
-        marginTop: 4,
-    },
-    settingsHeaderContainer: {
-        paddingHorizontal: 24,
-        paddingVertical: 8,
-    },
-    settingsHeader: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: Colors.dark,
-    },
-    settingItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 16,
-        paddingHorizontal: 24,
-    },
-    settingIcon: {
-        marginRight: 16,
-    },
-    settingText: {
-        flex: 1,
-        fontSize: 16,
-        color: Colors.dark,
-    },
-    footerText: {
-        fontSize: 18,
-        fontFamily: 'modernaRegular',
-        color: '#888888',
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginTop: 20,
-    },
-    noUserText: {
-        textAlign: 'center',
-        fontSize: 18,
-        color: '#888',
-        marginTop: 20,
-    },
-});
-
+// Define the User interface
 interface User {
     id: string;
     firstName: string;
@@ -141,6 +40,7 @@ interface User {
     isVerified: boolean;
 }
 
+// Define the SettingItem interface
 interface SettingItem {
     id: string;
     title: string;
@@ -149,6 +49,8 @@ interface SettingItem {
     onPress?: () => void; // Optional callback for custom actions
 }
 
+
+// Define the settings data
 const settingsData: SettingItem[] = [
     { id: '1', title: 'Personal information', icon: 'person-outline', route: '/settings/personal-information' },
     { id: '2', title: 'Payments and payouts', icon: 'wallet-outline', route: '/settings/payments-and-payouts' },
@@ -177,6 +79,7 @@ const ProfilePage = () => {
     const [edit, setEdit] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    // Define the user ID
     const userId = "295QvAWplDHFfIrXM5XG";
 
 
@@ -226,6 +129,8 @@ const ProfilePage = () => {
         fetchUserData();
     }, [userId]);
 
+
+    // If User want to change his name and last name
     const onSaveUser = async () => {
         if (!firstName.trim() || !lastName.trim()) {
             Alert.alert('Error', 'Cant be empty');
@@ -248,6 +153,7 @@ const ProfilePage = () => {
         }
     };
 
+    // If User want to change his profile picture
     const onCaptureImage = async () => {
 
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -256,7 +162,7 @@ const ProfilePage = () => {
             return;
         }
 
-        // Выбор изображения пользователем
+        // Launch the image picker
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
@@ -394,4 +300,109 @@ const ProfilePage = () => {
         </SafeAreaView>)
 };
 
+
+const styles = StyleSheet.create({
+    scrollContainer: {
+        paddingBottom: 60,
+    },
+    loading: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+    headerContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 24,
+    },
+    header: {
+        fontFamily: 'mon-b',
+        fontSize: 30,
+    },
+    card: {
+        backgroundColor: '#fff',
+        padding: 24,
+        borderRadius: 16,
+        marginHorizontal: 24,
+        marginTop: 16,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        shadowOffset: { width: 1, height: 2 },
+        alignItems: 'center',
+        gap: 14,
+        marginBottom: 24,
+    },
+    avatar: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: Colors.grey,
+    },
+    profileInfo: {
+        width: '100%',
+        alignItems: 'center',
+    },
+    editRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        width: '100%',
+    },
+    userName: {
+        fontSize: 22,
+        fontWeight: '600',
+        color: Colors.dark,
+    },
+    email: {
+        fontSize: 16,
+        color: Colors.dark,
+        marginTop: 8,
+    },
+    since: {
+        fontSize: 14,
+        color: Colors.dark,
+        marginTop: 4,
+    },
+    settingsHeaderContainer: {
+        paddingHorizontal: 24,
+        paddingVertical: 8,
+    },
+    settingsHeader: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: Colors.dark,
+    },
+    settingItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 16,
+        paddingHorizontal: 24,
+    },
+    settingIcon: {
+        marginRight: 16,
+    },
+    settingText: {
+        flex: 1,
+        fontSize: 16,
+        color: Colors.dark,
+    },
+    footerText: {
+        fontSize: 18,
+        fontFamily: 'modernaRegular',
+        color: '#888888',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginTop: 20,
+    },
+    noUserText: {
+        textAlign: 'center',
+        fontSize: 18,
+        color: '#888',
+        marginTop: 20,
+    },
+});
 export default ProfilePage;

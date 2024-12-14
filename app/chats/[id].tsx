@@ -1,3 +1,10 @@
+/**
+ * @file chat.tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @description Chat screen
+ */
+
+
 import React, {useCallback, useEffect, useState} from 'react';
 import {
     View,

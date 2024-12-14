@@ -1,4 +1,9 @@
-// PersonalInformation.tsx
+/**
+ * @file personal-information.tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @description Personal Information screen
+ */
+
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -14,17 +19,17 @@ import {
 } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from 'expo-router';
-import { FIRESTORE } from '@/firebaseConfig'; // Ensure the path is correct
-import { doc, getDoc, updateDoc } from 'firebase/firestore'; // Import necessary Firestore functions
-import Colors from "../../constants/Colors"; // Import colors if available
+import { FIRESTORE } from '@/firebaseConfig';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import Colors from "../../constants/Colors";
 
 export interface PersonalInfoProps {
     /** Used to locate this view in end-to-end tests. */
     testID?: string,
 }
 
-// Your document ID
-export const userId = "295QvAWplDHFfIrXM5XG"; // Replace with the actual user ID
+// User ID for fetching data
+export const userId = "295QvAWplDHFfIrXM5XG";
 
 const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
     const router = useRouter();
@@ -135,8 +140,6 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
 
     // Handler for cancelling changes
     const handleCancel = (field: keyof typeof isEditing) => {
-        // Here you can reset changes if previous values are stored
-        // For simplicity, just turn off editing mode
         setIsEditing(prev => ({ ...prev, [field]: false }));
     };
 

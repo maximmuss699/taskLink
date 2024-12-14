@@ -1,3 +1,10 @@
+/**
+ * @file Inbox.tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @description Chats screen
+ */
+
+
 import React, {useCallback, useEffect, useState} from 'react';
 import {
     View,
@@ -21,7 +28,7 @@ import {
 import Colors from "@/constants/Colors";
 
 interface ChatDocument {
-    username: string; // Имя, совпадающее с fullName в taskers
+    username: string;
 }
 
 interface Tasker {
@@ -51,7 +58,7 @@ const Inbox = () => {
                 const chatData = docSnap.data() as ChatDocument;
                 const { username } = chatData;
 
-                // Ищем tasker по fullName == username
+                // Look up the tasker's name and avatar
                 const taskersCollection = collection(FIRESTORE, "taskers");
                 const taskerQuery = query(taskersCollection, where("fullName", "==", username));
                 const taskerSnapshot = await getDocs(taskerQuery);

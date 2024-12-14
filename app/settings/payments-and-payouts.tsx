@@ -1,3 +1,10 @@
+/**
+ * @file payments-and-payouts.tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @description Payments and payouts screen
+ */
+
+
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -99,6 +106,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     });
                 }
 
+                // Combine payments with tasker info
                 const paymentsWithTaskerInfo = paymentsData.map(item => ({
                     ...item,
                     fullName: taskersData[item.taskerId]?.fullName || 'Unknown Tasker',
@@ -120,7 +128,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                 setLoading(false);
             }
         };
-
+        // Fetch saved cards
         const fetchCards = async () => {
             try {
                 const cardsSnapshot = await getDocs(collection(FIRESTORE, 'cards'));
@@ -135,16 +143,18 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
         fetchCards();
     }, []);
 
+    // Open modal for edit card
     const openModalForEdit = (card: Card) => {
         setSelectedCard(card);
         setCardName(card.name);
         setCardNumber(card.fullNumber || '');
         setExpiryDate(card.expiry);
-        setCvv(''); // CVV обычно не хранят, так что оставим пустым
+        setCvv('');
         setIsEditMode(true);
         setModalVisible(true);
     };
 
+    // Open modal for add card
     const openModalForAdd = () => {
         setSelectedCard(null);
         setCardName('');
@@ -155,6 +165,8 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
         setModalVisible(true);
     };
 
+
+    // Add payment method
     const handleAddPayment = async () => {
         if (cardName && cardNumber && expiryDate && cvv) {
             const last4 = cardNumber.slice(-4);
@@ -185,6 +197,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
+    // Update payment method
     const handleUpdatePayment = async () => {
         if (selectedCard && cardName && cardNumber && expiryDate) {
             const last4 = cardNumber.slice(-4);

@@ -1,3 +1,11 @@
+/**
+ * @file [taskerId].tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @author Vojtěch Tichý (xtichy33)
+ * @description Profile screen page.
+ */
+
+
 import React, { useEffect, useState } from 'react';
 import {
     View,
@@ -195,7 +203,7 @@ const TaskerProfile = () => {
                     <Text style={styles.headerTitle}>Tasker Profile</Text>
                 </View>
 
-                {/* Профиль таскера */}
+                {/* Tasker Profile */}
                 {tasker && (
                     <View style={styles.card}>
                         <Image
