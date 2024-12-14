@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView} from 'react-native';
 import React, { useEffect, useState } from 'react';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Colors from "@/constants/Colors";
@@ -25,30 +25,39 @@ const Explore = () => {
     }, ([]));
 
     return (
-        <View style={styles.mainView}>
-            <Text style={styles.MainText}>Explore Jobs</Text>
-            <TouchableOpacity style={styles.SearchBtn} onPress={() => router.push({pathname: '/(modals)/categories'})}>
-                    <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
+        <SafeAreaView style={styles.mainView}>
+            {/* Header */}
+            <View style={styles.header}>
+                <Text style={styles.MainText}>Explore Jobs</Text>
+                <TouchableOpacity
+                    style={styles.SearchBtn}
+                    onPress={() => router.push({ pathname: '/(modals)/categories' })}
+                >
+                    <Ionicons style={styles.SearchIcon} name='search-outline' size={24} />
                     <Text style={styles.SearchBtnText}>What job are you searching for?</Text>
-            </TouchableOpacity>
+                </TouchableOpacity>
+            </View>
 
+            {/* Job List */}
             <View style={styles.jobPanel}>
                 <FlatList
                     data={loadedPosts}
-                    renderItem = {({ item }) => job_ad(item.id,
-                                                      item.username,
-                                                      item.address.locality,
-                                                      item.title,
-                                                      item.date.toDate().toLocaleDateString(),
-                                                      item.price,
-                                                      router,
-                                                      item.images,
-                                                      item.offeringTask,
-                                                      item.description,)}
+                    renderItem={({ item }) => job_ad(
+                        item.id,
+                        item.username,
+                        item.address.locality,
+                        item.title,
+                        item.date.toDate().toLocaleDateString(),
+                        item.price,
+                        router,
+                        item.images,
+                        item.offeringTask,
+                        item.description
+                    )}
                     keyExtractor={(item) => item.id}
                 />
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -56,6 +65,11 @@ const styles = StyleSheet.create({
     mainView: {
         backgroundColor: "white",
         flex: 1
+    },
+    header: {
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        backgroundColor: "white",
     },
     MainText: {
         fontSize: 28,
@@ -74,7 +88,7 @@ const styles = StyleSheet.create({
     },
     SearchBtn: {
         height: 40,
-        width: "80%",
+        width: "100%",
         marginTop: 8,
         alignSelf: 'center',
         borderWidth: 2,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList, Image } from 'react-native';
+import {View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList, Image, ScrollView} from 'react-native';
 import { Link, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
 import { SearchBar } from 'react-native-screens';
@@ -64,46 +64,71 @@ export async function QSFilter(keyString: string) {
 }
 
 
-export const job_ad = (id: string, username: string,
-    location: string, job_name: string,
-    date: string, price: string, router: any, images: Array<string>,
-    post_type: boolean, description: string) => {
-        // console.log(images);
-        // to differentiate offered and searched jobs; they have different colors
-        const tcolor = post_type === false ? "white" : "#717171";
-        const bckgColor = post_type === false ? "#52812F" : "#D9D9D9";
-        return (<TouchableOpacity style={[styles.JobAdvertisement, {backgroundColor: bckgColor}]} onPress={() => router.push({
-                                                                                pathname: '/(modals)/job_post',
-                                                                                params: { id,
-                                                                                    username,
-                                                                                    location,
-                                                                                    job_name,
-                                                                                    date,
-                                                                                    price,
-                                                                                    description,
-                                                                                    images,
-                                                                                    post_type
-                                                                                }
-                                                                            })}>
-        <Text style={styles.JobAdHeader}>{username}</Text>
-        <View onStartShouldSetResponder={() => true} style={{ width: "60%", height: "60%", alignItems: "center", justifyContent: "center", margin: 20 }}>
-        <Carousel
-            width={350}
-            height={300}
-            autoPlay={false}
-            data={images}
-            loop={true}
-            renderItem={({ item }) => (
-                <Image source={{ uri: item }} style={{width: "100%", height: "100%", padding: 5, marginBottom: 10}}/>
-            )}
-        />
-        </View>
-        <Text style={styles.PriceLocText}>{location}</Text>
-        <Text style={[styles.ItemText, {color: tcolor}]}>{job_name}</Text>
-        <Text style={[styles.ItemText, {color: tcolor}]}>{date}</Text>
-        <Text style={styles.PriceLocText}>{price} €</Text>
-    </TouchableOpacity>
-)}
+export const job_ad = (
+    id: string,
+    username: string,
+    location: string,
+    job_name: string,
+    date: string,
+    price: string,
+    router: any,
+    images: Array<string>,
+    post_type: boolean,
+    description: string
+) => {
+    // Color depending on the post type
+    const tcolor = post_type === false ? "white" : "#717171";
+    const bckgColor = post_type === false ? "#CCFFCC" : "#D9D9D9";
+
+    return (
+        <TouchableOpacity
+            key={id}
+            style={[styles.JobAdvertisement, { backgroundColor: bckgColor }]}
+            onPress={() =>
+                router.push({
+                    pathname: '/(modals)/job_post',
+                    params: {
+                        id,
+                        username,
+                        location,
+                        job_name,
+                        date,
+                        price,
+                        description,
+                        images,
+                        post_type
+                    }
+                })
+            }
+        >
+            {/* Image */}
+            <View style={styles.carouselContainer}>
+                <Carousel
+                    width={350}
+                    height={200}
+                    autoPlay={false}
+                    data={images}
+                    loop={true}
+                    renderItem={({ item }) => (
+                        <Image source={{ uri: item }} style={styles.carouselImage} />
+                    )}
+                />
+            </View>
+
+            {/* Info about task */}
+            <View style={styles.jobInfo}>
+                <Text style={styles.JobAdHeader}>{job_name}</Text>
+                <Text style={styles.LocationText}>{location}</Text>
+                <Text style={styles.DescriptionText}>{description}</Text>
+                <View style={styles.jobDetails}>
+                    <Text style={[styles.ItemText, { color: 'black' }]}>{date}</Text>
+                    <Text style={styles.PriceLocText}>{price} €</Text>
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+};
+
 
 // interface definition
 export interface jobPost {
@@ -125,7 +150,6 @@ const Page = () => {
     const router = useRouter();
     const [loadedPosts, setPosts] = useState<jobPost[]>([]);
     const [quickSearch, setQSval] = useState<string | null>(null);
-
     const [location, setLocation] = useState<string>("Brno");
 
     /* fetch the user location, if the permission is granted */
@@ -186,48 +210,64 @@ const Page = () => {
 
     // console.log(loadedPosts);
     return (
-        <View style={styles.main}>
-            <Text style={styles.MainText}>Explore tasks near You</Text>
-            <Text style={styles.LocationText}>{location}</Text>
-            <View style={styles.SearchBarCollection}>
-                <Ionicons style={styles.SearchIcon} name='search-outline' size={24}/>
-                <TextInput
-                    style={styles.SearchBar}
-                    placeholder='What job are you searching for?'
-                    placeholderTextColor="black"
-                    onChangeText={setQSval}
+        <SafeAreaView style={styles.main}>
+            {/* Header */}
+            <View style={styles.header}>
+                <Text style={styles.MainText}>Explore tasks near You</Text>
+                <Text style={styles.LocationText}>{location}</Text>
+                <View style={styles.SearchBarCollection}>
+                    <Ionicons style={styles.SearchIcon} name="search-outline" size={24} color="black" />
+                    <TextInput
+                        style={styles.SearchBar}
+                        placeholder="What job are you searching for?"
+                        placeholderTextColor="black"
+                        onChangeText={setQSval}
                     />
+                </View>
             </View>
 
-            <View style={styles.JobPanel}>
+            {/* FlatList */}
+            <View style={styles.jobPanel}>
                 <FlatList
                     data={loadedPosts}
-                    renderItem = {({ item }) => job_ad(item.id,
-                                                    item.username,
-                                                    item.address.locality,
-                                                    item.title,
-                                                    item.date.toDate().toLocaleDateString(),
-                                                    item.price,
-                                                    router,
-                                                    item.images,
-                                                    item.offeringTask,
-                                                    item.description,
-                                                )}
+                    renderItem={({ item }) => job_ad(
+                        item.id,
+                        item.username,
+                        item.address.locality,
+                        item.title,
+                        item.date.toDate().toLocaleDateString(),
+                        item.price,
+                        router,
+                        item.images,
+                        item.offeringTask,
+                        item.description
+                    )}
                     keyExtractor={(item) => item.id}
-                    />
+                />
             </View>
-        <Toast/>
-        </View>
+
+        </SafeAreaView>
     );
+
+
 }
 
 const styles = StyleSheet.create({
+    main: {
+        flex: 1,
+        backgroundColor: "white"
+    },
+    header: {
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        backgroundColor: "white",
+    },
     MainText: {
         fontSize: 28,
         fontFamily: 'mon-b',
         fontWeight: 'bold',
         color: 'black',
-        marginLeft: 5
+        marginLeft: 5,
     },
     LocationText: {
         fontSize: 22,
@@ -235,75 +275,97 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 5,
         marginLeft: 5,
-        color: Colors.primary
-    },
-    SearchBar: {
-        width: 280,
-        margin: 10,
-        marginLeft: 2,
-        padding: 10,
-        alignSelf: 'center',
-        borderWidth: 2,
-        borderColor: '#DEDEDE',
-        borderRadius: 30,
-        backgroundColor: '#FFFFFF',
-        shadowColor: '#DEDEDE',
-        shadowOpacity: 1,
-        shadowOffset: { width: 0, height: 1},
-        flexDirection: 'row',
-        fontFamily: 'mon-b',
-        fontWeight: 'bold'
-    },
-    SearchIcon: {
-        marginLeft: 15,
-        marginTop: 5
+        color: Colors.primary,
     },
     SearchBarCollection: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center'
-    },
-    JobAdvertisement: {
-        marginBottom: 10,
-        backgroundColor: "green",
-        alignItems: "center",
-        width: "95%",
-        alignSelf: 'center',
         justifyContent: 'center',
-        height: 480,
-        borderRadius: 5,
-        flex: 1,
-        overflow: "hidden",
-        flexDirection: "column"
+        marginTop: 10,
+        marginBottom: 10,
     },
-    JobPanel: {
-        height: "100%",
-        flex: 1
+    SearchBar: {
+        flex: 1,
+        paddingLeft: 40,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderWidth: 1,
+        borderColor: '#DEDEDE',
+        borderRadius: 30,
+        backgroundColor: '#FFFFFF',
+        fontFamily: 'mon-b',
+        fontWeight: 'bold',
+    },
+    SearchIcon: {
+        position: 'absolute',
+        left: 15,
+        top: '50%',
+        transform: [{ translateY: -12 }],
+        color: '#ccc',
+    },
+    listContentContainer: {
+        paddingTop: 10,
+        paddingBottom: 20,
+    },
+
+    JobAdvertisement: {
+        marginBottom: 20,
+        backgroundColor: "#FFFFFF",
+        alignItems: "flex-start",
+        width: "90%",
+        alignSelf: 'center',
+        borderRadius: 15,
+        overflow: "hidden",
+        flexDirection: "column",
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 5 },
+        elevation: 5,
+    },
+    carouselContainer: {
+        width: '100%',
+        height: 200,
+    },
+    carouselImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    jobInfo: {
+        padding: 15,
     },
     JobAdHeader: {
-        margin: 10,
-        marginTop: 2,
+        fontSize: 20,
         fontFamily: 'mon-b',
-        alignSelf: "center",
-        fontSize: 20
+        color: '#333',
+        marginBottom: 5,
+    },
+    DescriptionText: {
+        fontSize: 14,
+        fontFamily: 'mon',
+        color: '#666',
+        marginBottom: 10,
+    },
+    jobDetails: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
     },
     ItemText: {
-        margin: 5,
-        marginLeft: 10,
+        fontSize: 14,
         fontFamily: 'mon',
-        alignSelf: "flex-start",
-        color: "white"
+        color: "#333",
     },
     PriceLocText: {
-        margin: 5,
-        marginLeft: 10,
+        fontSize: 16,
         fontFamily: 'mon-b',
-        alignSelf: "flex-start",
+        color: "#52812F",
     },
-    main: {
+    jobPanel: {
         flex: 1,
-        backgroundColor: "white"
+        marginTop: 20
     }
-})
+});
+
 
 export default Page;
