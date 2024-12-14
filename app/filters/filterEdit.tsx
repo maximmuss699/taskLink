@@ -30,8 +30,10 @@ async function saveFilter(filter: filter, filterId: string) {
         if (filter.toDate !== undefined) parsedFilter.toDate = filter.toDate;
         if (filter.location !== undefined && filter.location !== null) parsedFilter.location = filter.location;
         if (filter.location !== null && filter.locationRadius !== undefined && filter.locationRadius > 0) parsedFilter.locationRadius = filter.locationRadius;
-        console.log(filter.address);
         if (filter.address !== null && filter.address !== "") parsedFilter.address = filter.address;
+        console.log(parsedFilter.location);
+        console.log(parsedFilter.locationRadius);
+        console.log(parsedFilter.address);
 
         const docRef = doc(collection(FIRESTORE, "presetFilter"), filterId);
         await setDoc(docRef, parsedFilter);
@@ -84,6 +86,7 @@ const filterPage = () => {
             setFilterName(loadedData.data()?.filterName || "");
             setMapRadius(loadedData.data()?.locationRadius || 0);
             setMapLocation(loadedData.data()?.location || null);
+            setMapAddr(loadedData.data()?.address || null);
         }
         func();
     }, ([]));
@@ -119,7 +122,7 @@ const filterPage = () => {
             setMapAddr(address.locality + ", " + address.countryCode);
         }
     }
-    console.log(mapAddr);
+    // console.log(mapAddr);
     return (
         <SafeAreaView>
             <TouchableOpacity style={[styles.OtherBtn, {marginLeft: 10}]} onPress={() => router.back()}>
