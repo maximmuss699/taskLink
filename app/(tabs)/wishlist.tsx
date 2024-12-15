@@ -1,5 +1,5 @@
 /**
- * @file wishlist.tsx
+ * @file wishlist.tsx (is actually the new Post screen, the file name was not changed from prototype)
  * @author Jakub Zelenay (xzelen29)
  * @description First screen of the create new task flow
  */
