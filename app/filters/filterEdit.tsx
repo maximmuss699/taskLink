@@ -218,6 +218,7 @@ const filterPage = () => {
                             placeholderTextColor="gray"
                             maxLength={10}
                             value={fromPrice}
+                            keyboardType='numeric'
                             onChangeText={(price) => setFromPrice(price)}
                             />
                         <Text style={styles.subsubText}>To</Text>
@@ -226,6 +227,7 @@ const filterPage = () => {
                             placeholderTextColor="gray"
                             maxLength={10}
                             value={toPrice}
+                            keyboardType='numeric'
                             onChangeText={(price) => setToPrice(price)}
                             />
                     </View>
