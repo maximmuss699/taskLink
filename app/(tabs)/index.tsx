@@ -14,6 +14,7 @@ import * as Loc from 'expo-location';
 import { setPackageInBuildGradle } from '@expo/config-plugins/build/android/Package';
 
 // quicksearch filtering
+// !UNUSED!
 export function filterQS(postArray: jobPost[], qsResult: string | null) {
     // if the search string is null, return the array unchanged...
     if (qsResult === "" || qsResult === null || qsResult === undefined) return postArray;
@@ -48,7 +49,7 @@ export async function QSFilter(keyString: string) {
 
     const queryArr: any[] = [
     /* firebase does not natively support query for substrings, in order to interact with the BE as much as possible, this was the alternative... */
-    /* this only searches prefixes */
+    /* this only searches prefixes of the strings */
         query(queryQ, where("title", ">=", keyString), where("title", "<=", keyString + '\uf8ff')),
         query(queryQ, where("address.locality", ">=", keyString), where("address.locality", "<=", keyString + '\uf8ff')),
         query(queryQ, where("username", ">=", keyString), where("username", "<=", keyString + '\uf8ff'))
@@ -78,7 +79,7 @@ export const job_ad = (
 ) => {
     // Color depending on the post type
     const tcolor = post_type === false ? "white" : "#717171";
-    const bckgColor = post_type === false ? "#CCFFCC" : "#D9D9D9";
+    const bckgColor = post_type === false ? "#8eb28e" : "#D9D9D9";
 
     return (
         <TouchableOpacity
@@ -102,13 +103,13 @@ export const job_ad = (
             }
         >
             {/* Image */}
-            <View style={styles.carouselContainer}>
+            <View style={styles.imageView}>
                 <Carousel
                     width={350}
                     height={200}
                     autoPlay={false}
                     data={images}
-                    loop={true}
+                    loop={false}
                     renderItem={({ item }) => (
                         <Image source={{ uri: item }} style={styles.carouselImage} />
                     )}
@@ -117,12 +118,17 @@ export const job_ad = (
 
             {/* Info about task */}
             <View style={styles.jobInfo}>
-                <Text style={styles.JobAdHeader}>{job_name}</Text>
-                <Text style={styles.LocationText}>{location}</Text>
-                <Text style={styles.DescriptionText}>{description}</Text>
-                <View style={styles.jobDetails}>
-                    <Text style={[styles.ItemText, { color: 'black' }]}>{date}</Text>
-                    <Text style={styles.PriceLocText}>{price} €</Text>
+                <Text style={styles.jobUserText}>{username}</Text>
+                <Text style={styles.jobNameText}>{job_name}</Text>
+
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    {/* align the location text */}
+                    <Text style={[styles.locText, { fontSize: 16, marginBottom: 3, marginLeft: 0 }]}>{location}</Text>
+                </View>
+                {/* <Text style={styles.DescriptionText}>{description}</Text> */}
+                <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
+                    <Text style={[styles.dateSytle, { color: 'black', marginLeft: 2 }]}>{date}</Text>
+                    <Text style={styles.costStyle}>{price} €</Text>
                 </View>
             </View>
         </TouchableOpacity>
@@ -214,7 +220,7 @@ const Page = () => {
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.MainText}>Explore tasks near You</Text>
-                <Text style={styles.LocationText}>{location}</Text>
+                <Text style={styles.locText}>{location}</Text>
                 <View style={styles.SearchBarCollection}>
                     <Ionicons style={styles.SearchIcon} name="search-outline" size={24} color="black" />
                     <TextInput
@@ -226,7 +232,6 @@ const Page = () => {
                 </View>
             </View>
 
-            {/* FlatList */}
             <View style={styles.jobPanel}>
                 <FlatList
                     data={loadedPosts}
@@ -245,21 +250,18 @@ const Page = () => {
                     keyExtractor={(item) => item.id}
                 />
             </View>
-
         </SafeAreaView>
     );
-
-
 }
 
 const styles = StyleSheet.create({
     main: {
         flex: 1,
-        backgroundColor: "white"
+        backgroundColor: "white",
     },
     header: {
         paddingHorizontal: 16,
-        paddingTop: 16,
+        paddingTop: 20,
         backgroundColor: "white",
     },
     MainText: {
@@ -269,7 +271,7 @@ const styles = StyleSheet.create({
         color: 'black',
         marginLeft: 5,
     },
-    LocationText: {
+    locText: {
         fontSize: 22,
         fontFamily: 'mon-b',
         fontWeight: 'bold',
@@ -294,20 +296,13 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         backgroundColor: '#FFFFFF',
         fontFamily: 'mon-b',
-        fontWeight: 'bold',
     },
     SearchIcon: {
         position: 'absolute',
         left: 15,
         top: '50%',
-        transform: [{ translateY: -12 }],
         color: '#ccc',
     },
-    listContentContainer: {
-        paddingTop: 10,
-        paddingBottom: 20,
-    },
-
     JobAdvertisement: {
         marginBottom: 20,
         backgroundColor: "#FFFFFF",
@@ -323,7 +318,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 5 },
         elevation: 5,
     },
-    carouselContainer: {
+    imageView: {
         width: '100%',
         height: 200,
     },
@@ -335,37 +330,32 @@ const styles = StyleSheet.create({
     jobInfo: {
         padding: 15,
     },
-    JobAdHeader: {
-        fontSize: 20,
+    jobUserText: {
+        fontSize: 16,
         fontFamily: 'mon-b',
+    },
+    jobNameText: {
+        fontSize: 14,
+        fontFamily: 'mon',
         color: '#333',
         marginBottom: 5,
     },
-    DescriptionText: {
-        fontSize: 14,
-        fontFamily: 'mon',
-        color: '#666',
-        marginBottom: 10,
-    },
-    jobDetails: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    ItemText: {
+    dateSytle: {
         fontSize: 14,
         fontFamily: 'mon',
         color: "#333",
     },
-    PriceLocText: {
+    costStyle: {
         fontSize: 16,
         fontFamily: 'mon-b',
-        color: "#52812F",
+        color: Colors.primary,
     },
     jobPanel: {
-        flex: 1,
-        marginTop: 20
+        marginTop: 10,
+        width: "100%",
+        backgroundColor: "white",
+        flex: 1
     }
 });
-
 
 export default Page;
