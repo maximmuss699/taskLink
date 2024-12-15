@@ -1,41 +1,21 @@
+/**
+ * @file index.tsx
+ * @author Vojtěch Tichý (xtichy33)
+ * @description home page
+ */
+
 import React, { useEffect, useState } from 'react';
-import {View, Text, StyleSheet, TextInput, TouchableOpacity, ViewBase, FlatList, Image, ScrollView} from 'react-native';
+import {View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Image } from 'react-native';
 import { Link, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
-import { SearchBar } from 'react-native-screens';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
 /* firestore imports */
-import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot, where, QueryDocumentSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, query, getDocs, Timestamp, onSnapshot, where } from 'firebase/firestore';
 import Carousel from 'react-native-reanimated-carousel';
-import Toast from 'react-native-toast-message';
 import { FIRESTORE } from '@/firebaseConfig';
 import * as Loc from 'expo-location';
-import { setPackageInBuildGradle } from '@expo/config-plugins/build/android/Package';
 
-// quicksearch filtering
-// !UNUSED!
-export function filterQS(postArray: jobPost[], qsResult: string | null) {
-    // if the search string is null, return the array unchanged...
-    if (qsResult === "" || qsResult === null || qsResult === undefined) return postArray;
-
-    var filteredArray: jobPost[] = [];
-    // filter the array
-    postArray.forEach((arrElem) => {
-        var isInFilter: boolean = false;
-        if (arrElem.title !== undefined) isInFilter = isInFilter || arrElem.title.toLowerCase().includes(qsResult.toLowerCase());
-        if (arrElem.location !== undefined) isInFilter = isInFilter || arrElem.location.toLowerCase().includes(qsResult.toLowerCase());
-        if (arrElem.username !== undefined) isInFilter = isInFilter || arrElem.username.toLowerCase().includes(qsResult.toLowerCase());
-        if (arrElem.address.locality !== undefined) isInFilter = isInFilter || arrElem.address.locality.toLowerCase().includes(qsResult.toLowerCase());
-
-        if (isInFilter) {
-            // put it into the array
-            filteredArray.push(arrElem);
-        }
-    })
-
-    return filteredArray;
-}
 
 /* custom quick search on !BE! */
 export async function QSFilter(keyString: string) {
@@ -49,7 +29,7 @@ export async function QSFilter(keyString: string) {
 
     const queryArr: any[] = [
     /* firebase does not natively support query for substrings, in order to interact with the BE as much as possible, this was the alternative... */
-    /* this only searches prefixes of the strings */
+    /* this only searches prefixes of the strings... not that much effective, but there is interaction with the BE */
         query(queryQ, where("title", ">=", keyString), where("title", "<=", keyString + '\uf8ff')),
         query(queryQ, where("address.locality", ">=", keyString), where("address.locality", "<=", keyString + '\uf8ff')),
         query(queryQ, where("username", ">=", keyString), where("username", "<=", keyString + '\uf8ff'))
@@ -102,7 +82,6 @@ export const job_ad = (
                 })
             }
         >
-            {/* Image */}
             <View style={styles.imageView}>
                 <Carousel
                     width={350}
@@ -116,20 +95,19 @@ export const job_ad = (
                 />
             </View>
 
-            {/* Info about task */}
             <View style={styles.jobInfo}>
                 <Text style={styles.jobUserText}>{username}</Text>
                 <Text style={styles.jobNameText}>{job_name}</Text>
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                {location && (<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                     {/* align the location text */}
                     <Text style={[styles.locText, { fontSize: 16, marginBottom: 3, marginLeft: 0 }]}>{location}</Text>
-                </View>
+                </View>)}
                 {/* <Text style={styles.DescriptionText}>{description}</Text> */}
-                <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
+                {date && price && (<View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
                     <Text style={[styles.dateSytle, { color: 'black', marginLeft: 2 }]}>{date}</Text>
                     <Text style={styles.costStyle}>{price} €</Text>
-                </View>
+                </View>)}
             </View>
         </TouchableOpacity>
     );
@@ -156,7 +134,7 @@ const Page = () => {
     const router = useRouter();
     const [loadedPosts, setPosts] = useState<jobPost[]>([]);
     const [quickSearch, setQSval] = useState<string | null>(null);
-    const [location, setLocation] = useState<string>("Brno");
+    const [location, setLocation] = useState<string>("Brno"); // brno here is the default location when the user forbids the location permission
 
     /* fetch the user location, if the permission is granted */
     useEffect(() => {
@@ -217,7 +195,6 @@ const Page = () => {
     // console.log(loadedPosts);
     return (
         <SafeAreaView style={styles.main}>
-            {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.MainText}>Explore tasks near You</Text>
                 <Text style={styles.locText}>{location}</Text>
@@ -316,7 +293,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 10,
         shadowOffset: { width: 0, height: 5 },
-        elevation: 5,
     },
     imageView: {
         width: '100%',
