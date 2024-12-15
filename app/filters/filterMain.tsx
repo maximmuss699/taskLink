@@ -1,3 +1,9 @@
+/**
+ * @file filterMain.tsx
+ * @author Vojtěch Tichý (xtichy33)
+ * @description page for filter creation/saving
+ */
+
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Modal } from 'react-native';
 import React, { act, useEffect, useState } from 'react';
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -7,8 +13,6 @@ import Slider from '@react-native-community/slider';
 import { FIRESTORE } from '@/firebaseConfig';
 import { collection, addDoc, onSnapshot, query, where, GeoPoint } from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { jobPost } from '../(tabs)';
-import { parse } from '@babel/core';
 import MapView, { MapPressEvent, Marker, Circle } from 'react-native-maps';
 
 /* Filter interface definition */
@@ -58,6 +62,7 @@ async function saveTempFilter(filter: filter) {
     }
 }
 
+/* parsers the filter (takes only valid values) and saves it into the database */
 async function saveFilter(filter: filter) {
     try {
         const collectionRef = collection(FIRESTORE, "presetFilter");

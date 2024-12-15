@@ -16,7 +16,7 @@ interface evaluation {
     rating: number;
 }
 
-// updates the evaluation
+/* pushes updated evaluation to firebase */
 async function evalToDB(rating: number, comment: string, id: string, router: any, commId: string, username: string) {
     const collectionRef = collection(FIRESTORE, 'jobEval');
     const docRef = doc(collectionRef, commId);

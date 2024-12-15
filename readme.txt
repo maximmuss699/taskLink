@@ -14,9 +14,9 @@
                        - Rychlé hledání (`(tabs)/explore.tsx`)
                        - Filtrování služeb (`filters/`)
                        - Kategorie (`(modals)/categories.tsx`)
-                       - Obrazovka služby (`listing/[id].tsx`)
-                       - Oblíbené příspěvky (`(tabs)/wishlist.tsx`)
-                       - Hodnocení služeb
+                       - Obrazovka služby (`(modals)/job_post.tsx`)
+                       - Oblíbené příspěvky
+                       - Hodnocení služeb ('comments/', '(modals)/editComment.tsx')
                        - Zahájení chatu (`chats/`) |
 | **Jakub Zelenay**     | - Obrazovka pro vytváření nových nabízených a hledaných úkolů (`createNew/`)
                        - Moje tasky (`settings/myTasks.tsx`)|

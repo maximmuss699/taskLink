@@ -1,4 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, FlatList, Image } from 'react-native';
+/**
+ * @file job_post.tsx
+ * @author Vojtěch Tichý (xtichy33)
+ * @description job post page
+ */
+
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useRouter, useLocalSearchParams, Router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -6,8 +12,6 @@ import { FIRESTORE } from '@/firebaseConfig';
 import { updateDoc, collection, setDoc, getFirestore, onSnapshot, query, where, deleteDoc, getDoc, getDocs, doc, limit, addDoc } from 'firebase/firestore';
 import { evaluation } from '../comments/commentMain';
 import Carousel from 'react-native-reanimated-carousel';
-import { jobPost } from '../(tabs)';
-import filterPage from '../filters/filterMain';
 import { Message } from '../chats/[id]';
 
 /* chat interface */
@@ -16,7 +20,7 @@ export interface chat {
     messages: Message[];
 };
 
-// function rendering single comment
+// function rendering single comment; NOTE: it is different from renderEval in commentMain
 const renderEval = (id: string, rating: number, comment: string, commId: string, router: any, username: string, taskerId: string | null, current_user: string) => {
     return(
         <View style={{ width: "100%" }}>
@@ -67,6 +71,7 @@ export async function openChat(username: string, router: Router) {
     const queryQ = query(collectionRef, where("username", "==", username));
     const docRef = await getDocs(queryQ);
     let chatId: string | null = null;
+    /* tries to find chatID */
     docRef.forEach((singleDoc) => {
         if (singleDoc.exists()) {
             chatId = singleDoc.id;
@@ -76,13 +81,14 @@ export async function openChat(username: string, router: Router) {
     // redirect to chat
     if (chatId !== null) {
         router.push({ pathname: '/chats/[id]', params: { id: chatId } });
-    } else { // or create a new one
+    } else { // or create a new one...
         let newChat: chat = { messages: [], username: username };
         const docRef = await addDoc(collectionRef, newChat);
         router.push({ pathname: '/chats/[id]', params: { id: docRef.id } });
     }
 }
 
+/* for certifications */
 function renderCertification(certification: string, key: number) {
     return (<Text style={styles.basicText} key={key}>{ certification }</Text>)
 }

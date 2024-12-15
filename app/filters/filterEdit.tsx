@@ -1,11 +1,17 @@
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Modal } from 'react-native';
+/**
+ * @file filterEdit.tsx
+ * @author Vojtěch Tichý (xtichy33)
+ * @description page for filter modification, could have made this one component... to fit the DRY rule...
+ */
+
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Modal } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Colors from "@/constants/Colors";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, setDoc, doc, getDoc, addDoc, query, where, onSnapshot, GeoPoint } from 'firebase/firestore';
+import { collection, setDoc, doc, getDoc, query, where, onSnapshot, GeoPoint } from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles, filter } from '../filters/filterMain';
 import MapView, { MapPressEvent, Marker, Circle } from 'react-native-maps';

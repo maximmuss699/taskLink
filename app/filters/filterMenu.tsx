@@ -1,12 +1,15 @@
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, FlatList } from 'react-native';
+/**
+ * @file filterMenu.tsx
+ * @author Vojtěch Tichý (xtichy33)
+ * @description page for saved filters
+ */
+
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { FIRESTORE } from '@/firebaseConfig';
 import { collection, query, where, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
-import { filter } from '../filters/filterMain';
-import { applyFilter } from '../(modals)/posts';
-import { Category } from '../context/FormContext';
 
 /* deletes filter with 'filterId'  */
 async function deleteFilter(filterId: string) {
@@ -34,7 +37,7 @@ function parse_filter_info(filter: any) {
     var fromDateStr: string | null = null;
     var toDateStr: string | null = null;
 
-    /* conversion from Firebase timestamp to string, probably not the best solution... */
+    /* conversion from Firebase timestamp to string, probably not the best solution..., but oh well.. */
     if (filter.fromDate !== undefined) {
         fromDateStr = new Date(filter.fromDate?.seconds * 1000).toLocaleDateString('en-GB');
     }
@@ -80,6 +83,7 @@ function parse_filter_info(filter: any) {
     return filterToDisplay;
 }
 
+/* filter rendering into human readable format... */
 const renderFilter = (filter: any, router: any, category: string) => {
     const parsed_filter_info = parse_filter_info(filter.item);
 

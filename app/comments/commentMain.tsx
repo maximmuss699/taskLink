@@ -1,10 +1,16 @@
+/**
+ * @file comment_main.tsx
+ * @author Vojtěch Tichý (xtichy33)
+ * @description main page for post evaluations
+ */
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
-import { useLocalSearchParams, router, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
 /* firestore imports */
-import { collection, query, doc, where, onSnapshot, deleteDoc, updateDoc, getDocs, getDoc } from 'firebase/firestore';
+import { collection, query, doc, where, onSnapshot, deleteDoc, getDocs } from 'firebase/firestore';
 import { FIRESTORE } from '@/firebaseConfig';
 
 // evaluation interface
@@ -66,6 +72,7 @@ const commentMain = () => {
     const [currentUser, setCurrentUser] = useState<string>("");
     const [postRatingCnt, setPostRatingCnt] = useState<number>();
 
+    /* fetches the "current user" username, there is only one dummy user for demo puprposes */
     useEffect(() => {
         const get_username = async () => {
             const collectionRef = collection(FIRESTORE, "users");
@@ -78,6 +85,7 @@ const commentMain = () => {
     }, []);
 
 
+    /* this fetches the updated post rating and post rating count */
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "posts");
         const docRef = doc(collectionRef, id);
@@ -89,6 +97,7 @@ const commentMain = () => {
         return () => end();
     }, [id]);
 
+    /* gets all evaluations of post + for every tasker its id for redirection purposes... */
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "jobEval");
         const queryQ = query(collectionRef, where('postId', '==', id));
@@ -121,7 +130,6 @@ const commentMain = () => {
             </TouchableOpacity>
             <Text style={styles.mainText}>Job Evaluations</Text>
         </View>
-        {/* final evaluation */}
         <View style={styles.evalHeader}>
             <View style={{ flexDirection: "row", marginLeft: 30 }}>
                 <Ionicons name="star" size={20}/>

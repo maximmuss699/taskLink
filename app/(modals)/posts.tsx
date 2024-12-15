@@ -1,3 +1,9 @@
+/**
+ * @file posts.tsx
+ * @author Vojtěch Tichý (xtichy33)
+ * @description page for post listing
+ */
+
 import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Modal, FlatList, SafeAreaView } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -5,12 +11,9 @@ import Colors from "@/constants/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FIRESTORE } from '@/firebaseConfig';
 import { collection, query, where, onSnapshot, DocumentData, QuerySnapshot, QueryDocumentSnapshot, doc, getDoc, getDocs, Timestamp } from 'firebase/firestore';
-import { job_ad, jobPost, filterQS, QSFilter } from '../(tabs)/index';
-import { filter } from '../filters/filterMain';
-import { parse } from '@babel/core';
-import { GestureHandlerRootView, RotationGestureHandler, ScrollView } from 'react-native-gesture-handler';
-import { UNSTABLE_UnhandledLinkingContext } from '@react-navigation/native';
-import { geohashForLocation, geohashQueryBounds, Geopoint } from "geofire-common";
+import { job_ad, jobPost, QSFilter } from '../(tabs)/index';
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
+import { geohashQueryBounds } from "geofire-common";
 
 interface filt {
     filterCriteria: string;

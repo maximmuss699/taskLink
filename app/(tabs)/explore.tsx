@@ -1,3 +1,9 @@
+/**
+ * @file explore.tsx
+ * @author Vojtěch Tichý (xtichy33)
+ * @description explore page
+ */
+
 import {View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView} from 'react-native';
 import React, { useEffect, useState } from 'react';
 import Ionicons from "@expo/vector-icons/Ionicons";

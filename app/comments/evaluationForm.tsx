@@ -1,15 +1,18 @@
+/**
+ * @file evaluationForm.tsx
+ * @author Vojtěch Tichý (xtichy33)
+ * @description page for comment creation
+ */
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useLocalSearchParams, useRouter } from "expo-router";
-import Colors from "@/constants/Colors";
-import { SearchBar } from 'react-native-screens';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
 /* firestore imports */
-import { collection, doc, query, getDocs, addDoc, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { FIRESTORE } from '@/firebaseConfig';
 import Slider from '@react-native-community/slider';
-import Toast from 'react-native-toast-message';
 
 // sends the evaluation collected from the user to the firebase
 async function updateEval(rating: number, comment: string, id: string, router: any, username: string) {
@@ -35,7 +38,7 @@ const evaluationForm = () => {
         const get_username = async () => {
             const collectionRef = collection(FIRESTORE, "users");
             const docs = await getDocs(collectionRef);
-            if (!docs.empty) {
+            if (!docs.empty) { // theres only one user so we can for sure take the first found user....
                 setCurrentUser(docs.docs[0].data().firstName + " " + docs.docs[0].data().lastName);
             }
         }
