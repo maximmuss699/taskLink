@@ -175,7 +175,7 @@ const Page = () => {
         offeringTask = category === "Taskers" ? true : false;
     }
 
-    /* fetch the filter */
+    /* fetch the given filter, any of them is defined */
     useEffect(() => {
         if (filterId !== undefined) {
             const fetchFilter = async () => {
@@ -265,7 +265,6 @@ const Page = () => {
                 }
                 if (savedFilter !== null) {
                     if (savedFilter.location !== undefined && savedFilter.locationRadius > 0) {
-                        // console.log("SETTING TO TRUE");
                         setIsLocationFilter(true);
                     }
                 }
@@ -323,7 +322,7 @@ const Page = () => {
         }
     }, ([quickSearch]));
 
-    /* for merging all the filters... this is a workaround due to the firestore limitations */
+    /* for merging all the filters... this is a workaround due to the firestore limitations, probably not the most effective */
     useEffect(() => {
         // location merging logic...
         // console.log("Populated QsjobArr: ", QsjobArr);
@@ -351,7 +350,6 @@ const Page = () => {
         } else if (QsjobArr.length == 0 && quickSearch && quickSearch !== "") {
             setPosts([]);
         } else if (nonMergePosts.length > 0 && !IslocationFilter) {
-            // console.log("HERE");
             setPosts(nonMergePosts);
         } else {
             setPosts([]);
