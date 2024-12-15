@@ -57,14 +57,15 @@ const settingsData: SettingItem[] = [
     { id: '3', title: 'Accessibility', icon: 'cog-outline', route: '/settings/accessibility' },
     { id: '4', title: 'Tasks history', icon: 'clipboard-outline', route: '/settings/tasks-history' },
     { id: '5', title: 'Favourite taskers', icon: 'heart-outline', route: '/settings/favourite-taskers' },
+    { id: '6', title: 'My tasks', icon: 'list-outline', route: '/settings/myTasks' },
     {
-        id: '6',
+        id: '7',
         title: 'Need help?',
         icon: 'help-circle-outline',
         onPress: () => Alert.alert('Info', 'This feature is not available yet.') // Custom action
     },
     {
-        id: '7',
+        id: '8',
         title: 'Give us feedback',
         icon: 'pencil-outline',
         onPress: () => Alert.alert('Info', 'This feature is not available yet.') // Custom action
