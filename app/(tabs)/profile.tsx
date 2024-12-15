@@ -25,7 +25,7 @@ import { FIREBASE_APP, FIRESTORE } from '@/firebaseConfig';
 import { getStorage } from 'firebase/storage';
 import Colors from "../../constants/Colors";
 import { defaultStyles } from '../../constants/Styles';
-import { Href, useRouter } from 'expo-router';
+import {Href, useFocusEffect, useRouter} from 'expo-router';
 
 // Define the User interface
 interface User {
@@ -77,7 +77,7 @@ const ProfilePage = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [edit, setEdit] = useState(false);
-    const [loading, setLoading] = useState(true);
+
 
     // Define the user ID
     const userId = "295QvAWplDHFfIrXM5XG";
@@ -85,49 +85,53 @@ const ProfilePage = () => {
 
     const STORAGE = getStorage(FIREBASE_APP);
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                // Create a reference to the user's document
-                const userDocRef = doc(FIRESTORE, 'users', userId);
+    useFocusEffect(
+        React.useCallback(() => {
+            const fetchUserData = async () => {
 
-                // Fetch the document
-                const userDoc = await getDoc(userDocRef);
+                try {
+                    // Создайте ссылку на документ пользователя
+                    const userDocRef = doc(FIRESTORE, 'users', userId);
 
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    if (userData) {
-                        const fetchedUser: User = {
-                            id: userDoc.id,
-                            firstName: userData.firstName || '',
-                            lastName: userData.lastName || '',
-                            email: userData.email || '',
-                            phoneNumber: userData.phoneNumber || '',
-                            address: userData.address || '',
-                            profilePicture: userData.profilePicture || 'https://via.placeholder.com/100',
-                            createdAt: userData.createdAt?.toDate() || new Date(),
-                            isVerified: userData.isVerified || false,
-                        };
-                        setUser(fetchedUser);
-                        setFirstName(fetchedUser.firstName);
-                        setLastName(fetchedUser.lastName);
-                        console.log("Fetched User Data:", fetchedUser);
+                    // Получите документ
+                    const userDoc = await getDoc(userDocRef);
+
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        if (userData) {
+                            const fetchedUser: User = {
+                                id: userDoc.id,
+                                firstName: userData.firstName || '',
+                                lastName: userData.lastName || '',
+                                email: userData.email || '',
+                                phoneNumber: userData.phoneNumber || '',
+                                address: userData.address || '',
+                                profilePicture: userData.profilePicture || 'https://via.placeholder.com/100',
+                                createdAt: userData.createdAt?.toDate() || new Date(),
+                                isVerified: userData.isVerified || false,
+                            };
+                            setUser(fetchedUser);
+                            setFirstName(fetchedUser.firstName);
+                            setLastName(fetchedUser.lastName);
+                            console.log("Fetched User Data:", fetchedUser);
+                        } else {
+                            Alert.alert('Error', 'Empty data.');
+                        }
                     } else {
-                        Alert.alert('Error', 'Empty data.');
+                        Alert.alert('Error', 'Cannot find user.');
                     }
-                } else {
-                    Alert.alert('Error', 'Cant found user.');
-                }
-            } catch (error) {
-                console.error("Error while fetching data", error);
-                Alert.alert('Error', 'Cant fetch data');
-            } finally {
-                setLoading(false);
-            }
-        };
+                } catch (error) {
+                    console.error("Error while fetching data", error);
+                    Alert.alert('Error', 'Cannot fetch data');
+                } finally {
 
-        fetchUserData();
-    }, [userId]);
+                }
+            };
+
+            fetchUserData();
+        }, [userId])
+    );
+
 
 
     // If User want to change his name and last name
@@ -217,13 +221,7 @@ const ProfilePage = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <SafeAreaView style={styles.loading}>
-                <ActivityIndicator size="large" color={Colors.primary} />
-            </SafeAreaView>
-        );
-    }
+
 
     return (
         <SafeAreaView style={defaultStyles.container}>
