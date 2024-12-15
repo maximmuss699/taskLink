@@ -1,10 +1,9 @@
 /**
  * @file [taskerId].tsx
  * @author Maksim Samusevich (xsamus00)
- * @author Vojtěch Tichý (xtichy33)
+ * @author Vojtěch Tichý (xtichy33) -- added the ability to contact the tasker
  * @description Profile screen page.
  */
-
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -28,30 +27,50 @@ import {
     query,
     where,
     getDoc,
-    doc, setDoc,
+    doc,
+    setDoc,
+    updateDoc,
 } from 'firebase/firestore';
 import { openChat } from '../(modals)/job_post';
+
+
+// Interface for Review object
+interface Review {
+    commId: string;
+    comment: string;
+    postId: string;
+    rating: number;
+    username: string;
+    taskerId: string;
+    reviewerAvatar: string;
+    reviewerFullName: string;
+}
 
 const TaskerProfile = () => {
     const router = useRouter();
     const { taskerId } = useLocalSearchParams<{ taskerId: string }>();
+
     const [tasker, setTasker] = useState<any>(null);
+    const [taskerDocId, setTaskerDocId] = useState<string | null>(null);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
     const [isFavourite, setIsFavourite] = useState<boolean>(false);
-    const [reviews, setReviews] = useState<any[]>([]);
+    const [reviews, setReviews] = useState<Review[]>([]);
     const [loadingReviews, setLoadingReviews] = useState<boolean>(true);
 
-    // Load tasker info
+    // Fetch tasker data
     useEffect(() => {
         const fetchTasker = async () => {
             setIsLoaded(false);
             try {
-                const collectionRef = collection(FIRESTORE, "taskers");
-                const q = query(collectionRef, where("taskerId", "==", taskerId));
-                const docSnap = await getDocs(q);
-                if (!docSnap.empty) {
+                const taskersCollection = collection(FIRESTORE, "taskers");
+                const q = query(taskersCollection, where("taskerId", "==", taskerId));
+                const taskerSnapshot = await getDocs(q);
+                if (!taskerSnapshot.empty) {
+                    const taskerDoc = taskerSnapshot.docs[0];
+                    const taskerData = taskerDoc.data();
+                    setTasker(taskerData);
+                    setTaskerDocId(taskerDoc.id);
                     setIsLoaded(true);
-                    setTasker(docSnap.docs[0].data());
                 } else {
                     Alert.alert('Error', 'Tasker not found.');
                 }
@@ -67,91 +86,99 @@ const TaskerProfile = () => {
     useEffect(() => {
         const checkIfFavourite = async () => {
             if (taskerId) {
-                const docRef = doc(FIRESTORE, 'favourites', taskerId);
-                const docSnap = await getDoc(docRef);
-                setIsFavourite(docSnap.exists());
+                const favDocRef = doc(FIRESTORE, 'favourites', taskerId);
+                const favDocSnap = await getDoc(favDocRef);
+                setIsFavourite(favDocSnap.exists());
             }
         };
         checkIfFavourite();
     }, [taskerId]);
 
-    // Load reviews
+    // Fetch reviews for the tasker
     useEffect(() => {
         const fetchReviews = async () => {
             if (!tasker) return;
             setLoadingReviews(true);
             try {
-                // Find posts by tasker
                 const postsCollection = collection(FIRESTORE, "posts");
                 const postsQuery = query(postsCollection, where("username", "==", tasker.fullName));
                 const postsSnapshot = await getDocs(postsQuery);
 
                 const postIds = postsSnapshot.docs.map(doc => doc.id);
 
-                // Find reviews for each post
-                const jobEvalCollection = collection(FIRESTORE, "jobEval");
-                let reviewsArray: any[] = [];
+                if (postIds.length === 0) {
+                    setReviews([]);
+                    setLoadingReviews(false);
+                    return;
+                }
 
-                for (const pId of postIds) {
-                    const jobEvalQuery = query(jobEvalCollection, where("postId", "==", pId));
+                const chunkSize = 10;
+                const chunks = [];
+                for (let i = 0; i < postIds.length; i += chunkSize) {
+                    chunks.push(postIds.slice(i, i + chunkSize));
+                }
+
+                let allReviews: Review[] = [];
+
+                for (const chunk of chunks) {
+                    const jobEvalCollection = collection(FIRESTORE, "jobEval");
+                    const jobEvalQuery = query(jobEvalCollection, where('postId', 'in', chunk));
                     const jobEvalSnapshot = await getDocs(jobEvalQuery);
 
-                    jobEvalSnapshot.forEach(evalDoc => {
+                    for (const evalDoc of jobEvalSnapshot.docs) {
                         const evalData = evalDoc.data();
-                        // evalData: { comment, postId, rating, username }
-                        reviewsArray.push(evalData);
-                    });
-                }
 
-                // Find reviewer avatar and full name
-                const updatedReviews = [];
-                for (const review of reviewsArray) {
-                    const reviewerUsername = review.username;
-                    let reviewerAvatar = 'https://via.placeholder.com/50';
-                    let reviewerFullName = reviewerUsername;
+                        const reviewerUsername = evalData.username;
+                        let reviewerAvatar = 'https://via.placeholder.com/50';
+                        let reviewerFullName = reviewerUsername;
 
-                    // Search in taskers
-                    const taskersCollection = collection(FIRESTORE, "taskers");
-                    const tQuery = query(taskersCollection, where("fullName", "==", reviewerUsername));
-                    const tSnapshot = await getDocs(tQuery);
+                        // Search reviewer in taskers
+                        const taskersCollection = collection(FIRESTORE, "taskers");
+                        const tQuery = query(taskersCollection, where("fullName", "==", reviewerUsername));
+                        const tSnapshot = await getDocs(tQuery);
 
-                    if (!tSnapshot.empty) {
-                        const tData = tSnapshot.docs[0].data();
-                        reviewerAvatar = tData.profilePicture || reviewerAvatar;
-                        reviewerFullName = tData.fullName || reviewerUsername;
-                    } else {
-                        // If not found in taskers, try users
-                        const usersCollection = collection(FIRESTORE, "users");
+                        if (!tSnapshot.empty) {
+                            const tData = tSnapshot.docs[0].data();
+                            reviewerAvatar = tData.profilePicture || reviewerAvatar;
+                            reviewerFullName = tData.fullName || reviewerUsername;
+                        } else {
+                            // Search reviewer in users
+                            const usersCollection = collection(FIRESTORE, "users");
+                            const nameParts = reviewerUsername.split(' ');
+                            const firstName = nameParts[0];
+                            const lastName = nameParts.slice(1).join(' ');
 
-                        // Divide the username into first and last name
-                        const nameParts = reviewerUsername.split(' ');
-                        const firstName = nameParts[0];
-                        const lastName = nameParts.slice(1).join(' ');
+                            if (firstName && lastName) {
+                                const uQuery = query(
+                                    usersCollection,
+                                    where("firstName", "==", firstName),
+                                    where("lastName", "==", lastName)
+                                );
+                                const uSnapshot = await getDocs(uQuery);
 
-                        if (firstName && lastName) {
-                            const uQuery = query(
-                                usersCollection,
-                                where("firstName", "==", firstName),
-                                where("lastName", "==", lastName)
-                            );
-                            const uSnapshot = await getDocs(uQuery);
-
-                            if (!uSnapshot.empty) {
-                                const uData = uSnapshot.docs[0].data();
-                                reviewerAvatar = uData.profilePicture || reviewerAvatar;
-                                reviewerFullName = `${uData.firstName} ${uData.lastName}` || reviewerUsername;
+                                if (!uSnapshot.empty) {
+                                    const uData = uSnapshot.docs[0].data();
+                                    reviewerAvatar = uData.profilePicture || reviewerAvatar;
+                                    reviewerFullName = `${uData.firstName} ${uData.lastName}` || reviewerUsername;
+                                }
                             }
                         }
-                    }
 
-                    updatedReviews.push({
-                        ...review,
-                        reviewerAvatar,
-                        reviewerFullName,
-                    });
+                        const ratingValue = typeof evalData.rating === 'number' ? evalData.rating : parseFloat(evalData.rating);
+                        allReviews.push({
+                            commId: evalDoc.id,
+                            comment: evalData.comment,
+                            postId: evalData.postId,
+                            rating: isNaN(ratingValue) ? 0 : ratingValue,
+                            username: evalData.username,
+                            taskerId: evalData.taskerId,
+                            reviewerAvatar,
+                            reviewerFullName,
+                        });
+                    }
                 }
 
-                setReviews(updatedReviews);
+                setReviews(allReviews);
                 setLoadingReviews(false);
             } catch (error) {
                 console.error("Error fetching reviews:", error);
@@ -159,12 +186,61 @@ const TaskerProfile = () => {
                 setLoadingReviews(false);
             }
         };
+
         if (tasker) {
             fetchReviews();
         }
-    }, [tasker, taskerId]);
+    }, [tasker]);
 
-    // Add to Favourites
+    // Calculate and update tasker rating
+    useEffect(() => {
+        const calculateAndUpdateTaskerRating = async () => {
+            if (!taskerDocId) return;
+
+            // If there are no reviews, don't update the rating
+            if (reviews.length === 0) {
+                return;
+            }
+
+            let averageRating = 0;
+            const totalRating = reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
+            averageRating = totalRating / reviews.length;
+
+            // Convert to string
+            const ratingStr = averageRating.toString();
+
+            // Control actual rating
+            const currentRatingStr = tasker?.rating;
+            const currentRatingNum = parseFloat(currentRatingStr);
+            const newRatingNum = parseFloat(ratingStr);
+
+            // If the new rating is the same as the current rating, don't update
+            if (!isNaN(currentRatingNum) && !isNaN(newRatingNum) && currentRatingNum === newRatingNum) {
+                return;
+            }
+
+            try {
+                const taskerRef = doc(FIRESTORE, 'taskers', taskerDocId);
+                await updateDoc(taskerRef, {
+                    rating: ratingStr,
+                });
+
+
+                // Update state to show the new rating
+                setTasker((prev: any) => ({
+                    ...prev,
+                    rating: ratingStr,
+                }));
+            } catch (error) {
+                console.error("Error updating tasker rating:", error);
+                Alert.alert('Error', 'Failed to update tasker rating.');
+            }
+        };
+
+        calculateAndUpdateTaskerRating();
+    }, [reviews, taskerDocId, tasker]);
+
+    // Add tasker to favourites
     const addToFavourites = async () => {
         try {
             if (isFavourite) {
@@ -173,15 +249,18 @@ const TaskerProfile = () => {
             }
 
             if (taskerId && tasker) {
-                const docRef = doc(FIRESTORE, 'favourites', taskerId);
-                await setDoc(docRef, {
+                const favDocRef = doc(FIRESTORE, 'favourites', taskerId);
+                const ratingNumber = parseFloat(tasker.rating);
+                const safeRating = isNaN(ratingNumber) ? "0" : tasker.rating;
+
+                await setDoc(favDocRef, {
                     taskerId,
                     fullName: tasker.fullName,
                     email: tasker.email,
                     profilePicture: tasker.profilePicture,
                     workArea: tasker.workArea,
                     location: tasker.location,
-                    rating: tasker.rating,
+                    rating: safeRating,
                 });
                 setIsFavourite(true);
                 Alert.alert('Success', 'Tasker added to favourites!');
@@ -190,6 +269,13 @@ const TaskerProfile = () => {
             console.error('Error adding to favourites:', error);
             Alert.alert('Error', 'Failed to add tasker to favourites.');
         }
+    };
+
+    // Display rating with 2 decimal places
+    const getDisplayRating = () => {
+        if (!tasker || tasker.rating === undefined) return '0';
+        const ratingNumber = parseFloat(tasker.rating);
+        return isNaN(ratingNumber) ? '0' : ratingNumber.toFixed(2);
     };
 
     return (
@@ -204,7 +290,7 @@ const TaskerProfile = () => {
                 </View>
 
                 {/* Tasker Profile */}
-                {tasker && (
+                {isLoaded && tasker && (
                     <View style={styles.card}>
                         <Image
                             source={{ uri: tasker.profilePicture || 'https://via.placeholder.com/100' }}
@@ -212,15 +298,17 @@ const TaskerProfile = () => {
                         />
                         <Text style={styles.name}>{tasker.fullName}</Text>
                         <Text style={styles.email}>{tasker.email}</Text>
-                        <Text style={styles.details}>Tasker rating: {tasker.rating}</Text>
+                        <Text style={styles.details}>
+                            Tasker rating: {getDisplayRating()}
+                        </Text>
                         <Text style={styles.details}>Work area: {tasker.workArea}</Text>
                         <Text style={styles.details}>{tasker.location}</Text>
-                        <Text style={styles.details}>Since 11/06/2022</Text>
+                        <Text style={styles.details}>Since {tasker.joinedDate ? tasker.joinedDate.toDate().toLocaleDateString() : 'Unknown'}</Text>
                     </View>
                 )}
 
                 {/* About Section */}
-                {tasker && (
+                {tasker && tasker.about && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>About me</Text>
                         <Text style={styles.sectionText}>{tasker.about}</Text>
@@ -398,7 +486,6 @@ const styles = StyleSheet.create({
         fontWeight: '300',
         fontFamily: 'mon-sb',
     },
-
     favouriteButton: {
         backgroundColor: 'green',
         paddingVertical: 12,
