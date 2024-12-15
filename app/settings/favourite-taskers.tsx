@@ -1,3 +1,10 @@
+/**
+ * @file favourite-taskers.tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @description Favourite Taskers screen
+ */
+
+
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -34,6 +41,8 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
     const [favoriteTaskers, setFavoriteTaskers] = useState<Tasker[]>([]);
     const [loading, setLoading] = useState(true);
 
+
+    // Load taskers on component mount
     useEffect(() => {
         loadTaskersFromDB();
     }, []);
@@ -93,6 +102,7 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
             await setDoc(doc(FIRESTORE, 'favourites', tasker.taskerId), {
                 taskerId: tasker.taskerId
             });
+
             setFavoriteTaskers((prev) => [...prev, tasker]);
             setNearTaskers((prev) => prev.filter((t) => t.taskerId !== tasker.taskerId));
         } catch (error) {
@@ -175,7 +185,8 @@ const FavouriteTaskers: React.FC<PersonalInfoProps> = (props) => {
                     <View style={styles.infoRow}>
                         <Text style={styles.label}>Taskers Near You</Text>
                     </View>
-                    {nearTaskers.length === 0 ? (
+                    {nearTaskers.length === 0 ? // No taskers near you
+                        (
                         <Text style={styles.noTaskersText}>No taskers found near you</Text>
                     ) : (
                         <FlatList

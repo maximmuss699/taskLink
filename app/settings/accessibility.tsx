@@ -1,4 +1,8 @@
-// app/settings/personal-information.tsx
+/**
+ * @file Accessibility.tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @description Accessibility settings screen
+ */
 
 import React, { useState } from 'react';
 import {
@@ -17,11 +21,11 @@ export interface PersonalInfoProps {
     testID?: string,
 }
 
-const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
+const Accessibility: React.FC<PersonalInfoProps> = (props) => {
     const router = useRouter();
     const [isEnabled, setIsEnabled] = useState(false);
 
-    // Обработчик переключения, который только меняет состояние
+    // Just toggle without any actual functionality
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
 
@@ -83,7 +87,7 @@ const styles = StyleSheet.create({
         fontFamily: 'mon-b',
     },
     placeholder: {
-        width: 32, // Для симметрии заголовка
+        width: 32,
     },
     content: {
         padding: 16,
@@ -142,11 +146,11 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontSize: 18,
-        fontFamily: 'modernaRegular', // Используем шрифт MuseoModerno
-        color: '#888888', // Серый цвет текста
+        fontFamily: 'modernaRegular',
+        color: '#888888',
         fontWeight: 'bold',
         position: 'absolute',
-        bottom: 20, // Отступ от низа экрана
+        bottom: 20,
         alignSelf: 'center',
     },
     iosSwitch: {
@@ -155,4 +159,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default PersonalInformation;
+export default Accessibility;

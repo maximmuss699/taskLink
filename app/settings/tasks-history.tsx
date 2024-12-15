@@ -1,3 +1,10 @@
+/**
+ * @file tasks-history.tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @description Tasks history screen
+ */
+
+
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -48,7 +55,7 @@ interface Task {
     avatar?: string;
 }
 
-const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
+const TasksHIstory: React.FC<PersonalInfoProps> = (props) => {
     const router = useRouter();
 
     const [savedCards, setSavedCards] = useState<Card[]>([]);
@@ -61,10 +68,13 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
     const [tasksCompletedByUser, setTasksCompletedByUser] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Load all data on component mount
     useEffect(() => {
         loadAllData();
     }, []);
 
+
+    // Load all data from Firestore
     const loadAllData = async () => {
         setLoading(true);
         try {
@@ -79,6 +89,8 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
+
+    // Fetch saved cards from Firestore
     const fetchSavedCards = async () => {
         try {
             const cardsSnapshot = await getDocs(collection(FIRESTORE, 'cards'));
@@ -90,6 +102,7 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
+    // Fetch waiting for payment Taskers
     const fetchWaitingForPayment = async () => {
         try {
             const waitingSnapshot = await getDocs(collection(FIRESTORE, 'waiting_for_payment'));
@@ -142,6 +155,8 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
+
+    // Fetch completed tasks with dates
     const fetchCompletedTasksWithDates = async () => {
         try {
             const completedSnapshot = await getDocs(collection(FIRESTORE, 'completed_tasks'));
@@ -222,6 +237,8 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
+
+    // Handle payment button press
     const handlePayment = (taskId: string) => {
         const foundTask = waitingForPayment.find(t => t.id === taskId);
         if (!foundTask) {
@@ -237,6 +254,8 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
+
+    // Handle payment with card
     const handlePaymentWithCard = async (cardId: string) => {
         try {
             if (!selectedTaskId) return;
@@ -260,10 +279,10 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
                 taskerId: task.taskerId,
             });
 
-            // Удаляем документ из waiting_for_payment
+            // Delete from waiting_for_payment
             await deleteDoc(doc(FIRESTORE, 'waiting_for_payment', task.id));
 
-            // Обновляем интерфейс
+            // Update UI
             setWaitingForPayment(prev => prev.filter(t => t.id !== task.id));
 
            // Alert.alert('Success', `Payment of €${task.amount} for ${task.fullName} completed.`);
@@ -276,6 +295,8 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
+
+    // Render payment item in FlatList
     const renderPaymentItem = ({ item }: { item: WaitingPaymentTask }) => (
         <View style={styles.taskItem}>
             <TouchableOpacity onPress={() => router.push(`/profile/${item.taskerId}`)}>
@@ -295,6 +316,7 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         </View>
     );
 
+    // Render task item in FlatList
     const renderTaskItem = ({ item }: { item: Task }) => (
         <View style={styles.taskItem}>
             <TouchableOpacity onPress={() => router.push(`/profile/${item.taskerId}`)}>
@@ -311,6 +333,8 @@ const PersonalInformation: React.FC<PersonalInfoProps> = (props) => {
         </View>
     );
 
+
+    // Render green loading indicator
     if (loading) {
         return (
             <SafeAreaView style={styles.loading}>
@@ -624,4 +648,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default PersonalInformation;
+export default TasksHIstory;

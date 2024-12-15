@@ -1,3 +1,10 @@
+/**
+ * @file stats.tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @description Statistics screen for displaying user's income and expenses.
+ */
+
+
 import React, { useEffect, useState } from 'react';
 import {
     View,
@@ -15,9 +22,12 @@ import { useRouter } from 'expo-router';
 import { BarChart } from "react-native-chart-kit";
 import { FIRESTORE } from '@/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
+import Colors from "@/constants/Colors";
 
 const screenWidth = Dimensions.get('window').width;
 
+
+// Chart configuration
 const incomeChartConfig = {
     backgroundGradientFrom: "#FFFFFF",
     backgroundGradientTo: "#FFFFFF",
@@ -35,6 +45,7 @@ const incomeChartConfig = {
     barPercentage: 1,
 };
 
+// Chart configuration
 const expensesChartConfig = {
     backgroundGradientFrom: "#FFFFFF",
     backgroundGradientTo: "#FFFFFF",
@@ -56,8 +67,9 @@ interface Transaction {
     amount: string;
     date: any;
     taskerId: string;
-    // другие поля при необходимости
 }
+
+
 
 const MyBarChart = () => {
     const router = useRouter();
@@ -66,11 +78,14 @@ const MyBarChart = () => {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [{ data: [0,0,0,0,0,0,0] }]
     });
+
+    // Initialize the state with empty data
     const [expensesData, setExpensesData] = useState({
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [{ data: [0,0,0,0,0,0,0] }]
     });
 
+    // Load statistics when the screen is mounted
     useEffect(() => {
         loadStatistics();
     }, []);
@@ -135,8 +150,8 @@ const MyBarChart = () => {
 
     if (loading) {
         return (
-            <SafeAreaView style={{flex:1, justifyContent:'center', alignItems:'center'}}>
-                <ActivityIndicator size="large" color="#000" />
+            <SafeAreaView style={styles.loading}>
+                <ActivityIndicator size="large" color={Colors.primary} />
             </SafeAreaView>
         );
     }
@@ -288,6 +303,12 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 20,
         alignSelf: 'center',
+    },
+    loading: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
     },
 });
 

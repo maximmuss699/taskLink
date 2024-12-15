@@ -1,4 +1,9 @@
-// Payments.tsx
+/**
+ * @file payments-and-payouts.tsx
+ * @author Maksim Samusevich (xsamus00)
+ * @description Payments and payouts screen
+ */
+
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -18,12 +23,11 @@ import {
     Platform,
     KeyboardAvoidingView,
     ActivityIndicator,
-    Dimensions,
 } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from 'expo-router';
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, getDocs, query, where, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import Colors from "../../constants/Colors";
 
 export interface PersonalInfoProps {
@@ -35,6 +39,7 @@ interface Card {
     name: string;
     last4: string;
     expiry: string;
+    fullNumber?: string;
 }
 
 interface PaymentItem {
@@ -49,6 +54,9 @@ interface PaymentItem {
 const Payments: React.FC<PersonalInfoProps> = (props) => {
     const router = useRouter();
     const [isModalVisible, setModalVisible] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+
     const [cardName, setCardName] = useState('');
     const [cardNumber, setCardNumber] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
@@ -65,7 +73,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                 const paymentsSnapshot = await getDocs(collection(FIRESTORE, 'payments'));
                 const payoutsSnapshot = await getDocs(collection(FIRESTORE, 'payouts'));
 
-                // Extract data from snapshots
+                // Extract data
                 const paymentsData = paymentsSnapshot.docs.map(doc => ({
                     id: doc.id,
                     taskerId: doc.data().taskerId || '',
@@ -80,10 +88,10 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     amount: doc.data().amount || '0',
                 }));
 
-                // Array of unique tasker IDs
+                // taskerIds
                 const taskerIds = Array.from(new Set([...paymentsData, ...payoutsData].map(item => item.taskerId)));
 
-                // Retrieve tasker data
+                // Fetch tasker data
                 const taskersData: { [key: string]: { fullName: string; profilePicture: string } } = {};
                 for (let i = 0; i < taskerIds.length; i += 10) {
                     const batch = taskerIds.slice(i, i + 10);
@@ -98,7 +106,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     });
                 }
 
-                // New datas
+                // Combine payments with tasker info
                 const paymentsWithTaskerInfo = paymentsData.map(item => ({
                     ...item,
                     fullName: taskersData[item.taskerId]?.fullName || 'Unknown Tasker',
@@ -111,7 +119,6 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                     profilePicture: taskersData[item.taskerId]?.profilePicture || 'https://via.placeholder.com/100',
                 }));
 
-                // Update statistics
                 setPayments(paymentsWithTaskerInfo);
                 setPayouts(payoutsWithTaskerInfo);
             } catch (error) {
@@ -121,31 +128,61 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                 setLoading(false);
             }
         };
+        // Fetch saved cards
+        const fetchCards = async () => {
+            try {
+                const cardsSnapshot = await getDocs(collection(FIRESTORE, 'cards'));
+                const cardsData = cardsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Card[];
+                setSavedCards(cardsData);
+            } catch (error) {
+                console.error('Error fetching cards:', error);
+            }
+        };
 
         fetchTransactions();
+        fetchCards();
     }, []);
 
+    // Open modal for edit card
+    const openModalForEdit = (card: Card) => {
+        setSelectedCard(card);
+        setCardName(card.name);
+        setCardNumber(card.fullNumber || '');
+        setExpiryDate(card.expiry);
+        setCvv('');
+        setIsEditMode(true);
+        setModalVisible(true);
+    };
 
+    // Open modal for add card
+    const openModalForAdd = () => {
+        setSelectedCard(null);
+        setCardName('');
+        setCardNumber('');
+        setExpiryDate('');
+        setCvv('');
+        setIsEditMode(false);
+        setModalVisible(true);
+    };
+
+
+    // Add payment method
     const handleAddPayment = async () => {
         if (cardName && cardNumber && expiryDate && cvv) {
-            // Saving only last 4 digits of card number
             const last4 = cardNumber.slice(-4);
             const newCard: Card = {
                 id: '',
                 name: cardName,
                 last4: last4,
                 expiry: expiryDate,
+                fullNumber: cardNumber,
             };
 
             try {
-                // Add card to Firestore
                 const docRef = await addDoc(collection(FIRESTORE, 'cards'), newCard);
                 newCard.id = docRef.id;
-
-                // Update state
                 setSavedCards([...savedCards, newCard]);
 
-                // Close modal and clear input fields
                 setModalVisible(false);
                 setCardName('');
                 setCardNumber('');
@@ -160,25 +197,69 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
         }
     };
 
-    const handleDeleteCard = (id: string) => {
-        Alert.alert(
-            'Delete Card',
-            'Are you sure you want to delete this card?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete', style: 'destructive', onPress: async () => {
-                        try {
-                            await deleteDoc(doc(FIRESTORE, 'cards', id));
-                            setSavedCards(savedCards.filter(card => card.id !== id));
-                        } catch (error) {
-                            console.error('Error deleting card:', error);
-                            Alert.alert('Error', 'cant delete card');
+    // Update payment method
+    const handleUpdatePayment = async () => {
+        if (selectedCard && cardName && cardNumber && expiryDate) {
+            const last4 = cardNumber.slice(-4);
+            const updatedCard = {
+                name: cardName,
+                last4: last4,
+                expiry: expiryDate,
+                fullNumber: cardNumber,
+            };
+
+            try {
+                const cardDocRef = doc(FIRESTORE, 'cards', selectedCard.id);
+                await updateDoc(cardDocRef, updatedCard);
+
+                setSavedCards(prev =>
+                    prev.map(card => card.id === selectedCard.id ? { ...card, ...updatedCard } : card)
+                );
+
+                setModalVisible(false);
+                setSelectedCard(null);
+                setIsEditMode(false);
+                setCardName('');
+                setCardNumber('');
+                setExpiryDate('');
+                setCvv('');
+            } catch (error) {
+                console.error('Error updating card:', error);
+                Alert.alert('Error', 'Failed to update card');
+            }
+        } else {
+            Alert.alert('Please complete all fields');
+        }
+    };
+
+    const handleDeleteCardFromModal = async () => {
+        if (selectedCard) {
+            Alert.alert(
+                'Delete Card',
+                'Are you sure you want to delete this card?',
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                        text: 'Delete', style: 'destructive', onPress: async () => {
+                            try {
+                                await deleteDoc(doc(FIRESTORE, 'cards', selectedCard.id));
+                                setSavedCards(prev => prev.filter(card => card.id !== selectedCard.id));
+                                setModalVisible(false);
+                                setSelectedCard(null);
+                                setIsEditMode(false);
+                                setCardName('');
+                                setCardNumber('');
+                                setExpiryDate('');
+                                setCvv('');
+                            } catch (error) {
+                                console.error('Error deleting card:', error);
+                                Alert.alert('Error', 'cant delete card');
+                            }
                         }
-                    }
-                },
-            ]
-        );
+                    },
+                ]
+            );
+        }
     };
 
     const renderItem = ({ item, isPayout }: { item: PaymentItem, isPayout: boolean }) => (
@@ -236,7 +317,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
 
 
                 {savedCards.map((card) => (
-                    <TouchableOpacity key={card.id} onPress={() => handleDeleteCard(card.id)}>
+                    <TouchableOpacity key={card.id} onPress={() => openModalForEdit(card)}>
                         <View style={styles.savedCardContainer}>
                             <View style={styles.cardIcon}>
                                 <Ionicons name="card-outline" size={30} color="#fff" />
@@ -252,7 +333,7 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                 ))}
 
                 <View style={styles.buttonRow}>
-                    <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)} testID="add-payment-button">
+                    <TouchableOpacity style={styles.addButton} onPress={openModalForAdd} testID="add-payment-button">
                         <Text style={styles.addButtonText}>Add Payment Method</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.statisticsButton} onPress={() => router.push('../stats/stats')}>
@@ -296,9 +377,17 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                 visible={isModalVisible}
                 animationType="fade"
                 transparent={true}
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={() => {
+                    setModalVisible(false);
+                    setSelectedCard(null);
+                    setIsEditMode(false);
+                }}
             >
-                <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                <TouchableWithoutFeedback onPress={() => {
+                    setModalVisible(false);
+                    setSelectedCard(null);
+                    setIsEditMode(false);
+                }}>
                     <View style={styles.modalOverlay}>
                         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                             <KeyboardAvoidingView
@@ -306,7 +395,9 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                 style={styles.modalContainer}
                             >
                                 <View style={styles.modalContent}>
-                                    <Text style={styles.modalTitle}>Add Payment Method</Text>
+                                    <Text style={styles.modalTitle}>
+                                        {isEditMode ? 'Edit Payment Method' : 'Add Payment Method'}
+                                    </Text>
 
                                     <View style={styles.inputContainer}>
                                         <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
@@ -360,10 +451,21 @@ const Payments: React.FC<PersonalInfoProps> = (props) => {
                                     </View>
 
                                     <View style={styles.modalButtons}>
-                                        <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+                                        {isEditMode && selectedCard && (
+                                            <TouchableOpacity onPress={handleDeleteCardFromModal} style={[styles.cancelButton, { backgroundColor: '#FF3B30' }]}>
+                                                <Text style={styles.cancelButtonText}>Delete</Text>
+                                            </TouchableOpacity>
+                                        )}
+
+                                        <TouchableOpacity onPress={() => {
+                                            setModalVisible(false);
+                                            setSelectedCard(null);
+                                            setIsEditMode(false);
+                                        }} style={styles.cancelButton}>
                                             <Text style={styles.cancelButtonText}>Cancel</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity onPress={handleAddPayment} style={styles.saveButton}>
+
+                                        <TouchableOpacity onPress={isEditMode ? handleUpdatePayment : handleAddPayment} style={styles.saveButton}>
                                             <Text style={styles.saveButtonText}>Save</Text>
                                         </TouchableOpacity>
                                     </View>
