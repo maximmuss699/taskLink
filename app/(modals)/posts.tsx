@@ -164,21 +164,6 @@ const Page = () => {
     // console.log(filter);
 
     var parsed_filter: any = null;
-    if (nonSavedFilter !== undefined && nonSavedFilter !== "") {
-        parsed_filter = nonSavedFilter ? JSON.parse(nonSavedFilter): null; // checks useStatefor undefined values
-        console.log(parsed_filter);
-        console.log("Applying filters:", {
-            minPrice: parsed_filter.minPrice,
-            maxPrice: parsed_filter.maxPrice,
-            fromDate: parsed_filter.fromDate,
-            toDate: parsed_filter.toDate,
-            minRating: parsed_filter.minRating,
-            maxRating: parsed_filter.maxRating,
-            locationRadius: parsed_filter.locationRadius,
-            location: parsed_filter.location,
-            address: parsed_filter.address
-        });
-    }
 
     var no_categ = false;
     var offeringTask = false;
