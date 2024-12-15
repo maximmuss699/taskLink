@@ -23,8 +23,10 @@ import { FIRESTORE } from '@/firebaseConfig';
 import { userId } from '../settings/personal-information';
 import { doc, getDoc } from 'firebase/firestore';
 
+// Create a native stack navigator
 const Stack = createNativeStackNavigator();
 
+// Define the NewStack component that contains the navigation tree for the create new task flow
 const NewStack = () => {
     return (
         <FormProvider>
@@ -45,8 +47,10 @@ const NewStack = () => {
 };
 
 const New = ({ navigation }: { navigation: NativeStackNavigationProp<any> }) => {
+    // Define the form data and setFormData function for manipulating the form data context
     const { formData, setFormData } = useForm();
 
+    // Fetch user name
     useEffect(() => {
         const fetchUsername = async () => {
             try {
@@ -58,15 +62,15 @@ const New = ({ navigation }: { navigation: NativeStackNavigationProp<any> }) => 
                     const data = userDoc.data();
                     if (data) {
                         setFormData({ ...formData, username: data.firstName + ' ' + data.lastName });
-                        console.log('Fetched username from NewScreen:',data.firstName + ' ' + data.lastName);
+                        // console.log('Fetched username from NewScreen:',data.firstName + ' ' + data.lastName);
                     } else {
-                        console.log('Error', 'User data is empty');
+                        console.error('Error', 'User data is empty');
                     }
                 } else {
-                    console.log('Error', 'User not found');
+                    console.error('Error', 'User not found');
                 }
             } catch (error) {
-                console.log('Error', error);
+                console.error('Error', error);
             }
         }
 
@@ -86,7 +90,7 @@ const New = ({ navigation }: { navigation: NativeStackNavigationProp<any> }) => 
 
                 <TouchableOpacity style={styles.categoryButton} onPress={() => { setFormData({ ...formData, offeringTask: false }); navigation.navigate('categoryScreen'); }}>
                     <View style={styles.dropShadow} />
-                    <Text style={styles.text}>Seek out a new task</Text>
+                    <Text style={styles.text}>{'Seek out a \nnew task'}</Text>
                     <MaterialIcons style={styles.icon} resizeMode="cover" name="person-search" size={70} color="black" />
                 </TouchableOpacity>
             </View>

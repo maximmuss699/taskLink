@@ -41,9 +41,11 @@ export const BottomButton: React.FC<{ title: string; onPress?: () => void; disab
 
 const MapScreen = () => {
     const navigation = useNavigation();
+    // Define the form data and setFormData function for manipulating the form data context
     const { formData, setFormData } = useForm();
     const mapRef = React.useRef<MapView>(null);
 
+    // Function to handle the map press event
     const handleMapPress = async (event: MapPressEvent) => {
         const { latitude, longitude } = event.nativeEvent.coordinate;
     

@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const PictureScreen = () => {
     const navigation = useNavigation();
+    // Define the form data and setFormData function for manipulating the form data context
     const { formData, setFormData } = useForm();
 
     // Function to capture images from the gallery
@@ -58,6 +59,7 @@ const PictureScreen = () => {
             </View>
             <Text style={styles.upperText}>{'Please choose relevant pictures\n(Long press a picture to remove it)'}</Text>
 
+            {/* Image row */}
             <View style={{flex: 1, alignItems: 'center', justifyContent: 'flex-start', marginTop: 15}}>
                 <View style={styles.imageRow}>
                     <FlatList

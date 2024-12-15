@@ -7,8 +7,6 @@
 import React from 'react';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useForm } from '../context/FormContext';
@@ -19,6 +17,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 const CategoryScreen = () => {
     const navigation = useNavigation();
+    // Define the form data and setFormData function for manipulating the form data context
     const { formData, setFormData } = useForm();
 
     return (

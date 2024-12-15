@@ -16,6 +16,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 const FormScreen = () => {
     const navigation = useNavigation();
+    // Define the form data and setFormData function for manipulating the form data context
     const { formData, setFormData } = useForm();
     const [currentDate] = useState(new Date());
 
@@ -26,12 +27,14 @@ const FormScreen = () => {
         }
     }, [currentDate, formData, setFormData]);
 
+    // Function to handle the price change event
     const handlePriceChange = (text: string) => {
         // Remove any non-numeric characters
         const numericText = text.replace(/[^0-9]/g, '');
         setFormData({ ...formData, price: numericText === '' ? undefined : parseInt(numericText) });
     };
 
+    // Function to handle the date change event
     const handleDateChange = (event: any, selectedDate: Date | undefined) => {
         if (selectedDate) {
             setFormData({ ...formData, date: selectedDate });

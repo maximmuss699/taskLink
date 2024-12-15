@@ -20,15 +20,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const FinalScreen = () => {
     const navigation = useNavigation();
+    // Define the form data and setFormData function for manipulating the form data context
     const { formData, setFormData } = useForm();
+    // Define the loading, success, and error states
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(false);
+    // Define the new image URLs and readyToUpload states
     const [newImageUrls, setNewImageUrls] = useState<string[]>([]);
     const [readyToUpload, setReadyToUpload] = useState(false);
 
+    // Get the storage reference
     const storage = getStorage();
 
+    // Function to get the download URL of a photo
     const getPermalink = async (fileName : string) => {
         try {
             const fileRef = ref(storage, `${fileName}`);
@@ -42,6 +47,7 @@ const FinalScreen = () => {
         }
     };
 
+    // Function to publish the post
     const onPublish = async () => {
         setLoading(true);
         setError(false);
@@ -61,6 +67,7 @@ const FinalScreen = () => {
             const imageUrls = await Promise.all(imageRefs.map(async (imageRef) => {
                 return await getPermalink(imageRef.name);
             }));
+            // Set the new image URLs, this will trigger the next useEffect
             setNewImageUrls(imageUrls.filter((url): url is string => url !== null));
         } catch (error) {
             console.error("Error uploading post: ", error);
@@ -69,16 +76,19 @@ const FinalScreen = () => {
         }
     };
 
+    // Update the form data with the new image URLs
     useEffect(() => {
         if (newImageUrls.length > 0) {
             setFormData((prevFormData) => {
                 const updatedFormData = { ...prevFormData, images: newImageUrls };
                 return updatedFormData;
             });
+            // Set readyToUpload to true to trigger the upload useEffect
             setReadyToUpload(true);
         }
     }, [newImageUrls]);
 
+    // Upload the post to Firestore
     useEffect(() => {
         if (readyToUpload && formData.images && lodash.isEqual(formData.images, newImageUrls)) {
             const uploadPost = async () => {
@@ -86,7 +96,8 @@ const FinalScreen = () => {
                     // Upload the post to Firestore
                     await addDoc(collection(FIRESTORE, 'posts'), formData);
                     setSuccess(true);
-                    setTimeout(() => {      // Navigate back to the new task screen after 1 second and reset the form data
+                    // Navigate back to the new task screen after 1 second and reset the form data
+                    setTimeout(() => {
                         setFormData({});
                         navigation.navigate('new' as never);
                     }, 1000);

@@ -12,6 +12,7 @@ import { FIRESTORE } from "@/firebaseConfig";
 import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from "firebase/firestore";
 import { userId } from "./personal-information";
 import { jobPost } from "../(tabs)/index";
+import Colors from "@/constants/Colors";
 
 const MyTasks = () => {
     const router = useRouter();
@@ -19,6 +20,7 @@ const MyTasks = () => {
     const [loading, setLoading] = useState(true);
     const [userName, setUserName] = useState<string>('');
 
+    // Fetch user name
     useEffect(() => {
         const fetchUsername = async () => {
             try {
@@ -30,19 +32,20 @@ const MyTasks = () => {
                     if (data) {
                         setUserName(data.firstName + ' ' + data.lastName);
                     } else {
-                        console.log('Error', 'User data is empty');
+                        console.error('Error', 'User data is empty');
                     }
                 } else {
-                    console.log('Error', 'User not found');
+                    console.error('Error', 'User not found');
                 }
             } catch (error) {
-                console.log('Error', error);
+                console.error('Error', error);
             }
         };
 
         fetchUsername();
     }, [userId]);
 
+    // Fetch user's tasks
     useEffect(() => {
         const fetchTasks = async () => {
             try {
@@ -62,6 +65,7 @@ const MyTasks = () => {
         }
     }, [userName]);
 
+    // Delete task from the database alert
     const handleDelete = (id: string) => {
         Alert.alert(
             "Delete Post",
@@ -95,6 +99,7 @@ const MyTasks = () => {
                 </TouchableOpacity>
                 <Text style={styles.title}>My tasks</Text>
             </View>
+            {/* Display loading indicator while fetching data */}
             {loading ? (
                 <ActivityIndicator size="large" color="#000000" style={styles.loadingIndicator} />
             ) : (
@@ -102,6 +107,7 @@ const MyTasks = () => {
                     data={tasks}
                     renderItem={({ item }) => (
                         <View style={styles.taskContainer}>
+                            {/* Task */}
                             <TouchableOpacity
                                 key={item.id}
                                 style={[styles.JobAdvertisement, { backgroundColor: item.offeringTask ? "#D9D9D9" : "#8eb28e" }]}
@@ -131,6 +137,7 @@ const MyTasks = () => {
                                     </View>
                                 </View>
                             </TouchableOpacity>
+                            {/* Delete button */}
                             <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteButton}>
                                 <Ionicons name="trash" size={24} color="#ffffff" />
                             </TouchableOpacity>
@@ -203,7 +210,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 5,
         marginLeft: 5,
-        color: '#000',
+        color: Colors.primary,
     },
     dateSytle: {
         fontSize: 14,
