@@ -4,7 +4,7 @@ import { useLocalSearchParams, router, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from 'react-native-safe-area-context';
 /* firestore imports */
-import { collection, query, doc, where, onSnapshot, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
+import { collection, query, doc, where, onSnapshot, deleteDoc, updateDoc, getDocs, getDoc } from 'firebase/firestore';
 import { FIRESTORE } from '@/firebaseConfig';
 
 // evaluation interface
@@ -21,19 +21,6 @@ export interface evaluation {
 async function deleteComment(commId: string) {
     const docReference = doc(FIRESTORE, 'jobEval', commId);
     await deleteDoc(docReference);
-}
-
-// computes the average rating...
-const computeWholeEval = (evalArr: Array<evaluation>) => {
-    var ratingSum: number = 0;
-    if (evalArr.length === 0) return 0.0 // avoid division by zero
-    // get the sum
-    evalArr.forEach((arrElem) => {
-        ratingSum += arrElem.rating;
-    })
-    // divide the sum by the number of the elements in the array
-    ratingSum = ratingSum / evalArr.length;
-    return Math.ceil(ratingSum * 10) / 10;
 }
 
 // function rendering single comment
@@ -75,9 +62,9 @@ const commentMain = () => {
     // console.log(id);
     // get the post evaluations
     const [loadedEvals, setEvals] = useState<evaluation[]>([]);
-    const [postRating, setPostRating] = useState<number>();
+    const [postRating, setPostRating] = useState<number | string>();
     const [currentUser, setCurrentUser] = useState<string>("");
-
+    const [postRatingCnt, setPostRatingCnt] = useState<number>();
 
     useEffect(() => {
         const get_username = async () => {
@@ -89,6 +76,18 @@ const commentMain = () => {
         }
         get_username();
     }, []);
+
+
+    useEffect(() => {
+        const collectionRef = collection(FIRESTORE, "posts");
+        const docRef = doc(collectionRef, id);
+        const end = onSnapshot(docRef, (doc) => {
+            setPostRating(doc.data()?.rating.toFixed(1));
+            setPostRatingCnt(doc.data()?.ratingCnt);
+        })
+
+        return () => end();
+    }, [id]);
 
     useEffect(() => {
         const collectionRef = collection(FIRESTORE, "jobEval");
@@ -109,12 +108,7 @@ const commentMain = () => {
                     })
                 )
                 setEvals(evalArray);
-                // compute the overall job rating
-                const postEvaluation = computeWholeEval(evalArray);
-                const postDoc = doc(collection(FIRESTORE, "posts"), id);
-                // update the rating in the post collection
-                updateDoc(postDoc, { rating: postEvaluation, ratingCnt: evalArray.length });
-                setPostRating(postEvaluation);
+
             });
             return () => end();
     }, ([]));
@@ -131,10 +125,10 @@ const commentMain = () => {
         <View style={styles.evalHeader}>
             <View style={{ flexDirection: "row", marginLeft: 30 }}>
                 <Ionicons name="star" size={20}/>
-                <Text style={{ fontFamily: 'mon-b', fontSize: 20 }}>{postRating} ({loadedEvals.length})</Text>
+                <Text style={{ fontFamily: 'mon-b', fontSize: 20 }}>{postRating} ({postRatingCnt})</Text>
             </View>
         <TouchableOpacity style={styles.button} onPress={() => router.push({pathname: "/comments/evaluationForm", params: {id} })}>
-            <Text style={styles.buttonText}>Add evaluation</Text>
+            <Text style={styles.buttonText}>Add evalutaion</Text>
         </TouchableOpacity>
         </View>
 
