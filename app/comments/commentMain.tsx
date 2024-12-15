@@ -23,7 +23,7 @@ async function deleteComment(commId: string) {
     await deleteDoc(docReference);
 }
 
-// computes the average rating
+// computes the average rating...
 const computeWholeEval = (evalArr: Array<evaluation>) => {
     var ratingSum: number = 0;
     if (evalArr.length === 0) return 0.0 // avoid division by zero
@@ -72,7 +72,7 @@ export const renderEval = (id: string, rating: number, comment: string, commId: 
 const commentMain = () => {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
-    console.log(id);
+    // console.log(id);
     // get the post evaluations
     const [loadedEvals, setEvals] = useState<evaluation[]>([]);
     const [postRating, setPostRating] = useState<number>();
@@ -150,7 +150,7 @@ const commentMain = () => {
     );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
     mainText: {
         fontSize: 28,
         fontFamily: 'mon-b',

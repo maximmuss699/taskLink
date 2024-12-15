@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useLocalSearchParams, Router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FIRESTORE } from '@/firebaseConfig';
-import { collection, setDoc, getFirestore, onSnapshot, query, where, deleteDoc, getDoc, getDocs, doc, limit, addDoc } from 'firebase/firestore';
-import { renderEval, evaluation } from '../comments/commentMain';
+import { updateDoc, collection, setDoc, getFirestore, onSnapshot, query, where, deleteDoc, getDoc, getDocs, doc, limit, addDoc } from 'firebase/firestore';
+import { evaluation } from '../comments/commentMain';
 import Carousel from 'react-native-reanimated-carousel';
 import { jobPost } from '../(tabs)';
 import filterPage from '../filters/filterMain';
@@ -15,6 +15,31 @@ export interface chat {
     username: string;
     messages: Message[];
 };
+
+// function rendering single comment
+const renderEval = (id: string, rating: number, comment: string, commId: string, router: any, username: string, taskerId: string | null, current_user: string) => {
+    return(
+        <View style={{ width: "100%" }}>
+        <View style={{ height: 2, backgroundColor: "black", width: "100%", margin: 5, marginBottom: 8, alignSelf: "center" }}></View>
+        <View style={styles.singleComm}>
+            <View style={styles.signleCommL}>
+                {taskerId ? (<TouchableOpacity onPress={() => router.push({pathname: "/profile/[taskerId]", params: {taskerId: taskerId}})}>
+                    <Text style={[styles.evalText, { marginBottom: 8} ]}>{ username }</Text>
+                </TouchableOpacity>) :
+                (<Text style={[styles.evalText, { marginBottom: 8} ]}>{ username }</Text>)}
+                <Text style={styles.text}>{comment}</Text>
+            </View>
+            <View style={styles.outerSingleCommR}>
+                <View style={styles.singleCommR}>
+                    <Ionicons name='star' size={15}/>
+                    <Text style={styles.evalText}>{rating}/5</Text>
+                </View>
+            </View>
+        </View>
+        </View>
+    )
+}
+
 
 /* adds post to favourites if its not already... if it is in favourites, it will remove it from favourites */
 async function addToFavourites(id: string) {
@@ -121,7 +146,7 @@ const Page = () => {
             }
         }
         main();
-    }, [id, loadedPost]);
+    }, [id, loadedPost, loadedEvals]);
 
     /* fetch the taskerId */
     useEffect(() => {
@@ -387,6 +412,29 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignContent: "center",
         marginBottom: 20
+    },
+    singleComm: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginBottom: 15
+    },
+    signleCommL: {
+        flexDirection: "column",
+        marginLeft: 30,
+        width: "65%"
+    },
+    singleCommR: {
+        flexDirection: "row",
+        marginRight: 55
+    },
+    evalText: {
+        fontFamily: 'mon-sb'
+    },
+    text: {
+        fontFamily: 'mon'
+    },
+    outerSingleCommR: {
+        flexDirection: "column"
     }
 })
 
