@@ -91,10 +91,10 @@ const ProfilePage = () => {
             const fetchUserData = async () => {
 
                 try {
-                    // Создайте ссылку на документ пользователя
+                    // Create a reference to the user document
                     const userDocRef = doc(FIRESTORE, 'users', userId);
 
-                    // Получите документ
+                    // Fetch the user document
                     const userDoc = await getDoc(userDocRef);
 
                     if (userDoc.exists()) {
