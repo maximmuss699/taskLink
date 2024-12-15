@@ -56,6 +56,12 @@ const FinalScreen = () => {
         try {
             // Upload images to storage
             const images = formData.images || [];
+            // No images to upload, proceed to update formData
+            if (images.length === 0) {
+                setNewImageUrls([]);
+                setLoading(false);
+                return;
+            }
             const imageRefs = await Promise.all(images.map(async (image, index) => {
                 const imageRef = ref(storage, `${formData.title}-${formDataHash}-${index}`);
                 const response = await fetch(image);
@@ -78,7 +84,7 @@ const FinalScreen = () => {
 
     // Update the form data with the new image URLs
     useEffect(() => {
-        if (newImageUrls.length > 0) {
+        if (newImageUrls.length > 0 || formData.images?.length === 0) {
             setFormData((prevFormData) => {
                 const updatedFormData = { ...prevFormData, images: newImageUrls };
                 return updatedFormData;

@@ -50,7 +50,7 @@ const New = ({ navigation }: { navigation: NativeStackNavigationProp<any> }) => 
     // Define the form data and setFormData function for manipulating the form data context
     const { formData, setFormData } = useForm();
 
-    // Fetch user name
+    // Fetch user name and set userId
     useEffect(() => {
         const fetchUsername = async () => {
             try {
@@ -61,7 +61,7 @@ const New = ({ navigation }: { navigation: NativeStackNavigationProp<any> }) => 
                 if (userDoc.exists()) {
                     const data = userDoc.data();
                     if (data) {
-                        setFormData({ ...formData, username: data.firstName + ' ' + data.lastName });
+                        setFormData({ ...formData, username: data.firstName + ' ' + data.lastName, userId: userId });
                         // console.log('Fetched username from NewScreen:',data.firstName + ' ' + data.lastName);
                     } else {
                         console.error('Error', 'User data is empty');

@@ -15,6 +15,7 @@ interface FormData {
      */
     offeringTask?: boolean;
     username?: string;
+    userId?: string;
     title?: string;
     price?: number;
     description?: string;
