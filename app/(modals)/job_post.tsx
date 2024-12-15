@@ -270,7 +270,7 @@ const Page = () => {
                         {/* <View style={{height: 2, backgroundColor: "black", width: "100%"}}></View> */}
                         <View style={styles.postRatingView}>
                             <Ionicons name="star" size={25}/>
-                            <Text style={[styles.Text, { fontSize: 20 }]}>{ loadedPost?.rating } ({ loadedPost?.ratingCnt })</Text>
+                            <Text style={[styles.Text, { fontSize: 20 }]}>{ loadedPost?.rating.toFixed(1) } ({ loadedPost?.ratingCnt })</Text>
                         </View>
                     </View>)}
 
