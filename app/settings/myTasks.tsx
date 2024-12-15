@@ -1,3 +1,9 @@
+/**
+ * @file myTasks.tsx
+ * @author Jakub Zelenay (xzelen29)
+ * @description My tasks screen
+ */
+
 import React, { useEffect, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";

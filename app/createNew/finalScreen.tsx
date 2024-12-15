@@ -1,3 +1,9 @@
+/**
+ * @file finalScreen.tsx
+ * @author Jakub Zelenay (xzelen29)
+ * @description Final screen of the create new task flow to review the details
+ */
+
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { BottomButton } from './mapScreen';

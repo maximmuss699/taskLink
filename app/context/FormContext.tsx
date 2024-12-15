@@ -1,3 +1,9 @@
+/**
+ * @file FormContext.tsx
+ * @author Jakub Zelenay (xzelen29)
+ * @description Context for storing form data during the task creation process
+ */
+
 import React, { createContext, useState, useContext } from 'react';
 import MapView, { Address } from 'react-native-maps';
 import { Geohash } from 'geofire-common';

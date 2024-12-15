@@ -1,3 +1,9 @@
+/**
+ * @file mapScreen.tsx
+ * @author Jakub Zelenay (xzelen29)
+ * @description Screen for choosing the location of the task
+ */
+
 import React, { useState } from 'react';
 import { TouchableOpacity, View, Text, StyleSheet, ScrollView } from 'react-native';
 import Colors from "@/constants/Colors";

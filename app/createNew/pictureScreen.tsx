@@ -1,3 +1,9 @@
+/**
+ * @file pictureScreen.tsx
+ * @author Jakub Zelenay (xzelen29)
+ * @description Screen for choosing pictures for the task
+ */
+
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, FlatList } from 'react-native';
 import { BottomButton } from './mapScreen';

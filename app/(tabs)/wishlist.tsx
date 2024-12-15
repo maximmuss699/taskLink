@@ -1,3 +1,9 @@
+/**
+ * @file wishlist.tsx
+ * @author Jakub Zelenay (xzelen29)
+ * @description First screen of the create new task flow
+ */
+
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import React, { useEffect } from 'react';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';

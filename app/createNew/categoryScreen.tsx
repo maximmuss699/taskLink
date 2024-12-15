@@ -1,3 +1,9 @@
+/**
+ * @file categoryScreen.tsx
+ * @author Jakub Zelenay (xzelen29)
+ * @description Category choosing screen
+ */
+
 import React from 'react';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';

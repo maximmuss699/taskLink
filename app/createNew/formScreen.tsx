@@ -1,3 +1,9 @@
+/**
+ * @file formScreen.tsx
+ * @author Jakub Zelenay (xzelen29)
+ * @description Screen for filling in the details of the task
+ */
+
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, Button, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
