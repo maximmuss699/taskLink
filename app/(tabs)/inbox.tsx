@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#333',
-        marginBottom: 20,
+        marginBottom: 0,
         marginTop: -4,
     },
     emptyText: {
