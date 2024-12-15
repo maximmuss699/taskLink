@@ -18,7 +18,7 @@
                        - Oblíbené příspěvky
                        - Hodnocení služeb ('comments/', '(modals)/editComment.tsx')
                        - Zahájení chatu (`chats/`) |
-| **Jakub Zelenay**     | - Obrazovka pro vytváření nových nabízených a hledaných úkolů (`createNew/`)
+| **Jakub Zelenay**     | - Obrazovky pre vytváranie nových ponúkaných a hľadaných úloh `(tabs)/wishlist.tsx` a folder (`createNew/`)
                        - Moje tasky (`settings/myTasks.tsx`)|
 
 ---
