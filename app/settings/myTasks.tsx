@@ -7,9 +7,9 @@
 import React, { useEffect, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
-import { SafeAreaView, Text, StyleSheet, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
+import { SafeAreaView, Text, StyleSheet, View, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { FIRESTORE } from "@/firebaseConfig";
-import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { userId } from "./personal-information";
 import { jobPost } from "../(tabs)/index";
 import Colors from "@/constants/Colors";
@@ -35,7 +35,7 @@ const MyTasks = () => {
         };
 
         fetchTasks();
-    });
+    }, []);
 
     // Delete task from the database alert
     const handleDelete = (id: string) => {
@@ -75,13 +75,11 @@ const MyTasks = () => {
             {loading ? (
                 <ActivityIndicator size="large" color="#000000" style={styles.loadingIndicator} />
             ) : (
-                <FlatList
-                    data={tasks}
-                    renderItem={({ item }) => (
-                        <View style={styles.taskContainer}>
+                <ScrollView contentContainerStyle={styles.scrollView}>
+                    {tasks.map(item => (
+                        <View key={item.id} style={styles.taskContainer}>
                             {/* Task */}
                             <TouchableOpacity
-                                key={item.id}
                                 style={[styles.JobAdvertisement, { backgroundColor: item.offeringTask ? "#D9D9D9" : "#8eb28e" }]}
                                 onPress={() =>
                                     router.push({
@@ -89,7 +87,7 @@ const MyTasks = () => {
                                         params: {
                                             id: item.id,
                                             username: item.username,
-                                            location: item.address.locality || '',
+                                            location: item.address ? item.address.locality || '' : '',
                                             job_name: item.title,
                                             date: item.date.toDate().toLocaleDateString(),
                                             price: item.price,
@@ -102,7 +100,7 @@ const MyTasks = () => {
                             >
                                 <View style={styles.jobInfo}>
                                     <Text style={styles.jobNameText}>{item.title}</Text>
-                                    <Text style={[styles.locText, { fontSize: 16, marginBottom: 3, marginLeft: 0 }]}>{item.address.locality}</Text>
+                                    <Text style={[styles.locText, { fontSize: 16, marginBottom: 3, marginLeft: 0 }]}>{item.address ? item.address.locality || '' : ''}</Text>
                                     <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
                                         <Text style={[styles.dateSytle, { color: 'black', marginLeft: 2 }]}>{item.date.toDate().toLocaleDateString()}</Text>
                                         <Text style={styles.costStyle}>{item.price} €</Text>
@@ -114,10 +112,8 @@ const MyTasks = () => {
                                 <Ionicons name="trash" size={24} color="#ffffff" />
                             </TouchableOpacity>
                         </View>
-                    )}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.scrollView}
-                />
+                    ))}
+                </ScrollView>
             )}
         </SafeAreaView>
     );
@@ -149,10 +145,11 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     scrollView: {
-        padding: 16,
+        paddingHorizontal: 16,
+        paddingBottom: 16,
     },
     JobAdvertisement: {
-        marginBottom: 20,
+        marginBottom: 10,
         alignItems: "flex-start",
         width: "80%",
         borderRadius: 15,
@@ -201,7 +198,7 @@ const styles = StyleSheet.create({
     },
     taskContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-evenly',
+        justifyContent: 'space-between',
     },
     deleteButton: {
         width: '18%',
@@ -209,7 +206,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 15,
-        height: '87%',
         marginLeft: 10,
+        height: 100,
     },
 });

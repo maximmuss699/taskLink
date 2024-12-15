@@ -238,7 +238,7 @@ const Page = () => {
                     renderItem={({ item }) => job_ad(
                         item.id,
                         item.username,
-                        item.address.locality || '',
+                        item.address ? item.address.locality || '' : '',
                         item.title,
                         item.date.toDate().toLocaleDateString(),
                         item.price,

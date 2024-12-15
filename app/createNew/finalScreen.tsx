@@ -52,16 +52,16 @@ const FinalScreen = () => {
         setLoading(true);
         setError(false);
 
+        // Check if there are images to upload, if not set readyToUpload to true to trigger the upload useEffect
+        if (!formData.images || formData.images.length === 0) {
+            setReadyToUpload(true);
+            return;
+        }
+
         const formDataHash = murmurhash.v3(JSON.stringify(formData)).toString();
         try {
             // Upload images to storage
             const images = formData.images || [];
-            // No images to upload, proceed to update formData
-            if (images.length === 0) {
-                setNewImageUrls([]);
-                setLoading(false);
-                return;
-            }
             const imageRefs = await Promise.all(images.map(async (image, index) => {
                 const imageRef = ref(storage, `${formData.title}-${formDataHash}-${index}`);
                 const response = await fetch(image);
@@ -84,7 +84,7 @@ const FinalScreen = () => {
 
     // Update the form data with the new image URLs
     useEffect(() => {
-        if (newImageUrls.length > 0 || formData.images?.length === 0) {
+        if (newImageUrls.length > 0) {
             setFormData((prevFormData) => {
                 const updatedFormData = { ...prevFormData, images: newImageUrls };
                 return updatedFormData;
@@ -96,21 +96,28 @@ const FinalScreen = () => {
 
     // Upload the post to Firestore
     useEffect(() => {
-        if (readyToUpload && formData.images && lodash.isEqual(formData.images, newImageUrls)) {
+        if (readyToUpload && ((formData.images && lodash.isEqual(formData.images, newImageUrls)) || !formData.images)) {
             const uploadPost = async () => {
-                try {
-                    // Upload the post to Firestore
-                    await addDoc(collection(FIRESTORE, 'posts'), formData);
-                    setSuccess(true);
-                    // Navigate back to the new task screen after 1 second and reset the form data
-                    setTimeout(() => {
-                        setFormData({});
-                        navigation.navigate('new' as never);
-                    }, 1000);
-                } catch (error) {
-                    console.error("Error uploading post: ", error);
+                // Check if all required fields are present a last time
+                if (formData.username && formData.address && formData.category && formData.coordinates && formData.date && formData.description && formData.price && formData.title && formData.userId) {
+                    try {
+                        // Upload the post to Firestore
+                        await addDoc(collection(FIRESTORE, 'posts'), formData);
+                        setSuccess(true);
+                        setTimeout(() => {
+                            setFormData({});
+                            navigation.navigate('new' as never);
+                        }, 1000);
+                    } catch (error) {
+                        console.error("Error uploading post: ", error);
+                        setError(true);
+                    } finally {
+                        setLoading(false);
+                        setReadyToUpload(false);
+                    }
+                } else {
+                    console.error('Error uploading post: ', 'Missing required fields');
                     setError(true);
-                } finally {
                     setLoading(false);
                     setReadyToUpload(false);
                 }
