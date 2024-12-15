@@ -30,6 +30,7 @@
    - Chat: `chats/`
    - Nastavení : `settings/`
    - Statistiky: `stats/`
+   - Nový příspěvek: `createNew/`
    - Inbox a profil: `(tabs)/inbox.tsx`, `(tabs)/profile.tsx`
    - Domovská obrazovka: `(tabs)/index.tsx`
     - Rychlé hledání: `(tabs)/explore.tsx`
