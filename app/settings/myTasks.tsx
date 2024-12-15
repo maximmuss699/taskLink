@@ -18,38 +18,12 @@ const MyTasks = () => {
     const router = useRouter();
     const [tasks, setTasks] = useState<jobPost[]>([]);
     const [loading, setLoading] = useState(true);
-    const [userName, setUserName] = useState<string>('');
-
-    // Fetch user name
-    useEffect(() => {
-        const fetchUsername = async () => {
-            try {
-                const userDocRef = doc(FIRESTORE, 'users', userId);
-                const userDoc = await getDoc(userDocRef);
-
-                if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    if (data) {
-                        setUserName(data.firstName + ' ' + data.lastName);
-                    } else {
-                        console.error('Error', 'User data is empty');
-                    }
-                } else {
-                    console.error('Error', 'User not found');
-                }
-            } catch (error) {
-                console.error('Error', error);
-            }
-        };
-
-        fetchUsername();
-    }, [userId]);
 
     // Fetch user's tasks
     useEffect(() => {
         const fetchTasks = async () => {
             try {
-                const q = query(collection(FIRESTORE, 'posts'), where('username', '==', userName));
+                const q = query(collection(FIRESTORE, 'posts'), where('userId', '==', userId));
                 const querySnapshot = await getDocs(q);
                 const fetchedTasks = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as jobPost));
                 setTasks(fetchedTasks);
@@ -60,10 +34,8 @@ const MyTasks = () => {
             }
         };
 
-        if (userName) {
-            fetchTasks();
-        }
-    }, [userName]);
+        fetchTasks();
+    });
 
     // Delete task from the database alert
     const handleDelete = (id: string) => {
@@ -117,7 +89,7 @@ const MyTasks = () => {
                                         params: {
                                             id: item.id,
                                             username: item.username,
-                                            location: item.address.locality,
+                                            location: item.address.locality || '',
                                             job_name: item.title,
                                             date: item.date.toDate().toLocaleDateString(),
                                             price: item.price,
