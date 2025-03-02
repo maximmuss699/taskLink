@@ -1,3 +1,16 @@
+# TaskLink
+
+**TaskLink** is a mobile application built with **React Native** and **Google Firebase/Firestore**, enabling users to find or offer services for various tasks.
+
+## Screenshots
+
+## Features
+- Advanced search with location, price, and rating filters
+- Favorite services and providers
+- In-app chat
+- Income/expense tracking
+- Task management
+
 
 ## Installation
 
