@@ -46,7 +46,7 @@ const ChatScreen = () => {
 
     // Send message
     const sendMessage = async () => {
-        if (inputText.trim()) {
+        if (inputText.trim()) { // if input is not empty
             const newMessage: Message = {
                 id: Date.now().toString(),
                 text: inputText.trim(),
