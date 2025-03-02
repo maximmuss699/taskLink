@@ -14,10 +14,12 @@
 
 
 
+
+
 ## 🎥 Demonstration Video
-
-![Demo](screenshots/app_small_demo.gif)
-
+<p align="center">
+  <img src="screenshots/app_small_demo.gif" width="300">
+</p>
 
 ## Features
 - Advanced search with location, price, and rating filters
